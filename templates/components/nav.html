@@ -1,0 +1,11 @@
+{% with route=request.resolver_match.url_name %}
+<p class="nav-label">دفتر شما</p>
+<a href="{% url 'dashboard' %}" {% if route == 'dashboard' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='grid' %}<span>پیشخوان</span></a>
+<a href="{% url 'poems' %}" {% if route == 'poems' or route == 'poem-detail' or route == 'poem-edit' or route == 'tag-detail' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>کتابخانهٔ اشعار</span></a>
+<a href="{% url 'favorites' %}" {% if route == 'favorites' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='star' %}<span>شاه‌بیت‌ها</span></a>
+<a href="{% url 'tags' %}" {% if route == 'tags' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='tag' %}<span>تگ‌های دفتر</span></a>
+<p class="nav-label">همراه با شعر</p>
+<a href="{% url 'review' %}" {% if route == 'review' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='repeat' %}<span>مرور امروز</span><span class="count">{{ due_count }}</span></a>
+<a href="{% url 'memorize' %}" {% if route == 'memorize' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='list' %}<span>فهرست حفظ</span></a>
+<a href="{% url 'discover' %}" {% if route == 'discover' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='compass' %}<span>کشف شعر</span></a>
+{% endwith %}

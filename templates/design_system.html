@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}راهنمای طراحی{% endblock %}
+{% block content %}
+<header class="page-heading"><div><span class="eyebrow">دفتر ادبی معاصر</span><h1>راهنمای طراحی دیوان نامه</h1><p class="muted">نمونهٔ زندهٔ توکن‌ها و کامپوننت‌ها. مرجع کامل: design-system/divannameh/MASTER.md</p></div></header>
+
+<div class="section-heading"><div><span class="eyebrow">توکن‌های پایه</span><h2>رنگ‌ها</h2></div></div>
+<div class="card-grid">
+  <article class="panel"><h3>زمینه و سطح</h3><div class="tags"><span class="chip">background #F4F1E9</span><span class="chip">surface #FFFCF5</span><span class="chip">surface-muted #EAE5D9</span><span class="chip">border #D8D0C1</span></div></article>
+  <article class="panel"><h3>متن و اقدام</h3><div class="tags"><span class="chip">foreground #302D27</span><span class="chip">muted #6E685D</span><span class="chip">primary #824338</span><span class="chip">focus #28647B</span></div></article>
+  <article class="panel"><h3>وضعیت</h3><p class="notice">نمونهٔ پیام موفق</p><p class="notice error">نمونهٔ پیام خطا</p></article>
+</div>
+
+<div class="section-heading"><div><span class="eyebrow">کنترل‌ها</span><h2>دکمه‌ها</h2></div></div>
+<section class="panel">
+  <div class="actions">
+    <button class="primary" type="button">اقدام اصلی</button>
+    <button type="button">اقدام ثانویه</button>
+    <button class="quiet" type="button">کم‌رنگ</button>
+    <button class="text-button" type="button">دکمهٔ متنی</button>
+    <button class="primary" type="button" disabled>غیرفعال</button>
+    <span class="stamp">نشان</span>
+    <a class="chip" href="#">تگ نمونه</a>
+    <a class="inline-link" href="#">لینک درون‌متنی{% include 'components/icon.html' with name='arrow' %}</a>
+  </div>
+</section>
+
+<div class="section-heading"><div><span class="eyebrow">فرم</span><h2>ورودی‌ها</h2></div></div>
+<section class="panel">
+  <div class="form-grid">
+    <div><label for="ds-input">فیلد متنی</label><input id="ds-input" placeholder=""></div>
+    <div><label for="ds-select">انتخاب</label><select id="ds-select"><option>گزینهٔ نخست</option><option>گزینهٔ دوم</option></select></div>
+  </div>
+  <label for="ds-textarea">چندخطی</label><textarea id="ds-textarea" rows="3"></textarea>
+  <label><input type="checkbox" checked> گزینهٔ قابل انتخاب</label>
+</section>
+
+<div class="section-heading"><div><span class="eyebrow">محتوا</span><h2>بیت و کارت</h2></div></div>
+<section class="poetry-panel">
+  <div class="verse" data-position="1"><span class="verse-number">۱</span><div class="hemistich">الا یا ایها الساقی ادر کاسا و ناولها</div><div class="hemistich">که عشق آسان نمود اول ولی افتاد مشکل‌ها</div></div>
+  <div class="verse selected" data-position="2"><span class="verse-number">۲</span><div class="hemistich">نمونهٔ بیت انتخاب‌شده در حالت گزینش بازه</div></div>
+</section>
+<div class="card-grid">
+  <article class="poem-card">
+    <div class="card-meta"><span>نام شاعر</span><span>۲ بیت</span></div>
+    <h2><a href="#">عنوان نمونهٔ شعر</a></h2>
+    <p class="excerpt">مصرعی برای نمایش برش شعر در کارت کتابخانه</p>
+    <div class="tags"><span class="chip">عاشقانه</span></div>
+    <div class="card-footer"><a class="inline-link" href="#">خواندن شعر{% include 'components/icon.html' with name='arrow' %}</a>{% include 'components/icon.html' with name='book' %}</div>
+  </article>
+  <section class="empty"><span class="empty-icon">{% include 'components/icon.html' with name='pen' %}</span><h2>حالت خالی</h2><p>عنوان، علت و یک اقدام مرتبط.</p><button class="button" type="button">اقدام نمونه</button></section>
+</div>
+{% endblock %}

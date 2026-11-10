@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block title %}خطای درخواست{% endblock %}{% block content %}<section class="empty"><h1>درخواست انجام نشد</h1><p role="alert">{{ message }}</p><p>به صفحهٔ قبل برگردید و ورودی را اصلاح کنید.</p><a href="{% url 'dashboard' %}">بازگشت به پیشخوان</a></section>{% endblock %}

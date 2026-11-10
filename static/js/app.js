@@ -1,0 +1,75 @@
+import {announce, request, verseElement} from './api.js';
+import './editor.js';
+for (const link of document.querySelectorAll('nav a')) {
+  if (new URL(link.href).pathname === location.pathname) link.setAttribute('aria-current', 'page');
+}
+for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite]')) {
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = form.querySelector('button'); if (button.disabled) return;
+    button.disabled = true;
+    try {
+      const data = await request(form.action, form); announce(data.message);
+      if (data.remaining_due_count !== undefined) document.querySelectorAll('.count').forEach(el => el.textContent = data.remaining_due_count);
+      if (form.hasAttribute('data-favorite')) {
+        button.textContent = data.favorite ? '★' : '☆';
+        button.setAttribute('aria-pressed', String(data.favorite));
+        form.action = data.favorite ? form.dataset.remove : form.dataset.add;
+      }
+    } catch (error) { announce(error.message, true); }
+    finally { button.disabled = false; }
+  });
+}
+for (const form of document.querySelectorAll('.range-form')) {
+  const selects = [...form.querySelectorAll('select')];
+  const update = () => {
+    const [start, end] = selects.map(s => Number(s.selectedOptions[0].dataset.position));
+    form.querySelector('.selection-count').textContent = end < start ? 'بیت پایانی باید پس از بیت آغازین باشد.' : `${end - start + 1} بیت انتخاب شده`;
+    for (const row of document.querySelectorAll('[data-position].verse')) row.classList.toggle('selected', Number(row.dataset.position) >= start && Number(row.dataset.position) <= end);
+  };
+  selects.forEach(s => s.addEventListener('change', update));
+  form.closest('details').addEventListener('toggle', () => {
+    if (form.closest('details').open) update();
+    else document.querySelectorAll('.verse.selected').forEach(row => row.classList.remove('selected'));
+  });
+}
+const answer = document.getElementById('review-answer');
+if (answer) {
+  const buttons = [...answer.querySelectorAll('button')];
+  buttons.forEach(b => b.disabled = true);
+  answer.addEventListener('toggle', () => {
+    answer.querySelector('summary').setAttribute('aria-expanded', String(answer.open));
+    buttons.forEach(b => b.disabled = !answer.open);
+  });
+  document.getElementById('rating-form').addEventListener('submit', event => {
+    // Preserve the selected submitter when disabling the buttons.
+    const input = document.createElement('input'); input.type = 'hidden'; input.name = 'rating'; input.value = event.submitter.value;
+    event.target.append(input); buttons.forEach(b => b.disabled = true);
+  });
+}
+const discovery = document.getElementById('discover-form');
+if (discovery) discovery.addEventListener('submit', async event => {
+  event.preventDefault(); const button = discovery.querySelector('button'); button.disabled = true;
+  try {
+    const url = new URL(discovery.dataset.api, location.origin); url.searchParams.set('exclude_id', discovery.elements.exclude_id.value);
+    const {poem} = await request(url);
+    if (!poem) { announce('شعری برای نمایش وجود ندارد.'); return; }
+    document.getElementById('discover-poet').textContent = poem.poet_name;
+    document.getElementById('discover-title').textContent = poem.title;
+    document.getElementById('discover-detail').href = poem.detail_url;
+    document.getElementById('discover-verses').replaceChildren(...poem.verses.map(v => verseElement(v.hemistich_1, v.hemistich_2, v.position)));
+    const same = discovery.elements.exclude_id.value === String(poem.id);
+    discovery.elements.exclude_id.value = poem.id;
+    document.getElementById('discovery').focus(); announce(same ? 'فعلاً همین یک شعر در دفتر شماست.' : 'شعر تازه‌ای از دفتر انتخاب شد.');
+  } catch (error) { announce(error.message, true); } finally { button.disabled = false; }
+});
+
+const navToggle = document.getElementById('nav-toggle');
+if (navToggle) {
+  document.body.classList.add('has-js');
+  navToggle.addEventListener('click', () => {
+    const open = navToggle.getAttribute('aria-expanded') !== 'true';
+    navToggle.setAttribute('aria-expanded', String(open));
+    document.getElementById('main-nav').classList.toggle('mobile-open', open);
+  });
+}

@@ -1,0 +1,10 @@
+.venv/
+.env
+*.sqlite3
+*.sqlite3-*
+__pycache__/
+*.pyc
+staticfiles/
+.coverage
+.pytest_cache/
+artifacts/

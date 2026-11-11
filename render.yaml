@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: divannameh
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+    buildCommand: ./build.sh
+    startCommand: python -m gunicorn config.wsgi:application --config gunicorn.conf.py
+    healthCheckPath: /healthz/
+    autoDeployTrigger: commit
+    envVars:
+      - key: DJANGO_ENV
+        value: production
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_production
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: TRUST_PROXY
+        value: "True"
+      - key: DB_CONN_MAX_AGE
+        value: "0"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: APP_TIME_ZONE
+        value: Asia/Tehran

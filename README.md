@@ -12,7 +12,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 cp .env.example .env
 python -c 'import secrets; print(secrets.token_urlsafe(64))'
-# مقدار تولیدشده را در DJANGO_SECRET_KEY فایل .env قرار دهید.
+# مقدار تولیدشده را در SECRET_KEY فایل .env قرار دهید.
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver 127.0.0.1:8000
@@ -37,7 +37,7 @@ python manage.py check
 python manage.py test
 python manage.py makemigrations --check --dry-run
 python manage.py collectstatic --noinput
-DJANGO_DEBUG=False python manage.py check --deploy
+# بررسی production طبق deployment/ENVIRONMENT.md انجام می‌شود.
 ```
 
 ## ساختار
@@ -46,8 +46,12 @@ DJANGO_DEBUG=False python manage.py check --deploy
 - `poetry`: مدل، فرم، خدمات و صفحات شعر، تگ، شاه‌بیت و کشف
 - `memorization`: کارت‌ها، زمان‌بندی قطعی، ثبت اتمیک مرور و UUID یکتا
 - `templates` و `static`: رابط SSR، فونت‌های محلی و بهبود تدریجی با JS
-- `docs/deployment.md`: استقرار HTTPS، بکاپ و بازیابی
+- `deployment/README.md`: استقرار Render + Neon، محیط‌ها، بکاپ و انتقال کنترل‌شدهٔ داده
 - `docs/decisions.md`: تصمیم‌ها و محدودیت‌های روشن
 - `docs/manual-test.md`: چک‌لیست مرورگر و گزارش کنترل کیفیت
 
-همهٔ اطلاعات خصوصی و محدود به صاحب حساب‌اند؛ تغییر داده فقط با POST و CSRF. متن شعر HTML خام نیست. برای استقرار از Gunicorn و HTTPS استفاده کنید. تولید محتوا، گنجور، OCR، اعلان و ثبت‌نام عمومی در محدودهٔ این MVP نیستند.
+همهٔ اطلاعات خصوصی و محدود به صاحب حساب‌اند؛ تغییر داده فقط با POST و CSRF. متن شعر HTML خام نیست. برای استقرار بدون VPS از راهنمای [Render + Neon](deployment/README.md) استفاده کنید. تولید محتوا، گنجور، OCR، اعلان و ثبت‌نام عمومی در محدودهٔ این MVP نیستند.
+
+## استقرار آنلاین
+
+تنظیمات development و production جدا هستند. روی Render از `./build.sh` و `python -m gunicorn config.wsgi:application --config gunicorn.conf.py` استفاده کنید. Secrets و PostgreSQL اجباری‌اند؛ production فایل `.env` را نمی‌خواند. شروع: [deployment/README.md](deployment/README.md).

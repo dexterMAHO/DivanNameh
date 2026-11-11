@@ -4,10 +4,12 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 from django.views.generic import TemplateView
 from accounts.forms import PersianAuthenticationForm
+from .health import health
 from poetry import views as p
 from memorization import views as m
 
 urlpatterns = [
+    path("healthz/", health, name="health"),
     path('admin/', admin.site.urls),
     path('login/', LoginView.as_view(authentication_form=PersianAuthenticationForm, template_name='accounts/login.html', redirect_authenticated_user=True), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),

@@ -8,3 +8,22 @@ staticfiles/
 .coverage
 .pytest_cache/
 artifacts/
+
+# Deployment secrets, exports and machine-local state
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+backups/
+exports/
+media/
+*.dump
+*.pem
+*.key
+.venv-*/
+.ruff_cache/
+.mypy_cache/
+.vscode/
+.idea/
+.DS_Store
+.neon

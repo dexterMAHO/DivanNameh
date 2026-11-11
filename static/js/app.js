@@ -1,5 +1,6 @@
 import {announce, request, verseElement} from './api.js';
 import './editor.js';
+import './poem-copy.js';
 for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite]')) {
   form.addEventListener('submit', async event => {
     event.preventDefault();

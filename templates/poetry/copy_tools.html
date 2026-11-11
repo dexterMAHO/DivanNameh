@@ -1,0 +1,23 @@
+{% if poem.verses.all %}
+<section class="panel copy-tools" id="copy-tools" hidden aria-label="ابزارهای کپی شعر">
+  <button type="button" id="copy-all">کپی شعر</button>
+  <details>
+    <summary class="button quiet">کپی پیشرفته</summary>
+    <fieldset class="copy-verse-list">
+      <legend>بیت‌های موردنظر را انتخاب کنید</legend>
+      {% for verse in poem.verses.all %}
+      <label>
+        <input type="checkbox" value="{{ verse.position }}">
+        <span><b>بیت {{ verse.position }}</b> {{ verse.hemistich_1 }}{% if verse.hemistich_2 %} / {{ verse.hemistich_2 }}{% endif %}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+    <button type="button" id="copy-selected">کپی بیت‌های انتخاب‌شده</button>
+  </details>
+  <p class="copy-status" role="status"></p>
+  <div id="copy-fallback" hidden>
+    <label for="copy-output">متن آمادهٔ کپی</label>
+    <textarea id="copy-output" rows="5" readonly></textarea>
+  </div>
+</section>
+{% endif %}

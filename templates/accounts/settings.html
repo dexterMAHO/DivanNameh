@@ -5,12 +5,18 @@
 <div class="settings-grid">
   {% if not user.is_staff and not user.is_superuser %}
   <section class="panel">
-    <h2>مرورگر ورود</h2>
-    <p>در مرورگر شخصی خود این گزینه را بزنید تا بعد از خروج با نام کاربری وارد شوید.</p>
-    <form method="post">
+    <h2>مرورگرهای ورود</h2>
+    <p>برای ورود با نام کاربری، مرورگر فعلی را ثبت کنید یا پیوند یک‌بارمصرف را در مرورگر دیگری باز کنید.</p>
+    <form method="post" class="form-actions">
       {% csrf_token %}
       <button name="section" value="browser">ثبت این مرورگر</button>
+      <button name="section" value="browser-link">پیوند برای مرورگر دیگر</button>
     </form>
+    {% if browser_link %}
+    <p>این پیوند را در مرورگر دیگر باز کنید. تا ۱۵ دقیقه و برای یک بار قابل استفاده است.</p>
+    <label for="browser-link">پیوند ثبت مرورگر</label>
+    <input id="browser-link" type="url" value="{{ browser_link }}" readonly>
+    {% endif %}
   </section>
   {% endif %}
   <section class="panel">

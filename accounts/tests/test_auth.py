@@ -35,6 +35,26 @@ class AuthTests(TestCase):
         self.assertContains(response, 'تأیید انسان بودن انجام نشد')
         self.assertFalse(get_user_model().objects.filter(username='bot').exists())
 
+    def test_two_browsers_can_sign_in_and_be_revoked_independently(self):
+        self.assertRedirects(self.submit('/signup/', 'reader'), '/')
+        link_response = self.client.post('/settings/', {'section': 'browser-link'})
+        url = urlsplit(link_response.context['browser_link'])
+        token = parse_qs(url.query)['token'][0]
+        other = Client()
+        self.assertRedirects(other.post(url.path, {'token': token}), '/')
+        self.assertContains(Client().post(url.path, {'token': token}), 'پیوند معتبر نیست')
+
+        for browser in (self.client, other):
+            browser.post('/logout/')
+            self.assertRedirects(self.submit('/login/', 'reader', browser), '/')
+
+        revoked_cookie = other.cookies[BROWSER_COOKIE].value
+        other.post('/logout/', {'forget': '1'})
+        other.cookies[BROWSER_COOKIE] = revoked_cookie
+        self.assertContains(self.submit('/login/', 'reader', other), 'ورود با این مرورگر ممکن نیست')
+        self.client.post('/logout/')
+        self.assertRedirects(self.submit('/login/', 'reader'), '/')
+
     def test_admin_login_and_one_time_link_for_existing_reader(self):
         model = get_user_model()
         admin = model.objects.create_superuser('admin-test', password='admin-test-secret-7712')

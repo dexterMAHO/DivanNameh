@@ -4,26 +4,31 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from .access import enroll_browser, readers
+from .access import enroll_browser, issue_browser_link, readers
 from .forms import ActionPasswordForm, ProfilePhotoForm, ThemeForm
 from .models import ProfilePhoto, User
 
 
 @login_required
+@never_cache
 @require_http_methods(['GET', 'POST'])
 def settings_page(request):
     submitted = request.POST.get('section')
     theme_form = ThemeForm(request.POST if submitted == 'theme' else None, instance=request.user)
     password_form = ActionPasswordForm(request.POST if submitted == 'password' else None, user=request.user)
     photo_form = ProfilePhotoForm(request.POST if submitted == 'photo' else None, request.FILES)
+    browser_link = None
     if request.method == 'POST':
         if submitted == 'browser':
             with transaction.atomic():
                 user = get_object_or_404(readers().select_for_update(), pk=request.user.pk)
                 messages.success(request, 'این مرورگر برای ورود ثبت شد.')
                 return enroll_browser(request, user, 'settings')
+        if submitted == 'browser-link':
+            browser_link = issue_browser_link(request, request.user)
         if submitted == 'theme' and theme_form.is_valid():
             User.objects.filter(pk=request.user.pk).update(theme=theme_form.cleaned_data['theme'])
             messages.success(request, 'ظاهر سایت ذخیره شد.')
@@ -41,9 +46,13 @@ def settings_page(request):
             ProfilePhoto.objects.update_or_create(user=request.user, defaults={'image': photo_form.cleaned_data['photo']})
             messages.success(request, 'عکس پروفایل ذخیره شد.')
             return redirect('settings')
-    return render(request, 'accounts/settings.html', {
+    response = render(request, 'accounts/settings.html', {
         'theme_form': theme_form, 'password_form': password_form, 'photo_form': photo_form,
+        'browser_link': browser_link,
     })
+    if browser_link:
+        response['Referrer-Policy'] = 'no-referrer'
+    return response
 
 
 @login_required

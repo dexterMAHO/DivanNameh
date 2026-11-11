@@ -27,6 +27,12 @@ class LoginChallenge(models.Model):
     issued_at = models.DateTimeField()
 
 
+class TrustedBrowser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trusted_browsers')
+    token_hash = models.CharField(max_length=64, unique=True, editable=False)
+    expires_at = models.DateTimeField()
+
+
 class ProfilePhoto(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile_photo')
     image = models.BinaryField()

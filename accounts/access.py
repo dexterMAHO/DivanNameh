@@ -51,15 +51,24 @@ def safe_next(request):
 
 def trusted_browser(request, user):
     token = request.get_signed_cookie(BROWSER_COOKIE, default='', max_age=BROWSER_AGE)
-    return bool(token and user.browser_token_hash and constant_time_compare(digest(token), user.browser_token_hash))
+    if not token:
+        return False
+    token_hash = digest(token)
+    # Keep accepting the cookie issued before accounts supported multiple browsers.
+    return (constant_time_compare(token_hash, user.browser_token_hash)
+            or user.trusted_browsers.filter(token_hash=token_hash, expires_at__gt=timezone.now()).exists())
 
 
 def enroll_browser(request, user, target=''):
-    token = secrets.token_urlsafe(32)
-    user.browser_token_hash = digest(token)
-    user.access_link_hash = None
-    user.access_link_expires_at = None
-    user.save(update_fields=['browser_token_hash', 'access_link_hash', 'access_link_expires_at'])
+    if trusted_browser(request, user):
+        token = request.get_signed_cookie(BROWSER_COOKIE, max_age=BROWSER_AGE)
+    else:
+        token = secrets.token_urlsafe(32)
+    now = timezone.now()
+    user.trusted_browsers.filter(expires_at__lte=now).delete()
+    user.trusted_browsers.update_or_create(
+        token_hash=digest(token), defaults={'expires_at': now + timedelta(seconds=BROWSER_AGE)},
+    )
     login(request, user)
     response = redirect(target or 'dashboard')
     response.set_signed_cookie(BROWSER_COOKIE, token, max_age=BROWSER_AGE, httponly=True,
@@ -140,6 +149,9 @@ def confirm_browser(request):
                 access_link_hash=digest(token), access_link_expires_at__gt=timezone.now(),
             ).first()
             if user:
+                user.access_link_hash = None
+                user.access_link_expires_at = None
+                user.save(update_fields=['access_link_hash', 'access_link_expires_at'])
                 return enroll_browser(request, user)
         error = 'پیوند معتبر نیست یا زمان استفاده از آن گذشته است.'
     response = render(request, 'accounts/browser_confirm.html', {'token': token, 'error': error})
@@ -151,8 +163,14 @@ def confirm_browser(request):
 def sign_out(request):
     user = request.user
     forget = request.POST.get('forget') == '1'
-    if forget and user.is_authenticated and trusted_browser(request, user):
-        User.objects.filter(pk=user.pk, browser_token_hash=user.browser_token_hash).update(browser_token_hash='')
+    if forget and user.is_authenticated:
+        token = request.get_signed_cookie(BROWSER_COOKIE, default='', max_age=BROWSER_AGE)
+        if token:
+            token_hash = digest(token)
+            with transaction.atomic():
+                User.objects.select_for_update().only('pk').get(pk=user.pk)
+                User.objects.filter(pk=user.pk, browser_token_hash=token_hash).update(browser_token_hash='')
+                user.trusted_browsers.filter(token_hash=token_hash).delete()
     logout(request)
     response = redirect('login')
     if forget:

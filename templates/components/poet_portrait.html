@@ -1,0 +1,9 @@
+{% load static %}
+<span class="poet-frame{% if size %} {{ size }}{% endif %}">
+  {% if book.portrait %}
+  <img src="{% static book.portrait %}" alt="تصویر {{ book.author }}"
+       width="{{ book.portrait_width }}" height="{{ book.portrait_height }}" loading="lazy" decoding="async">
+  {% else %}
+  <span class="poet-monogram" aria-hidden="true">{{ book.initial }}</span>
+  {% endif %}
+</span>

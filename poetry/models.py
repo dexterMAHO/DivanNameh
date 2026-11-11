@@ -102,6 +102,9 @@ class PoemEditRequest(models.Model):
         return str(self.poem)
 
 
+HEMISTICH_LIMIT = 90  # Longer lines are prose, not a hemistich of a couplet.
+
+
 class TreasuryBook(models.Model):
     slug = models.SlugField(max_length=120, unique=True)
     author = models.CharField(max_length=240)
@@ -110,12 +113,49 @@ class TreasuryBook(models.Model):
     publishes_text = models.BooleanField(default=False)
     edition_note = models.CharField(max_length=500, blank=True)
     dataset_digest = models.CharField(max_length=64)
+    section_count = models.PositiveIntegerField(default=0)
+    work_count = models.PositiveIntegerField(default=0)
+    biography = models.TextField(blank=True)
+    biography_source = models.URLField(max_length=500, blank=True)
+    portrait = models.CharField(max_length=120, blank=True)
+    portrait_width = models.PositiveSmallIntegerField(null=True, blank=True)
+    portrait_height = models.PositiveSmallIntegerField(null=True, blank=True)
+    portrait_source = models.URLField(max_length=500, blank=True)
+    portrait_credit = models.CharField(max_length=200, blank=True)
+    birth_year = models.SmallIntegerField(null=True, blank=True)
+    death_year = models.SmallIntegerField(null=True, blank=True)
+    birth_place = models.CharField(max_length=120, blank=True)
+    death_place = models.CharField(max_length=120, blank=True)
+    century = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ('author', 'slug')
+        indexes = [models.Index(fields=['century', 'author'], name='treasury_century_order')]
+
+    def __str__(self):
+        return self.author
 
     def get_absolute_url(self):
         return reverse('treasury-book', args=[self.slug])
+
+    @property
+    def initial(self):
+        return self.author.lstrip('\u200c ')[:1]
+
+    @property
+    def life_span(self):
+        """Lunar hijri birth–death years as a single Persian label."""
+        if self.birth_year and self.death_year:
+            return f'{self.birth_year} – {self.death_year} ق'
+        if self.death_year:
+            return f'درگذشتهٔ {self.death_year} ق'
+        if self.birth_year:
+            return f'زادهٔ {self.birth_year} ق'
+        return ''
+
+    @property
+    def ganjoor_url(self):
+        return f'https://ganjoor.net/{self.slug}/'
 
 
 class TreasuryEntry(models.Model):
@@ -137,3 +177,11 @@ class TreasuryEntry(models.Model):
 
     def get_absolute_url(self):
         return reverse('treasury-entry', args=[self.book.slug, self.key])
+
+    @property
+    def couplets(self):
+        """Pair the stored hemistichs into verses; prose pages stay as paragraphs."""
+        lines = self.paragraphs or []
+        if len(lines) < 2 or len(lines) % 2 or any(len(line) > HEMISTICH_LIMIT for line in lines):
+            return None
+        return list(zip(lines[::2], lines[1::2]))

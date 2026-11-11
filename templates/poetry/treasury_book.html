@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load persian %}
 {% block title %}{% if entry %}{{ entry.title }}{% else %}{{ book.author }}{% endif %} · گنجینهٔ فارسی{% endblock %}
 {% block content %}
 <nav class="breadcrumb treasury-breadcrumb" aria-label="مسیر گنجینه">
@@ -8,32 +9,102 @@
     <span aria-hidden="true">/</span><a href="{{ ancestor.get_absolute_url }}">{{ ancestor.title }}</a>
   {% endfor %}
 </nav>
+
+{% if entry %}
 <header class="page-heading compact">
-  <h1>{% if entry %}{{ entry.title }}{% else %}{{ book.author }}{% endif %}</h1>
+  <div>
+    <span class="eyebrow">{% if entry.kind == 'work' %}اثری از {{ book.author }}{% else %}بخشی از دیوان {{ book.author }}{% endif %}</span>
+    <h1>{{ entry.title }}</h1>
+  </div>
+  <a class="poet-chip" href="{{ book.get_absolute_url }}">
+    {% include 'components/poet_portrait.html' with book=book size='tiny' %}
+    <span>{{ book.author }}</span>
+  </a>
 </header>
+{% else %}
+<section class="panel poet-profile">
+  {% include 'components/poet_portrait.html' with book=book size='large' %}
+  <div class="poet-profile-body">
+    <h1>{{ book.author }}</h1>
+    <p class="poet-profile-facts">
+      {% if book.life_span %}<span>{{ book.life_span|persian }}</span>{% endif %}
+      {% if book.birth_place %}<span>زادهٔ {{ book.birth_place }}</span>{% endif %}
+      {% if book.death_place %}<span>درگذشته در {{ book.death_place }}</span>{% endif %}
+    </p>
+    {% if book.biography %}
+    <p class="poet-profile-bio">{{ book.biography }}</p>
+    {% else %}
+    <p class="poet-profile-bio muted">زندگی‌نامه‌ای برای این نام در دسترس نیست.</p>
+    {% endif %}
+    <div class="tags">
+      {% if book.work_count %}<span class="chip">{{ book.work_count|tally }} اثر</span>{% endif %}
+      {% if book.section_count %}<span class="chip">{{ book.section_count|tally }} بخش</span>{% endif %}
+      {% if book.century %}<span class="chip">سدهٔ {{ book.century|persian }} ق</span>{% endif %}
+    </div>
+    <div class="poet-profile-links">
+      {% if book.biography_source %}<a class="inline-link" href="{{ book.biography_source }}" rel="noopener noreferrer nofollow" target="_blank">زندگی‌نامهٔ کامل در ویکی‌پدیا</a>{% endif %}
+      <a class="inline-link" href="{{ book.ganjoor_url }}" rel="noopener noreferrer nofollow" target="_blank">صفحهٔ شاعر در گنجور</a>
+    </div>
+    {% if book.portrait_credit %}
+    <p class="fine poet-credit">تصویر: {% if book.portrait_source %}<a href="{{ book.portrait_source }}" rel="noopener noreferrer nofollow" target="_blank">{{ book.portrait_credit }}</a>{% else %}{{ book.portrait_credit }}{% endif %}</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
 {% if entry.kind == 'work' %}
   {% if entry.paragraphs %}
   <article class="reading-sheet treasury-text">
-    {% for paragraph in entry.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+    {% with couplets=entry.couplets %}
+    {% if couplets %}
+      {% for first, second in couplets %}
+      <div class="verse"><span class="verse-number">{{ forloop.counter|persian }}</span><div class="hemistich">{{ first }}</div><div class="hemistich">{{ second }}</div></div>
+      {% endfor %}
+    {% else %}
+      {% for paragraph in entry.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+    {% endif %}
+    {% endwith %}
   </article>
   {% else %}
-  <section class="panel"><p>متن اثر در نسخهٔ گنجور در دسترس است.</p></section>
+  <section class="panel treasury-notice">
+    <span class="ornament" aria-hidden="true">{% include 'components/icon.html' with name='lock' %}</span>
+    <div>
+      <h2>متن این اثر در گنجینه بازنشر نشده است.</h2>
+      <p class="muted">اجازهٔ بازنشر تنها برای شماری از نسخه‌ها ثبت شده است؛ متن کامل را می‌توانید در گنجور بخوانید.</p>
+    </div>
+  </section>
   {% endif %}
 {% elif page.object_list %}
-<section class="panel">
+<section class="panel treasury-list">
+  <div class="section-heading">
+    <h2>{% if entry %}زیربخش‌های این بخش{% else %}فهرست آثار{% endif %}</h2>
+    <span class="fine">{{ page.paginator.count|tally }} مورد</span>
+  </div>
   <ul class="treasury-entries">
     {% for child in page %}
-    <li><a href="{{ child.get_absolute_url }}">{{ child.title }}</a></li>
+    <li class="{{ child.kind }}">
+      <a href="{{ child.get_absolute_url }}">
+        {% if child.kind == 'work' %}{% include 'components/icon.html' with name='pen' %}{% else %}{% include 'components/icon.html' with name='book' %}{% endif %}
+        <span class="entry-title">{{ child.title }}</span>
+        <span class="entry-kind fine">{{ child.get_kind_display }}</span>
+      </a>
+    </li>
     {% endfor %}
   </ul>
   {% include 'components/pagination.html' %}
 </section>
 {% elif not book.has_contents %}
-<section class="panel"><p>فهرست این نسخه هنوز در گنجینه بارگذاری نشده است.</p></section>
+<section class="panel treasury-notice">
+  <span class="ornament" aria-hidden="true">{% include 'components/icon.html' with name='book' %}</span>
+  <div>
+    <h2>فهرست این نسخه هنوز در گنجینه بارگذاری نشده است.</h2>
+    <p class="muted">نام و زندگی‌نامهٔ شاعر ثبت شده است؛ آثار در به‌روزرسانی بعدی افزوده می‌شوند.</p>
+  </div>
+</section>
 {% endif %}
+
 <div class="reading-tools">
-  {% if entry.source_url %}<a class="inline-link" href="{{ entry.source_url }}">مشاهده در گنجور</a>{% endif %}
-  <a class="inline-link" href="{{ book.source_url }}">دریافت EPUB از گنجور</a>
-  {% if book.publishes_text %}<a class="inline-link" href="{{ book.edition_note }}">اطلاعات بازنشر نسخه</a>{% endif %}
+  {% if entry.source_url %}<a class="inline-link" href="{{ entry.source_url }}" rel="noopener noreferrer nofollow" target="_blank">مشاهده در گنجور</a>{% endif %}
+  {% if book.publishes_text %}<a class="inline-link" href="{{ book.edition_note }}" rel="noopener noreferrer nofollow" target="_blank">اطلاعات بازنشر نسخه</a>{% endif %}
 </div>
 {% endblock %}

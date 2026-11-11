@@ -1,19 +1,86 @@
 {% extends 'base.html' %}
+{% load persian %}
 {% block title %}گنجینهٔ فارسی{% endblock %}
 {% block content %}
-<header class="page-heading compact"><h1>گنجینهٔ فارسی</h1></header>
-<form class="panel inline-form" method="get" action="{% url 'treasury' %}">
+<header class="page-heading treasury-heading">
   <div>
-    <label for="treasury-search">نام شاعر یا نویسنده</label>
-    <input id="treasury-search" type="search" name="q" value="{{ query }}" maxlength="120">
+    <span class="eyebrow">کتابخانهٔ مشترک</span>
+    <h1>گنجینهٔ فارسی</h1>
+    <p>زندگی‌نامهٔ کوتاه، تصویر و فهرست آثار {{ totals.poets|tally }} شاعر و نویسنده، روی هم {{ totals.works|tally }} اثر.</p>
   </div>
-  <button type="submit">جست‌وجو</button>
-</form>
-<div class="card-grid">
+</header>
+
+<section class="panel treasury-filters" aria-labelledby="treasury-filters-title">
+  <h2 class="visually-hidden" id="treasury-filters-title">پالایش گنجینه</h2>
+  <form class="inline-form" method="get" action="{% url 'treasury' %}">
+    <div>
+      <label for="treasury-search">جست‌وجو در نام، زادگاه و زندگی‌نامه</label>
+      <input id="treasury-search" type="search" name="q" value="{{ query }}" maxlength="120"
+             placeholder="برای نمونه: شیراز">
+    </div>
+    {% if letter %}<input type="hidden" name="letter" value="{{ letter }}">{% endif %}
+    {% if century %}<input type="hidden" name="century" value="{{ century }}">{% endif %}
+    {% if sort != 'name' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+    <button type="submit">جست‌وجو</button>
+  </form>
+
+  <div class="filter-group">
+    <span class="filter-label" id="letter-rail-label">حرف نخست نام</span>
+    <div class="letter-rail" role="group" aria-labelledby="letter-rail-label">
+      <a href="{% querystring letter=None page=None %}" {% if not letter %}aria-current="true"{% endif %}>همه</a>
+      {% for item in alphabet %}
+      <a href="{% querystring letter=item page=None %}" {% if letter == item %}aria-current="true"{% endif %}>{{ item }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label" id="century-chips-label">سدهٔ قمری</span>
+    <div class="chip-row" role="group" aria-labelledby="century-chips-label">
+      <a class="chip" href="{% querystring century=None page=None %}" {% if not century %}aria-current="true"{% endif %}>همه</a>
+      {% for item in centuries %}
+      <a class="chip" href="{% querystring century=item page=None %}"
+         {% if century == item|stringformat:'d' %}aria-current="true"{% endif %}>سدهٔ {{ item|persian }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="filter-footer">
+    <div class="chip-row" role="group" aria-label="ترتیب نمایش">
+      <a class="chip" href="{% querystring sort=None page=None %}" {% if sort == 'name' %}aria-current="true"{% endif %}>الفبایی</a>
+      <a class="chip" href="{% querystring sort='works' page=None %}" {% if sort == 'works' %}aria-current="true"{% endif %}>پرکارترین</a>
+      <a class="chip" href="{% querystring sort='era' page=None %}" {% if sort == 'era' %}aria-current="true"{% endif %}>کهن‌ترین</a>
+    </div>
+    <p class="fine" role="status">
+      {{ matches|tally }} شاعر یافت شد{% if filtered %} · <a class="inline-link" href="{% url 'treasury' %}">برداشتن پالایه‌ها</a>{% endif %}
+    </p>
+  </div>
+</section>
+
+<div class="card-grid poet-grid">
   {% for book in page %}
-  <article class="panel"><h2><a href="{{ book.get_absolute_url }}">{{ book.author }}</a></h2></article>
+  <article class="poet-card">
+    <a class="poet-card-head" href="{{ book.get_absolute_url }}">
+      {% include 'components/poet_portrait.html' with book=book %}
+      <span class="poet-identity">
+        <span class="poet-name">{{ book.author }}</span>
+        {% if book.life_span %}<span class="poet-dates">{{ book.life_span|persian }}</span>{% endif %}
+        {% if book.birth_place %}<span class="poet-place">{{ book.birth_place }}</span>{% endif %}
+      </span>
+    </a>
+    {% if book.biography %}<p class="poet-bio">{{ book.biography }}</p>{% endif %}
+    <p class="poet-card-foot">
+      {% if book.work_count %}<span>{{ book.work_count|tally }} اثر</span>{% else %}<span>فهرست نیامده</span>{% endif %}
+      {% if book.century %}<span>سدهٔ {{ book.century|persian }} ق</span>{% endif %}
+    </p>
+  </article>
   {% empty %}
-  <section class="empty"><p>{% if query %}نامی با این جست‌وجو پیدا نشد.{% else %}فهرست گنجینه هنوز وارد نشده است.{% endif %}</p></section>
+  <section class="empty">
+    <span class="empty-icon">{% include 'components/icon.html' with name='book' %}</span>
+    <h2>{% if filtered %}با این پالایه‌ها شاعری پیدا نشد.{% else %}فهرست گنجینه هنوز وارد نشده است.{% endif %}</h2>
+    {% if filtered %}<p>نام دیگری را بیازمایید یا پالایه‌ها را بردارید.</p>
+    <a class="button" href="{% url 'treasury' %}">نمایش همهٔ شاعران</a>{% endif %}
+  </section>
   {% endfor %}
 </div>
 {% include 'components/pagination.html' %}

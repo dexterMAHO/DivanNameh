@@ -1,7 +1,7 @@
 import gzip
 import hashlib
 import json
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -42,6 +42,7 @@ def import_book(record, digest):
     if book and (book.dataset_digest == digest or (book.has_contents and record['entries'] is None)):
         return False
     groups = prepare_entries(record)
+    kinds = Counter(entry['kind'] for _, entries in groups for entry in entries)
     fields = {
         'author': record['author'],
         'source_url': record['source_url'],
@@ -49,6 +50,8 @@ def import_book(record, digest):
         'publishes_text': bool(groups and slug in PUBLISHABLE_EDITIONS),
         'edition_note': PUBLISHABLE_EDITIONS.get(slug, ''),
         'dataset_digest': digest,
+        'section_count': kinds['section'],
+        'work_count': kinds['work'],
     }
     if book is None:
         book = TreasuryBook.objects.create(slug=slug, **fields)

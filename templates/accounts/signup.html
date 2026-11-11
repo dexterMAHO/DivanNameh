@@ -1,1 +1,1 @@
-{% extends 'base.html' %}{% block title %}ثبت‌نام{% endblock %}{% block content %}<section class="login panel"><span class="eyebrow">دفتر تازه‌ای بگشایید</span><h1>از همین بیت شروع کنید.</h1><p class="muted">حساب بسازید و کتابخانهٔ شخصی شعرتان را شکل دهید.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary wide">ساخت حساب</button></form><p class="fine">حساب دارید؟ <a href="{% url 'login' %}">وارد شوید</a></p></section>{% endblock %}
+{% extends 'accounts/login.html' %}

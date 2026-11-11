@@ -1,10 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LogoutView
 from django.urls import path
 from django.views.generic import TemplateView
-from accounts.forms import PersianAuthenticationForm
-from accounts.views import signup
+from accounts import views as a
 from .health import health
 from poetry import views as p
 from memorization import views as m
@@ -12,9 +11,10 @@ from memorization import views as m
 urlpatterns = [
     path("healthz/", health, name="health"),
     path('admin/', admin.site.urls),
-    path('login/', LoginView.as_view(authentication_form=PersianAuthenticationForm, template_name='accounts/login.html', redirect_authenticated_user=True), name='login'),
+    path('login/', a.email_access, name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('signup/', signup, name='signup'),
+    path('signup/', a.email_access, name='signup'),
+    path('login/confirm/', a.email_confirm, name='email-confirm'),
     path('', p.dashboard, name='dashboard'),
     path('poems/', p.poem_list, name='poems'),
     path('poems/new/', p.poem_edit, name='poem-new'),

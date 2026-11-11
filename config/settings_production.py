@@ -35,3 +35,9 @@ LOGGING = {
     'root': {'handlers': ['console'], 'level': 'WARNING'},
     'loggers': {'django': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False}},
 }
+
+RESEND_API_KEY = value('RESEND_API_KEY')
+DEFAULT_FROM_EMAIL = value('DEFAULT_FROM_EMAIL')
+PASSWORDLESS_LOGIN = bool(RESEND_API_KEY and DEFAULT_FROM_EMAIL)
+if PASSWORDLESS_LOGIN:
+    EMAIL_BACKEND = 'accounts.email_backend.ResendEmailBackend'

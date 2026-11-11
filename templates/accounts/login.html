@@ -1,1 +1,17 @@
-{% extends 'base.html' %}{% block title %}ورود{% endblock %}{% block content %}<section class="login panel"><span class="eyebrow">خوش آمدید به دفترتان</span><h1>شعر می‌ماند.</h1><p class="muted">وارد شوید و رشتهٔ شعرهای به‌خاطرمانده را ادامه دهید.</p><form method="post">{% csrf_token %}{{ form.as_p }}<input type="hidden" name="next" value="{{ next }}"><button class="primary wide">ورود به دیوان نامه</button></form><p class="fine">حساب ندارید؟ <a href="{% url 'signup' %}">ثبت‌نام کنید</a></p></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}ورود و ثبت‌نام{% endblock %}
+{% block content %}
+<section class="login panel">
+  <h1>ورود و ثبت‌نام</h1>
+  {% if sent %}
+  <p class="notice" role="status">صندوق ایمیل را بررسی کنید. پیوند ورود تا ۱۵ دقیقه اعتبار دارد.</p>
+  {% else %}
+  <p class="muted">ایمیل خود را وارد کنید تا پیوند ورود برایتان فرستاده شود. در اولین ورود، حساب شما ساخته می‌شود.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="primary wide">ارسال پیوند ورود</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

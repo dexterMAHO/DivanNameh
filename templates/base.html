@@ -23,7 +23,7 @@
         {% include 'components/icon.html' with name='plus' %}<span>افزودن شعر</span>
       </a>
       <a class="profile-link" href="{% url 'settings' %}" aria-label="تنظیمات حساب">
-        <span class="avatar" aria-hidden="true">{{ user.display_name|first|upper }}</span><span>تنظیمات</span>
+        {% include 'components/avatar.html' %}<span>تنظیمات</span>
       </a>
       <button class="icon-button" id="nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="فهرست ناوبری">
         {% include 'components/icon.html' with name='menu' %}

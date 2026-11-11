@@ -13,6 +13,22 @@
     </form>
   </section>
   <section class="panel">
+    <h2>عکس پروفایل</h2>
+    {% include 'components/avatar.html' %}
+    <p class="muted">JPG، PNG یا WebP تا ۱ مگابایت</p>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="photo">
+      {{ photo_form.as_p }}
+      <button>ذخیرهٔ عکس</button>
+    </form>
+    {% if has_profile_photo %}
+    <form action="{% url 'profile-photo-remove' %}" method="post">
+      {% csrf_token %}<button class="text-button">برداشتن عکس</button>
+    </form>
+    {% endif %}
+  </section>
+  <section class="panel">
     <h2>رمز عملیات</h2>
     <p class="muted">برای برداشتن شعر از کتابخانه ابتدا رمز عملیات را فعال کنید. پس از فعال‌سازی، برای درخواست ویرایش و افزودن شعر به فهرست حفظ نیز همین رمز را وارد می‌کنید.</p>
     <form method="post">

@@ -22,3 +22,8 @@ class LoginChallenge(models.Model):
     email = models.EmailField(primary_key=True)
     token_hash = models.CharField(max_length=64, unique=True)
     issued_at = models.DateTimeField()
+
+
+class ProfilePhoto(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile_photo')
+    image = models.BinaryField()

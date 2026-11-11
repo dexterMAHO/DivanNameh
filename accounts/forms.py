@@ -1,5 +1,8 @@
+from io import BytesIO
+
 from django import forms
 from django.contrib.auth.password_validation import validate_password
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .models import User
 
@@ -44,3 +47,23 @@ class ActionPasswordForm(forms.Form):
         if data.get('password') and data.get('confirmation') != data['password']:
             self.add_error('confirmation', 'دو رمز یکسان نیستند.')
         return data
+
+
+class ProfilePhotoForm(forms.Form):
+    photo = forms.FileField(label='عکس پروفایل', widget=forms.FileInput(attrs={'accept': 'image/jpeg,image/png,image/webp'}))
+
+    def clean_photo(self):
+        upload = self.cleaned_data['photo']
+        if upload.size > 1024 * 1024:
+            raise forms.ValidationError('حجم عکس باید حداکثر ۱ مگابایت باشد.')
+        try:
+            with Image.open(upload, formats=['JPEG', 'PNG', 'WEBP']) as source:
+                if max(source.size) > 4096:
+                    raise forms.ValidationError('عرض و ارتفاع عکس باید حداکثر ۴۰۹۶ پیکسل باشد.')
+                photo = ImageOps.exif_transpose(source).convert('RGB')
+                photo.thumbnail((256, 256))
+                output = BytesIO()
+                photo.save(output, 'WEBP', quality=85)
+        except (OSError, UnidentifiedImageError, Image.DecompressionBombError) as exc:
+            raise forms.ValidationError('یک عکس JPG، PNG یا WebP معتبر انتخاب کنید.') from exc
+        return output.getvalue()

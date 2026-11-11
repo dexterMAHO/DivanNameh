@@ -13,15 +13,16 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
 from django.db import transaction
-from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from .forms import ActionPasswordForm, EmailLoginForm, ThemeForm
+from .forms import ActionPasswordForm, EmailLoginForm, ProfilePhotoForm, ThemeForm
 from .legacy_forms import PersianAuthenticationForm, PersianUserCreationForm
-from .models import LoginChallenge, User
+from .models import LoginChallenge, ProfilePhoto, User
 
 logger = logging.getLogger(__name__)
 LINK_LIFETIME = timedelta(minutes=15)
@@ -124,6 +125,7 @@ def settings_page(request):
     submitted = request.POST.get('section')
     theme_form = ThemeForm(request.POST if submitted == 'theme' else None, instance=request.user)
     password_form = ActionPasswordForm(request.POST if submitted == 'password' else None, user=request.user)
+    photo_form = ProfilePhotoForm(request.POST if submitted == 'photo' else None, request.FILES)
     if request.method == 'POST':
         if submitted == 'theme' and theme_form.is_valid():
             User.objects.filter(pk=request.user.pk).update(theme=theme_form.cleaned_data['theme'])
@@ -138,6 +140,28 @@ def settings_page(request):
                     user.save(update_fields=['action_password'])
                     messages.success(request, 'رمز عملیات ذخیره شد.')
                     return redirect('settings')
+        if submitted == 'photo' and photo_form.is_valid():
+            ProfilePhoto.objects.update_or_create(user=request.user, defaults={'image': photo_form.cleaned_data['photo']})
+            messages.success(request, 'عکس پروفایل ذخیره شد.')
+            return redirect('settings')
     return render(request, 'accounts/settings.html', {
-        'theme_form': theme_form, 'password_form': password_form,
+        'theme_form': theme_form, 'password_form': password_form, 'photo_form': photo_form,
     })
+
+
+@login_required
+@require_GET
+def profile_photo(request):
+    photo = get_object_or_404(ProfilePhoto, user=request.user)
+    response = HttpResponse(bytes(photo.image), content_type='image/webp')
+    response['Cache-Control'] = 'private, no-store'
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+@login_required
+@require_POST
+def remove_profile_photo(request):
+    ProfilePhoto.objects.filter(user=request.user).delete()
+    messages.success(request, 'عکس پروفایل برداشته شد.')
+    return redirect('settings')

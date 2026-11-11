@@ -33,7 +33,8 @@ def validate_verses(rows):
 @transaction.atomic
 def save_poem(owner, data, rows, poem=None):
     rows = validate_verses(rows)
-    if poem:
+    is_edit = poem is not None
+    if is_edit:
         poem = Poem.objects.select_for_update().get(pk=poem.pk, owner=owner)
     else:
         poem = Poem(owner=owner)
@@ -61,8 +62,11 @@ def save_poem(owner, data, rows, poem=None):
         else:
             Verse.objects.create(poem=poem, position=index + 1, hemistich_1=first, hemistich_2=second)
         changed.add(index + 1)
-    if changed:
-        for item in poem.items.select_for_update().select_related('start_verse', 'end_verse'):
+    if is_edit and changed:
+        # Range endpoints are nullable. PostgreSQL can lock the cards, but not
+        # the nullable side of the outer joins used to fetch those endpoints.
+        items = poem.items.select_for_update(of=('self',)).select_related('start_verse', 'end_verse')
+        for item in items:
             if item.scope == 'full' or any(item.start_verse.position <= p <= item.end_verse.position for p in changed):
                 item.due_at, item.interval_days, item.streak = timezone.now(), 0, 0
                 item.save(update_fields=['due_at', 'interval_days', 'streak', 'updated_at'])

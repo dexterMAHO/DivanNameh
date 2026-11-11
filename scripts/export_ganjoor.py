@@ -18,6 +18,13 @@ GANJOOR_RIGHTS = 'https://ganjoor.net/faq?id=21'
 # Ganjoor explicitly identifies these editions when describing works without
 # a suspected copyright issue. Other editions require individual verification.
 PUBLISHABLE_EDITIONS = {'hafez': GANJOOR_RIGHTS, 'saadi': GANJOOR_RIGHTS}
+
+
+def edition_note(slug, publish_all):
+    """The rights statement stored with an edition, and whether its text travels."""
+    if publish_all:
+        return PUBLISHABLE_EDITIONS.get(slug, GANJOOR_RIGHTS)
+    return PUBLISHABLE_EDITIONS.get(slug, '')
 CATALOGUE_ROW = re.compile(r'<tr(?:\s[^>]*)?>(.*?)</tr>', re.I | re.S)
 POEM_ANCHOR = re.compile(r'poem-\d+\Z')
 
@@ -164,6 +171,8 @@ def main():
     parser.add_argument('epub_directory', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--allow-incomplete', action='store_true', help='Keep catalogue records for unavailable EPUBs')
+    parser.add_argument('--publish-all', action='store_true',
+                        help='Store the text of every edition, not only the ones listed as publishable')
     args = parser.parse_args()
     books = catalogue(args.catalogue_html.read_text(encoding='utf-8'))
     counts = dict(books=0, contents=0, works=0, readable=0)
@@ -172,7 +181,7 @@ def main():
     try:
         with gzip.open(temporary, 'wt', encoding='utf-8', newline='\n') as output:
             for slug, book in books.items():
-                note = PUBLISHABLE_EDITIONS.get(slug, '')
+                note = edition_note(slug, args.publish_all)
                 try:
                     entries = contents(args.epub_directory / f'{slug}.epub', bool(note))
                 except (OSError, BadZipFile, ElementTree.ParseError, AttributeError, KeyError, ValueError) as error:
@@ -180,7 +189,7 @@ def main():
                         raise ValueError(f'{slug}: {error}') from error
                     print(f'{slug}: {error}')
                     entries = None
-                record = {**book, 'edition_note': note, 'entries': entries}
+                record = {**book, 'edition_note': note, 'publishes_text': bool(note), 'entries': entries}
                 output.write(json.dumps(record, ensure_ascii=False, separators=(',', ':')) + '\n')
                 counts['books'] += 1
                 if entries is not None:

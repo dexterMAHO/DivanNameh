@@ -104,7 +104,11 @@
 {% endif %}
 
 <div class="reading-tools">
-  {% if entry.source_url %}<a class="inline-link" href="{{ entry.source_url }}" rel="noopener noreferrer nofollow" target="_blank">مشاهده در گنجور</a>{% endif %}
-  {% if book.publishes_text %}<a class="inline-link" href="{{ book.edition_note }}" rel="noopener noreferrer nofollow" target="_blank">اطلاعات بازنشر نسخه</a>{% endif %}
+  {% if entry.kind == 'work' and not entry.paragraphs and entry.source_url %}
+  <a class="inline-link" href="{{ entry.source_url }}" rel="noopener noreferrer nofollow" target="_blank">خواندن این اثر در گنجور</a>
+  {% endif %}
+  {% if book.publishes_text %}
+  <p class="fine source-note">متن از نسخهٔ گنجور · <a href="{{ book.edition_note }}" rel="noopener noreferrer nofollow" target="_blank">اطلاعات بازنشر</a></p>
+  {% endif %}
 </div>
 {% endblock %}

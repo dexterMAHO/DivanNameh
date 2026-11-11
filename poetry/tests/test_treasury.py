@@ -22,7 +22,8 @@ class TreasuryPageTests(TestCase):
             biography='شاعر فارسی‌گوی ایرانی سدهٔ هشتم.', biography_source='https://fa.wikipedia.org/wiki/حافظ',
             portrait='img/poets/hafez.webp', portrait_width=315, portrait_height=560,
             portrait_credit='ویکی‌مدیا کامنز', portrait_source='https://commons.wikimedia.org/wiki/File:X.jpg',
-            birth_year=726, death_year=792, birth_place='شیراز', century=8, section_count=1, work_count=2)
+            birth_year=726, death_year=792, birth_place='شیراز', century=8, section_count=1, work_count=2,
+            publishes_text=True, edition_note='https://ganjoor.net/faq?id=21')
         cls.saadi = make_book('saadi', 'سعدی', century=7, work_count=5, birth_place='شیراز')
         cls.root = TreasuryEntry.objects.create(book=cls.hafez, key='cat1', title='حافظ', position=0, kind='section')
         cls.ghazal = TreasuryEntry.objects.create(
@@ -72,11 +73,19 @@ class TreasuryPageTests(TestCase):
             with self.subTest(url=url):
                 self.assertNotContains(self.client.get(url), 'i.ganjoor.net/epub')
 
-    def test_work_page_renders_couplets(self):
+    def test_work_page_renders_couplets_without_sending_readers_away(self):
         response = self.client.get('/treasury/hafez/poem-1/')
         self.assertContains(response, 'class="hemistich">مصرع نخست')
         self.assertContains(response, 'class="hemistich">مصرع دوم')
-        self.assertContains(response, 'https://ganjoor.net/hafez/ghazal/sh1')
+        # The stored text replaces the old "read it on Ganjoor" link.
+        self.assertNotContains(response, 'https://ganjoor.net/hafez/ghazal/sh1')
+
+    def test_work_without_text_still_points_at_the_source(self):
+        TreasuryEntry.objects.create(
+            book=self.hafez, parent=self.root, key='poem-2', title='غزل ۲', position=2, kind='work',
+            source_url='https://ganjoor.net/hafez/ghazal/sh2')
+        response = self.client.get('/treasury/hafez/poem-2/')
+        self.assertContains(response, 'https://ganjoor.net/hafez/ghazal/sh2')
 
     def test_missing_book_is_not_found(self):
         self.assertEqual(self.client.get('/treasury/unknown/').status_code, 404)

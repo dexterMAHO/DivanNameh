@@ -4,10 +4,17 @@ import json
 from collections import Counter, defaultdict
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.db import connection, transaction
 
 from poetry.models import TreasuryBook, TreasuryEntry
 from scripts.export_ganjoor import EPUB_ROOT, PUBLISHABLE_EDITIONS, source_url
+
+
+def publishes_text(record):
+    """The dataset records the rights decision made when it was exported."""
+    if 'publishes_text' in record:
+        return bool(record['publishes_text']) and bool(record['edition_note'])
+    return record['slug'] in PUBLISHABLE_EDITIONS
 
 
 def prepare_entries(record):
@@ -25,12 +32,18 @@ def prepare_entries(record):
             raise ValueError(f'Invalid navigation order or kind: {key}')
         if entry['source_url'] and source_url(entry['source_url']) != entry['source_url']:
             raise ValueError(f'Invalid source URL: {key}')
-        if entry['paragraphs'] is not None and record['slug'] not in PUBLISHABLE_EDITIONS:
+        if entry['paragraphs'] is not None and not publishes_text(record):
             raise ValueError(f'Publication permission not recorded: {key}')
         depth = 0 if parent is None else depths[parent] + 1
         depths[key] = depth
         groups[depth].append(entry)
     return list(groups.items())
+
+
+def delete_entries(book):
+    """One statement, instead of Django's recursive cascade walk over the self reference."""
+    with connection.cursor() as cursor:
+        cursor.execute(f'DELETE FROM {TreasuryEntry._meta.db_table} WHERE book_id = %s', [book.pk])
 
 
 @transaction.atomic
@@ -47,8 +60,8 @@ def import_book(record, digest):
         'author': record['author'],
         'source_url': record['source_url'],
         'has_contents': record['entries'] is not None,
-        'publishes_text': bool(groups and slug in PUBLISHABLE_EDITIONS),
-        'edition_note': PUBLISHABLE_EDITIONS.get(slug, ''),
+        'publishes_text': bool(groups and publishes_text(record)),
+        'edition_note': record.get('edition_note') or PUBLISHABLE_EDITIONS.get(slug, ''),
         'dataset_digest': digest,
         'section_count': kinds['section'],
         'work_count': kinds['work'],
@@ -56,7 +69,7 @@ def import_book(record, digest):
     if book is None:
         book = TreasuryBook.objects.create(slug=slug, **fields)
     else:
-        book.entries.all().delete()
+        delete_entries(book)
         for name, value in fields.items():
             setattr(book, name, value)
         book.save(update_fields=fields)
@@ -67,7 +80,7 @@ def import_book(record, digest):
             key=entry['key'], title=entry['title'], position=entry['position'],
             kind=entry['kind'], source_url=entry['source_url'], paragraphs=entry['paragraphs'],
         ) for entry in entries]
-        TreasuryEntry.objects.bulk_create(rows, batch_size=750)
+        TreasuryEntry.objects.bulk_create(rows, batch_size=2000)
         ids.update((row.key, row.pk) for row in rows)
     return True
 

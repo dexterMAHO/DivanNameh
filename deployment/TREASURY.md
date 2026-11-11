@@ -5,11 +5,15 @@
 پس از دریافت فهرست HTML و EPUBها، دیتاست را بسازید و پس از اعمال مایگریشن، وارد کنید.
 
 ```sh
-python scripts/export_ganjoor.py exports/ganjoor/catalogue.html exports/ganjoor/epubs exports/ganjoor/treasury.jsonl.gz
+python scripts/export_ganjoor.py exports/ganjoor/catalogue.html exports/ganjoor/epubs exports/ganjoor/treasury.jsonl.gz --publish-all
 python manage.py migrate
 python manage.py import_treasury exports/ganjoor/treasury.jsonl.gz
 python manage.py fetch_poet_profiles
 ```
+
+`--publish-all` متن همهٔ نسخه‌ها را در دیتاست نگه می‌دارد و تصمیم بازنشر را در خود رکورد می‌نویسد؛ بدون آن فقط نسخه‌های `PUBLISHABLE_EDITIONS` متن دارند. واردکننده به همین فیلد رکورد تکیه می‌کند، نه به فهرست درون کد.
+
+وارد کردن متن کامل حدود ۱۵۸ مگابایت نوشتن در دیتابیس است و سرعتش را پهنای باند بالادستی تعیین می‌کند (با ۰٫۲ مگابیت بر ثانیه چند ساعت، با ۳ مگابیت بر ثانیه کمتر از نیم‌ساعت). واردکننده هر کتاب را جداگانه و در یک تراکنش می‌نویسد و کتاب‌های هم‌دیتا را رد می‌کند، پس قطع‌شدن اجرا بی‌خطر است و اجرای دوباره از همان‌جا ادامه می‌دهد.
 
 ## زندگی‌نامه و تصویر شاعران
 

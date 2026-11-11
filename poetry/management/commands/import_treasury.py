@@ -40,10 +40,60 @@ def prepare_entries(record):
     return list(groups.items())
 
 
+TABLE = TreasuryEntry._meta.db_table
+COLUMNS = 'id, book_id, parent_id, key, title, position, kind, source_url, paragraphs'
+# Postgres parses one JSON document far faster than it binds a parameter per column,
+# and the trip over the wire is what makes a full re-import slow.
+BULK_INSERT = f"""
+INSERT INTO {TABLE} ({COLUMNS})
+SELECT {COLUMNS} FROM json_to_recordset(%s::json)
+AS entry(id bigint, book_id bigint, parent_id bigint, key varchar, title text,
+         position integer, kind varchar, source_url varchar, paragraphs json)
+"""
+INSERT_BATCH = 2000
+
+
 def delete_entries(book):
     """One statement, instead of Django's recursive cascade walk over the self reference."""
     with connection.cursor() as cursor:
-        cursor.execute(f'DELETE FROM {TreasuryEntry._meta.db_table} WHERE book_id = %s', [book.pk])
+        cursor.execute(f'DELETE FROM {TABLE} WHERE book_id = %s', [book.pk])
+
+
+def insert_entries(book, groups):
+    """Write a book's entries, resolving each parent reference before the insert."""
+    entries = [entry for _, group in sorted(groups) for entry in group]
+    if not entries:
+        return
+    if connection.vendor != 'postgresql':
+        insert_entries_by_depth(book, groups)
+        return
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT nextval(pg_get_serial_sequence(%s, 'id')) FROM generate_series(1, %s)",
+            [TABLE, len(entries)])
+        ids = dict(zip((entry['key'] for entry in entries), (row[0] for row in cursor.fetchall())))
+        # The self reference is deferred, so children may be written before their parent.
+        rows = [{
+            'id': ids[entry['key']], 'book_id': book.pk, 'parent_id': ids.get(entry['parent']),
+            'key': entry['key'], 'title': entry['title'], 'position': entry['position'],
+            'kind': entry['kind'], 'source_url': entry['source_url'], 'paragraphs': entry['paragraphs'],
+        } for entry in entries]
+        for start in range(0, len(rows), INSERT_BATCH):
+            batch = json.dumps(rows[start:start + INSERT_BATCH], ensure_ascii=False)
+            cursor.execute(BULK_INSERT, [batch])
+
+
+def insert_entries_by_depth(book, groups):
+    """SQLite and friends: let the ORM assign the keys, one generation at a time."""
+    ids = {}
+    for _, entries in sorted(groups):
+        rows = [TreasuryEntry(
+            book_id=book.pk, parent_id=ids.get(entry['parent']),
+            key=entry['key'], title=entry['title'], position=entry['position'],
+            kind=entry['kind'], source_url=entry['source_url'], paragraphs=entry['paragraphs'],
+        ) for entry in entries]
+        TreasuryEntry.objects.bulk_create(rows, batch_size=INSERT_BATCH)
+        ids.update((row.key, row.pk) for row in rows)
 
 
 @transaction.atomic
@@ -73,15 +123,7 @@ def import_book(record, digest):
         for name, value in fields.items():
             setattr(book, name, value)
         book.save(update_fields=fields)
-    ids = {}
-    for _, entries in sorted(groups):
-        rows = [TreasuryEntry(
-            book_id=book.pk, parent_id=ids.get(entry['parent']),
-            key=entry['key'], title=entry['title'], position=entry['position'],
-            kind=entry['kind'], source_url=entry['source_url'], paragraphs=entry['paragraphs'],
-        ) for entry in entries]
-        TreasuryEntry.objects.bulk_create(rows, batch_size=2000)
-        ids.update((row.key, row.pk) for row in rows)
+    insert_entries(book, groups)
     return True
 
 

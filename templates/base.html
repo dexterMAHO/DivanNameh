@@ -48,10 +48,6 @@
         {% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}
       </div>
       <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
-      <footer>
-        <span>دیوان‌نامه</span>
-        {% if user.is_authenticated %}<a href="{% url 'design-system' %}">راهنمای طراحی دفتر</a>{% endif %}
-      </footer>
     </div>
   </div>
 </div>

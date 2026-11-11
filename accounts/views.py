@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from .forms import ActionPasswordForm, EmailLoginForm
+from .forms import ActionPasswordForm, EmailLoginForm, ThemeForm
 from .legacy_forms import PersianAuthenticationForm, PersianUserCreationForm
 from .models import LoginChallenge, User
 
@@ -122,8 +122,13 @@ def email_confirm(request):
 @require_http_methods(['GET', 'POST'])
 def settings_page(request):
     submitted = request.POST.get('section')
+    theme_form = ThemeForm(request.POST if submitted == 'theme' else None, instance=request.user)
     password_form = ActionPasswordForm(request.POST if submitted == 'password' else None, user=request.user)
     if request.method == 'POST':
+        if submitted == 'theme' and theme_form.is_valid():
+            User.objects.filter(pk=request.user.pk).update(theme=theme_form.cleaned_data['theme'])
+            messages.success(request, 'ظاهر سایت ذخیره شد.')
+            return redirect('settings')
         if submitted == 'password':
             with transaction.atomic():
                 user = User.objects.select_for_update().get(pk=request.user.pk)
@@ -134,5 +139,5 @@ def settings_page(request):
                     messages.success(request, 'رمز عملیات ذخیره شد.')
                     return redirect('settings')
     return render(request, 'accounts/settings.html', {
-        'password_form': password_form,
+        'theme_form': theme_form, 'password_form': password_form,
     })

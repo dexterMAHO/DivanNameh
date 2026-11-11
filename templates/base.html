@@ -1,32 +1,54 @@
 {% load static %}<!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" data-theme="{{ user.theme|default:'auto' }}">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#f4f1e9">
   <title>{% block title %}دفتر شخصی شعر{% endblock %} | دیوان نامه</title>
   <link rel="preload" href="{% static 'fonts/Vazirmatn.ttf' %}" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <script type="module" src="{% static 'js/app.js' %}"></script>
 </head>
-<body class="{% if not user.is_authenticated %}guest{% endif %}">
+<body{% if not user.is_authenticated %} class="guest"{% endif %}>
 {% include 'components/icons.html' %}
 <a class="skip" href="#main">رفتن به محتوا</a>
 <div class="app-shell">
+  <header class="masthead">
+    <a class="brand" href="{% url 'dashboard' %}">
+      <span class="brand-mark">{% include 'components/icon.html' with name='book' %}</span>
+      <span>دیوان‌نامه</span>
+    </a>
+    {% if user.is_authenticated %}
+    <div class="masthead-actions">
+      <a class="button primary masthead-add" href="{% url 'poem-new' %}" aria-label="افزودن شعر">
+        {% include 'components/icon.html' with name='plus' %}<span>افزودن شعر</span>
+      </a>
+      <a class="profile-link" href="{% url 'settings' %}" aria-label="تنظیمات حساب">
+        <span class="avatar" aria-hidden="true">{{ user.display_name|first|upper }}</span><span>تنظیمات</span>
+      </a>
+      <button class="icon-button" id="nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="فهرست ناوبری">
+        {% include 'components/icon.html' with name='menu' %}
+      </button>
+    </div>
+    {% endif %}
+  </header>
   {% if user.is_authenticated %}
   <aside class="sidebar" aria-label="دفتر شخصی">
-    <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">{% include 'components/icon.html' with name='book' %}</span><span>دیوان نامه<small>دفترِ شعرهای ماندگار</small></span></a>
-    <div class="mobile-actions"><a class="icon-button" href="{% url 'poem-new' %}" aria-label="افزودن شعر">{% include 'components/icon.html' with name='plus' %}</a><button class="icon-button" id="nav-toggle" aria-controls="main-nav" aria-expanded="false" aria-label="فهرست ناوبری">{% include 'components/icon.html' with name='menu' %}</button></div>
     <nav id="main-nav" aria-label="ناوبری اصلی">{% include 'components/nav.html' %}</nav>
-    <div class="sidebar-bottom"><a class="button sidebar-add" href="{% url 'poem-new' %}">{% include 'components/icon.html' with name='pen' %}افزودن شعر تازه</a><div class="privacy-note">{% include 'components/icon.html' with name='lock' %}<span>این دفتر فقط برای شماست.</span></div><div class="account"><span class="avatar">{{ user.username|first|upper }}</span><div><b>{{ user.username }}</b><small>کتابخانهٔ شخصی</small></div><form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="icon-button" aria-label="خروج از حساب">{% include 'components/icon.html' with name='logout' %}</button></form></div></div>
+    <form class="sidebar-logout" action="{% url 'logout' %}" method="post">
+      {% csrf_token %}<button class="quiet">{% include 'components/icon.html' with name='logout' %}خروج از حساب</button>
+    </form>
   </aside>
   {% endif %}
   <div class="workspace">
-    <header class="topbar"><span>{% include 'components/icon.html' with name='sun' %}کمی مکث، کمی شعر</span><span class="edition">DIVANNAMEH <i></i> دفتر خصوصی ادبیات</span></header>
     <div class="content-wrap">
-      <div id="notifications" role="status" aria-live="polite" aria-atomic="true">{% for message in messages %}<p class="notice">{% include 'components/icon.html' with name='check' %}{{ message }}</p>{% endfor %}</div>
+      <div id="notifications" role="status" aria-live="polite" aria-atomic="true">
+        {% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}
+      </div>
       <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
-      <footer><span>دیوان نامه <i>·</i> برای خواندن و به خاطر سپردن</span>{% if user.is_authenticated %}<a href="{% url 'design-system' %}">راهنمای طراحی دفتر</a>{% else %}<span>دفتر شما، روایت شما</span>{% endif %}</footer>
+      <footer>
+        <span>دیوان‌نامه</span>
+        {% if user.is_authenticated %}<a href="{% url 'design-system' %}">راهنمای طراحی دفتر</a>{% endif %}
+      </footer>
     </div>
   </div>
 </div>

@@ -2,7 +2,16 @@
 {% block title %}تنظیمات حساب{% endblock %}
 {% block content %}
 <header class="page-heading compact"><h1>تنظیمات حساب</h1></header>
-<div>
+<div class="settings-grid">
+  <section class="panel">
+    <h2>ظاهر سایت</h2>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="theme">
+      {{ theme_form.as_p }}
+      <button>ذخیرهٔ ظاهر</button>
+    </form>
+  </section>
   <section class="panel">
     <h2>رمز عملیات</h2>
     <p class="muted">برای برداشتن شعر از کتابخانه ابتدا رمز عملیات را فعال کنید. پس از فعال‌سازی، برای درخواست ویرایش و افزودن شعر به فهرست حفظ نیز همین رمز را وارد می‌کنید.</p>

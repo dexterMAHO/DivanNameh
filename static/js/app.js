@@ -76,6 +76,6 @@ if (navToggle) {
   navToggle.addEventListener('click', () => {
     const open = navToggle.getAttribute('aria-expanded') !== 'true';
     navToggle.setAttribute('aria-expanded', String(open));
-    document.getElementById('main-nav').classList.toggle('mobile-open', open);
+    document.querySelector('.sidebar').classList.toggle('mobile-open', open);
   });
 }

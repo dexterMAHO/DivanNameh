@@ -6,6 +6,9 @@ from django.db import models
 class User(AbstractUser):
     login_email = models.EmailField('ایمیل ورود', unique=True, null=True, blank=True)
     action_password = models.CharField(max_length=128, blank=True)
+    theme = models.CharField(max_length=5, choices=[
+        ('auto', 'مطابق دستگاه'), ('light', 'روشن'), ('dark', 'تاریک'),
+    ], default='auto')
 
     def verify_action_password(self, password):
         return check_password(password, self.action_password)

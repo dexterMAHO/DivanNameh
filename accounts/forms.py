@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 
+from .models import User
+
 
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(label='ایمیل', max_length=254, widget=forms.EmailInput(attrs={'autocomplete': 'email', 'dir': 'ltr'}))
@@ -10,6 +12,13 @@ class EmailLoginForm(forms.Form):
         if len(email) > 254:
             raise forms.ValidationError('نشانی ایمیل طولانی است.')
         return email
+
+
+class ThemeForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['theme']
+        labels = {'theme': 'ظاهر سایت'}
 
 
 class ActionPasswordForm(forms.Form):

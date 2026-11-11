@@ -4,7 +4,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from accounts import access, views as a
 from .health import health
-from poetry import views as p
+from poetry import treasury_views, views as p
 from memorization import views as m
 
 urlpatterns = [
@@ -37,7 +37,9 @@ urlpatterns = [
     path('tags/<int:pk>/rename/', p.tag_change, {'action': 'rename'}),
     path('tags/<int:pk>/delete/', p.tag_change, {'action': 'delete'}),
     path('poets/', p.poets, name='poets'),
-    path('treasury/', login_required(TemplateView.as_view(template_name='poetry/treasury.html')), name='treasury'),
+    path('treasury/', treasury_views.index, name='treasury'),
+    path('treasury/<slug:slug>/', treasury_views.book_detail, name='treasury-book'),
+    path('treasury/<slug:slug>/<slug:key>/', treasury_views.book_detail, name='treasury-entry'),
     path('favorites/', p.favorites, name='favorites'),
     path('verses/<int:pk>/favorite/', p.favorite, name='favorite'),
     path('verses/<int:pk>/unfavorite/', p.favorite, {'remove': True}, name='unfavorite'),

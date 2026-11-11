@@ -2,8 +2,19 @@
 {% block title %}گنجینهٔ فارسی{% endblock %}
 {% block content %}
 <header class="page-heading compact"><h1>گنجینهٔ فارسی</h1></header>
-<section class="empty">
-  <h2>گنجینه در حال آماده‌سازی است.</h2>
-  <p>آثار شاعران فارسی‌زبان پس از آماده‌شدن مجموعه در این بخش قرار می‌گیرد.</p>
-</section>
+<form class="panel inline-form" method="get" action="{% url 'treasury' %}">
+  <div>
+    <label for="treasury-search">نام شاعر یا نویسنده</label>
+    <input id="treasury-search" type="search" name="q" value="{{ query }}" maxlength="120">
+  </div>
+  <button type="submit">جست‌وجو</button>
+</form>
+<div class="card-grid">
+  {% for book in page %}
+  <article class="panel"><h2><a href="{{ book.get_absolute_url }}">{{ book.author }}</a></h2></article>
+  {% empty %}
+  <section class="empty"><p>{% if query %}نامی با این جست‌وجو پیدا نشد.{% else %}فهرست گنجینه هنوز وارد نشده است.{% endif %}</p></section>
+  {% endfor %}
+</div>
+{% include 'components/pagination.html' %}
 {% endblock %}

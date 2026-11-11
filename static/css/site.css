@@ -948,3 +948,10 @@ summary.button::-webkit-details-marker { display: none; }
   .copy-tools { padding-inline: var(--space-3); }
   .copy-tools > button, .copy-tools summary.button { padding-inline: var(--space-3); }
 }
+
+.treasury-breadcrumb { flex-wrap: wrap; }
+.treasury-entries { list-style: none; padding: 0; margin: 0; }
+.treasury-entries li + li { border-top: 1px solid var(--color-border); }
+.treasury-entries a { display: block; padding-block: var(--space-2); min-height: 2.75rem; overflow-wrap: anywhere; }
+.treasury-text { font-family: var(--font-literary); font-size: var(--text-poem); }
+.treasury-text p { white-space: pre-wrap; overflow-wrap: anywhere; margin-block: var(--space-2); }

@@ -3,7 +3,7 @@ from .models import Poem, Tag
 from .services.poem_editor import parse_verses, validate_verses
 
 class PoemForm(forms.ModelForm):
-    new_tag = forms.CharField(label='ساخت تگ جدید (اختیاری)', max_length=60, required=False)
+    new_tag = forms.CharField(label='ساخت موضوع جدید (اختیاری)', max_length=60, required=False)
     input_mode = forms.ChoiceField(label='روش ورود', choices=[('structured', 'ورود بیت به بیت'), ('lines', 'هر خط یک بیت؛ جداکنندهٔ |'), ('pairs', 'هر دو خط یک بیت')])
     bulk_text = forms.CharField(label='متن شعر', widget=forms.Textarea(attrs={'rows': 8}), required=False)
 
@@ -39,4 +39,4 @@ class PoemForm(forms.ModelForm):
         return data
 
 class TagForm(forms.Form):
-    name = forms.CharField(label='نام تگ', max_length=60)
+    name = forms.CharField(label='نام موضوع', max_length=60)

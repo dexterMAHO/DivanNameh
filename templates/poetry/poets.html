@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}شاعران کتابخانه{% endblock %}
+{% block content %}
+<header class="page-heading compact">
+  <h1>شاعران کتابخانه</h1>
+  <a class="inline-link" href="{% url 'poems' %}">همهٔ شعرها</a>
+</header>
+<div class="card-grid">
+  {% for poet in page %}
+  <article class="panel">
+    <h2><a href="{% url 'poems' %}?poet={{ poet.poet_name|urlencode:'' }}">{{ poet.poet_name }}</a></h2>
+    <p class="muted">{{ poet.poem_count }} شعر</p>
+  </article>
+  {% empty %}
+  <section class="empty">
+    <h2>هنوز شاعری در کتابخانه نیست.</h2>
+    <a class="button" href="{% url 'poem-new' %}">افزودن شعر</a>
+  </section>
+  {% endfor %}
+</div>
+{% include 'components/pagination.html' %}
+{% endblock %}

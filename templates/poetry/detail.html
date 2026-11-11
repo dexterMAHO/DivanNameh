@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ poem.display_title }}{% endblock %}
 {% block content %}
-<div class="breadcrumb"><a href="{% url 'poems' %}">کتابخانه</a><span>/</span>{{ poem.poet_name }}</div>
+<div class="breadcrumb"><a href="{% url 'poems' %}">کتابخانه</a><span>/</span><a href="{% url 'poems' %}?poet={{ poem.poet_name|urlencode:'' }}">{{ poem.poet_name }}</a></div>
 <div class="reading-tools"><a class="inline-link" href="{% url 'poems' %}">{% include 'components/icon.html' with name='book' %}بازگشت به کتابخانه</a><a class="button quiet" href="{% url 'poem-edit' poem.pk %}">{% include 'components/icon.html' with name='pen' %}ویرایش شعر</a></div>
 {% if poem.archived_at %}<p class="notice">{% include 'components/icon.html' with name='archive' %}این شعر آرشیو شده و در صف مرور نمایش داده نمی‌شود.</p>{% endif %}
 <article class="reading-sheet">

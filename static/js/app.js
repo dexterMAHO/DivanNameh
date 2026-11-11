@@ -1,8 +1,5 @@
 import {announce, request, verseElement} from './api.js';
 import './editor.js';
-for (const link of document.querySelectorAll('nav a')) {
-  if (new URL(link.href).pathname === location.pathname) link.setAttribute('aria-current', 'page');
-}
 for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite]')) {
   form.addEventListener('submit', async event => {
     event.preventDefault();

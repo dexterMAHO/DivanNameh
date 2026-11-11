@@ -40,7 +40,7 @@ def save_poem(owner, data, rows, poem=None):
         poem = Poem(owner=owner)
     tags = list(data['tags'])
     if any(tag.owner_id != owner.pk for tag in tags):
-        raise ValidationError('تگ معتبر نیست.')
+        raise ValidationError('موضوع معتبر نیست.')
     old = list(poem.verses.all()) if poem.pk else []
     if len(rows) < len(old):
         raise ValidationError('حذف بیت در این نسخه مجاز نیست؛ متن بیت‌ها را اصلاح کنید.')

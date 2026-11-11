@@ -10,10 +10,10 @@ def normalize_tag_name(name):
 def save_tag(owner, name, tag=None):
     normalized = normalize_tag_name(name)
     if not normalized or len(normalized) > 60:
-        raise ValidationError('نام تگ باید بین ۱ تا ۶۰ نویسه باشد.')
+        raise ValidationError('نام موضوع باید بین ۱ تا ۶۰ نویسه باشد.')
     others = Tag.objects.filter(owner=owner).exclude(pk=tag.pk if tag else None)
     if others.filter(normalized_name=normalized).exists():
-        raise ValidationError('این تگ قبلاً ساخته شده است.')
+        raise ValidationError('این موضوع قبلاً ساخته شده است.')
     base = slugify(normalized, allow_unicode=True) or 'tag'
     slug, suffix = base, 1
     while others.filter(slug=slug).exists():
@@ -21,7 +21,7 @@ def save_tag(owner, name, tag=None):
         slug = f'{base}-{suffix}'
     tag = tag or Tag(owner=owner)
     if tag.owner_id != owner.pk:
-        raise ValidationError('تگ معتبر نیست.')
+        raise ValidationError('موضوع معتبر نیست.')
     tag.name = normalized
     tag.normalized_name = normalized
     tag.slug = slug

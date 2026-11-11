@@ -2,6 +2,6 @@
   <div class="card-meta"><span>{{ poem.poet_name }}</span><span>{{ poem.verses.all|length }} بیت</span></div>
   <h2><a href="{{ poem.get_absolute_url }}">{{ poem.display_title }}</a></h2>
   {% with first=poem.verses.all.0 %}<p class="excerpt">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>{% endwith %}
-  <div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% empty %}<span class="fine">بدون تگ</span>{% endfor %}</div>
+  <div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% empty %}<span class="fine">بدون موضوع</span>{% endfor %}</div>
   <div class="card-footer"><a class="inline-link" href="{{ poem.get_absolute_url }}">خواندن شعر{% include 'components/icon.html' with name='arrow' %}</a>{% include 'components/icon.html' with name='book' %}</div>
 </article>

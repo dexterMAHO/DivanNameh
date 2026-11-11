@@ -32,11 +32,26 @@ def dashboard(request):
 @private
 @require_GET
 def poem_list(request, slug=None):
-    poems = Poem.objects.filter(owner=request.user, archived_at__isnull=request.GET.get('archived') != '1').prefetch_related('verses', 'tags')
     tag = get_object_or_404(Tag, owner=request.user, slug=slug) if slug else None
+    archived = not tag and request.GET.get('archived') == '1'
+    poet = request.GET.get('poet', '')
+    poems = Poem.objects.filter(owner=request.user, archived_at__isnull=not archived).prefetch_related('verses', 'tags')
     if tag:
-        poems = poems.filter(tags=tag, archived_at__isnull=True)
-    return render(request, 'poetry/list.html', {'page': Paginator(poems, 20).get_page(request.GET.get('page')), 'tag': tag, 'archived': request.GET.get('archived') == '1'})
+        poems = poems.filter(tags=tag)
+    if poet:
+        poems = poems.filter(poet_name=poet)
+    return render(request, 'poetry/list.html', {
+        'page': Paginator(poems, 20).get_page(request.GET.get('page')),
+        'tag': tag, 'archived': archived, 'poet': poet,
+    })
+
+
+@private
+@require_GET
+def poets(request):
+    groups = (Poem.objects.filter(owner=request.user, archived_at__isnull=True)
+              .values('poet_name').annotate(poem_count=Count('pk')).order_by('poet_name'))
+    return render(request, 'poetry/poets.html', {'page': Paginator(groups, 24).get_page(request.GET.get('page'))})
 
 
 @private
@@ -58,7 +73,7 @@ def poem_edit(request, pk=None):
             messages.success(request, 'شعر در دفتر شما ذخیره شد.')
             return redirect(saved)
         except (ValidationError, IntegrityError) as exc:
-            form.add_error(None, ' '.join(exc.messages) if isinstance(exc, ValidationError) else 'تگ تکراری است؛ نام دیگری انتخاب کنید.')
+            form.add_error(None, ' '.join(exc.messages) if isinstance(exc, ValidationError) else 'موضوع تکراری است؛ نام دیگری انتخاب کنید.')
     if request.method == 'POST':
         rows = list(zip(request.POST.getlist('hemistich_1'), request.POST.getlist('hemistich_2')))
     else:
@@ -89,17 +104,17 @@ def tag_change(request, pk=None, action='create'):
     tag = get_object_or_404(Tag, pk=pk, owner=request.user) if pk else None
     if action == 'delete':
         if request.POST.get('confirm') != 'yes':
-            return render(request, 'confirm.html', {'label': f'حذف تگ «{tag.name}»', 'explanation': 'شعرها باقی می‌مانند؛ فقط تگ و ارتباط آن حذف می‌شود.'})
+            return render(request, 'confirm.html', {'label': f'حذف موضوع «{tag.name}»', 'explanation': 'شعرها باقی می‌مانند؛ فقط موضوع و ارتباط آن حذف می‌شود.'})
         tag.delete()
-        return success(request, 'تگ حذف شد.', 'tags')
+        return success(request, 'موضوع حذف شد.', 'tags')
     form = TagForm(request.POST)
     if not form.is_valid():
-        return failure(request, 'نام تگ معتبر نیست.', errors=form.errors)
+        return failure(request, 'نام موضوع معتبر نیست.', errors=form.errors)
     try:
         tag = save_tag(request.user, form.cleaned_data['name'], tag)
     except (ValidationError, IntegrityError):
-        return failure(request, 'نام تگ تکراری یا نامعتبر است.', status=409)
-    return success(request, 'تگ ذخیره شد.', 'tags', tag={'id': tag.pk, 'name': tag.name, 'url': tag.get_absolute_url()})
+        return failure(request, 'نام موضوع تکراری یا نامعتبر است.', status=409)
+    return success(request, 'موضوع ذخیره شد.', 'tags', tag={'id': tag.pk, 'name': tag.name, 'url': tag.get_absolute_url()})
 
 
 @private
@@ -108,12 +123,12 @@ def assign_tags(request, pk):
     poem = get_object_or_404(Poem, pk=pk, owner=request.user)
     ids = request.POST.getlist('tags')
     if not all(x.isdigit() for x in ids):
-        return failure(request, 'تگ معتبر نیست.')
+        return failure(request, 'موضوع معتبر نیست.')
     selected = Tag.objects.filter(owner=request.user, pk__in=ids)
     if selected.count() != len(set(ids)):
-        return failure(request, 'تگ معتبر نیست.')
+        return failure(request, 'موضوع معتبر نیست.')
     poem.tags.set(selected)
-    return success(request, 'تگ‌ها ذخیره شدند.', poem.get_absolute_url())
+    return success(request, 'موضوع‌ها ذخیره شدند.', poem.get_absolute_url())
 
 
 @private

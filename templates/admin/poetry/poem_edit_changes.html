@@ -1,0 +1,15 @@
+{% if not has_original %}<p>نسخهٔ قبلی این درخواست در دسترس نیست. متن پیشنهادی در جدول آمده است.</p>{% endif %}
+{% if rows %}
+<table dir="rtl">
+  <thead><tr><th scope="col">بخش</th>{% if has_original %}<th scope="col">نسخهٔ قبلی</th>{% endif %}<th scope="col">پیشنهاد کاربر</th></tr></thead>
+  <tbody>
+    {% for label, before, after in rows %}
+    <tr>
+      <th scope="row">{{ label }}</th>
+      {% if has_original %}<td style="white-space: pre-wrap">{{ before|default:'—' }}</td>{% endif %}
+      <td style="white-space: pre-wrap">{{ after|default:'—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}<p>تغییری ثبت نشده است.</p>{% endif %}

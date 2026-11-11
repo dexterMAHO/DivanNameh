@@ -80,6 +80,11 @@ class PoemEditRequest(models.Model):
 
     poem = models.ForeignKey(Poem, on_delete=models.CASCADE, related_name='edit_requests')
     payload = models.JSONField()
+    original = models.JSONField(null=True, blank=True)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='submitted_poem_edits',
+    )
     poem_updated_at = models.DateTimeField()
     status = models.CharField(max_length=8, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)

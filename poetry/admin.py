@@ -1,10 +1,14 @@
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.template.loader import render_to_string
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from django.urls import reverse
+from itertools import zip_longest
 
 from .models import Poem, Verse, Tag, FavoriteVerse, PoemEditRequest
-from .services.edit_requests import decide_edit
+from .services.edit_requests import decide_edit, original_poem, requested_topics
 
 class ReadOnlySuperuserAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
@@ -24,23 +28,41 @@ for model in [Poem, Verse, Tag, FavoriteVerse]:
 
 @admin.register(PoemEditRequest)
 class PoemEditRequestAdmin(ReadOnlySuperuserAdmin):
-    list_display = ('poem', 'status', 'created_at', 'decided_by')
+    list_display = ('poem', 'requester', 'status', 'created_at', 'decided_by')
     list_filter = ('status',)
-    list_select_related = ('poem', 'decided_by')
-    readonly_fields = ('poem', 'proposed_text', 'status', 'created_at', 'decided_at', 'decided_by')
+    list_select_related = ('poem__owner', 'requested_by', 'decided_by')
+    readonly_fields = ('poem', 'requester', 'changes', 'status', 'created_at', 'decided_at', 'decided_by')
     fields = readonly_fields
     actions = ('approve_edits', 'reject_edits')
 
-    @admin.display(description='پیشنهاد کاربر')
-    def proposed_text(self, obj):
-        payload = obj.payload
-        verses = '\n\n'.join('\n'.join(filter(None, verse)) for verse in payload['verses'])
-        names = Tag.objects.filter(owner_id=obj.poem.owner_id, pk__in=payload['tags']).values_list('name', flat=True)
-        topics = '، '.join(filter(None, [*names, payload['new_tag']]))
-        text = (f"عنوان: {payload['title']}\nشاعر: {payload['poet_name']}\n"
-                f"منبع: {payload['source_url']}\nموضوع‌ها: {topics}\n"
-                f"یادداشت: {payload['notes']}\n\n{verses}")
-        return format_html('<pre dir="rtl" style="white-space: pre-wrap">{}</pre>', text)
+    @admin.display(description='درخواست‌دهنده')
+    def requester(self, obj):
+        user = obj.requested_by or obj.poem.owner
+        return format_html('<a href="{}">{}</a>', reverse('admin:accounts_user_change', args=[user.pk]), user.username)
+
+    @admin.display(description='مقایسهٔ نسخه‌ها')
+    def changes(self, obj):
+        before = obj.original
+        if before is None and obj.poem.updated_at == obj.poem_updated_at:
+            before = original_poem(obj.poem)
+        after = {**obj.payload, 'topics': requested_topics(obj)}
+        labels = {
+            'title': 'عنوان', 'poet_name': 'شاعر', 'source_url': 'منبع',
+            'notes': 'یادداشت', 'topics': 'موضوع‌ها',
+        }
+        rows = []
+        for key, label in labels.items():
+            previous = before.get(key, '') if before else ''
+            proposed = after.get(key, '')
+            if key == 'topics':
+                previous, proposed = '، '.join(sorted(previous)), '، '.join(sorted(proposed))
+            if before is None or previous != proposed:
+                rows.append((label, previous, proposed))
+        previous_verses = before['verses'] if before else []
+        for position, (previous, proposed) in enumerate(zip_longest(previous_verses, after['verses'], fillvalue=()), 1):
+            if tuple(previous) != tuple(proposed):
+                rows.append((f'بیت {position}', '\n'.join(filter(None, previous)), '\n'.join(filter(None, proposed))))
+        return mark_safe(render_to_string('admin/poetry/poem_edit_changes.html', {'rows': rows, 'has_original': before is not None}))
 
     def _decide(self, request, queryset, *, approve):
         count = 0

@@ -5,6 +5,9 @@ from django.db import models
 
 class User(AbstractUser):
     login_email = models.EmailField('ایمیل ورود', unique=True, null=True, blank=True)
+    browser_token_hash = models.CharField(max_length=64, blank=True, editable=False)
+    access_link_hash = models.CharField(max_length=64, unique=True, null=True, blank=True, editable=False)
+    access_link_expires_at = models.DateTimeField(null=True, blank=True, editable=False)
     action_password = models.CharField(max_length=128, blank=True)
     theme = models.CharField(max_length=5, choices=[
         ('auto', 'مطابق دستگاه'), ('light', 'روشن'), ('dark', 'تاریک'),

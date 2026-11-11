@@ -6,6 +6,8 @@ from .environment import boolean, csv, value
 
 if boolean('DJANGO_READ_DOTENV', True):
     load_dotenv(BASE_DIR / '.env', override=False)
+TURNSTILE_SITE_KEY = value('TURNSTILE_SITE_KEY')
+TURNSTILE_SECRET_KEY = value('TURNSTILE_SECRET_KEY')
 DEBUG = boolean('DEBUG', True, legacy='DJANGO_DEBUG')
 SECRET_KEY = value('SECRET_KEY', 'django-insecure-local-development-only-never-use-in-production', legacy='DJANGO_SECRET_KEY')
 ALLOWED_HOSTS = csv('ALLOWED_HOSTS', '127.0.0.1,localhost', legacy='DJANGO_ALLOWED_HOSTS')
@@ -21,6 +23,3 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0
-
-PASSWORDLESS_LOGIN = True
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

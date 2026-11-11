@@ -36,6 +36,9 @@
     <nav id="main-nav" aria-label="ناوبری اصلی">{% include 'components/nav.html' %}</nav>
     <form class="sidebar-logout" action="{% url 'logout' %}" method="post">
       {% csrf_token %}<button class="quiet">{% include 'components/icon.html' with name='logout' %}خروج از حساب</button>
+      {% if not user.is_staff and not user.is_superuser %}
+      <button class="text-button" name="forget" value="1">خروج و فراموشی مرورگر</button>
+      {% endif %}
     </form>
   </aside>
   {% endif %}

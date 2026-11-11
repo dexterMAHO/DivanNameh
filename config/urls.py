@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LogoutView
 from django.urls import path
 from django.views.generic import TemplateView
-from accounts import views as a
+from accounts import access, views as a
 from .health import health
 from poetry import views as p
 from memorization import views as m
@@ -11,10 +10,10 @@ from memorization import views as m
 urlpatterns = [
     path("healthz/", health, name="health"),
     path('admin/', admin.site.urls),
-    path('login/', a.email_access, name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('signup/', a.email_access, name='signup'),
-    path('login/confirm/', a.email_confirm, name='email-confirm'),
+    path('login/', access.username_access, name='login'),
+    path('logout/', access.sign_out, name='logout'),
+    path('signup/', access.username_access, {'signup': True}, name='signup'),
+    path('login/confirm/', access.confirm_browser, name='confirm-browser'),
     path('settings/', a.settings_page, name='settings'),
     path('settings/photo/', a.profile_photo, name='profile-photo'),
     path('settings/photo/remove/', a.remove_profile_photo, name='profile-photo-remove'),

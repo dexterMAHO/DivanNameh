@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
-{% block title %}تأیید ورود{% endblock %}
+{% block title %}ثبت مرورگر{% endblock %}
 {% block content %}
 <section class="login panel">
-  <h1>تأیید ورود</h1>
+  <h1>ثبت مرورگر</h1>
   {% if error or not token %}
   <p class="notice error" role="alert">{{ error|default:'پیوند ورود معتبر نیست.' }}</p>
-  <a href="{% url 'login' %}">دریافت پیوند جدید</a>
+  <a href="{% url 'login' %}">بازگشت به ورود</a>
   {% else %}
-  <form method="post" action="{% url 'email-confirm' %}">
+  <form method="post" action="{% url 'confirm-browser' %}">
     {% csrf_token %}
     <input type="hidden" name="token" value="{{ token }}">
-    <button class="primary wide">ورود به دفتر</button>
+    <button class="primary wide">ثبت مرورگر و ورود</button>
   </form>
   {% endif %}
 </section>

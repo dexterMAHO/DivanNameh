@@ -2,19 +2,18 @@ from io import BytesIO
 
 from django import forms
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.forms import UsernameField
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .models import User
 
 
-class EmailLoginForm(forms.Form):
-    email = forms.EmailField(label='ایمیل', max_length=254, widget=forms.EmailInput(attrs={'autocomplete': 'email', 'dir': 'ltr'}))
-
-    def clean_email(self):
-        email = self.cleaned_data['email'].lower()
-        if len(email) > 254:
-            raise forms.ValidationError('نشانی ایمیل طولانی است.')
-        return email
+class UsernameAccessForm(forms.Form):
+    username = UsernameField(
+        label='نام کاربری', max_length=150, validators=User._meta.get_field('username').validators,
+        widget=forms.TextInput(attrs={'autocomplete': 'username', 'autocapitalize': 'none'}),
+    )
+    human_answer = forms.IntegerField(label='حاصل جمع', required=False)
 
 
 class ThemeForm(forms.ModelForm):

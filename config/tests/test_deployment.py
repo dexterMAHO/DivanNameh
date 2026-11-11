@@ -100,7 +100,8 @@ print(json.dumps({'debug':s.DEBUG,'engine':s.DATABASES['default']['ENGINE'],'hos
                 self.assertEqual(postgres_database(direct)['OPTIONS']['sslmode'], 'verify-full')
 
     @override_settings(SECURE_SSL_REDIRECT=True, SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO', 'https'),
-                       SECURE_REDIRECT_EXEMPT=[r'^healthz/$'])
+                       SECURE_REDIRECT_EXEMPT=[r'^healthz/$'],
+                       SESSION_ENGINE='django.contrib.sessions.backends.signed_cookies')
     def test_health_proxy_and_redirect(self):
         response = self.client.get('/healthz/')
         self.assertEqual(response.status_code, 200)

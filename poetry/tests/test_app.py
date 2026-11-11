@@ -1,11 +1,12 @@
 import uuid
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from poetry.models import Poem, Verse, Tag, FavoriteVerse
+from poetry.models import Poem, PoemEditRequest, Verse, Tag, FavoriteVerse
 from poetry.services.poem_editor import save_poem, parse_verses
 from poetry.services.tags import save_tag
 from memorization.models import MemorizationItem, ReviewLog
@@ -111,11 +112,38 @@ class AppTests(TestCase):
         self.assertEqual(ReviewLog.objects.count(), 2)
         with self.assertRaises(ValidationError): save_poem(self.user, self.data, [('تک', '')], self.poem)
 
+    def test_saved_poem_changes_only_after_admin_approval(self):
+        self.user.action_password = make_password('action-test-password-271')
+        self.user.save(update_fields=['action_password'])
+        url = reverse('poem-edit', args=[self.poem.pk])
+        data = {'title': 'عنوان تازه', 'poet_name': 'شاعر تازه', 'input_mode': 'lines', 'bulk_text': 'بیت اول\nبیت دوم'}
+        self.assertContains(self.client.post(url, data), 'رمز عملیات درست نیست')
+        self.assertFalse(PoemEditRequest.objects.exists())
+        self.assertRedirects(self.client.post(url, {**data, 'action_password': 'action-test-password-271'}), self.poem.get_absolute_url())
+        edit = PoemEditRequest.objects.get(poem=self.poem)
+        self.poem.refresh_from_db()
+        self.assertEqual(self.poem.title, self.data['title'])
+        admin = get_user_model().objects.create_superuser('reviewer')
+        self.client.force_login(admin)
+        changelist = reverse('admin:poetry_poemeditrequest_changelist')
+        response = self.client.post(changelist, {'action': 'approve_edits', '_selected_action': [edit.pk]}, follow=True)
+        self.assertContains(response, 'درخواست بررسی شد')
+        edit.refresh_from_db()
+        self.poem.refresh_from_db()
+        self.assertEqual(edit.status, PoemEditRequest.Status.APPROVED)
+        self.assertEqual(self.poem.title, data['title'])
+        self.assertEqual(self.poem.verses.first().hemistich_1, 'بیت اول')
+
     def test_archive_restore_and_discovery(self):
         verse = self.poem.verses.first()
         FavoriteVerse.objects.create(owner=self.user, verse=verse)
         create_item(self.user, self.poem, 'full')
         self.client.post(reverse('poem-archive', args=[self.poem.pk]))
+        self.poem.refresh_from_db()
+        self.assertIsNone(self.poem.archived_at)
+        self.user.action_password = make_password('action-test-password-271')
+        self.user.save(update_fields=['action_password'])
+        self.client.post(reverse('poem-archive', args=[self.poem.pk]), {'action_password': 'action-test-password-271'})
         self.assertEqual(self.client.get('/api/discover/random/').json()['poem'], None)
         self.assertContains(self.client.get('/review/'), 'مروری برای الان باقی نمانده')
         self.assertEqual(self.client.get('/favorites/').context['page'].paginator.count, 0)

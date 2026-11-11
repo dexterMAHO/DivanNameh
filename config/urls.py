@@ -15,6 +15,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('signup/', a.email_access, name='signup'),
     path('login/confirm/', a.email_confirm, name='email-confirm'),
+    path('settings/', a.settings_page, name='settings'),
     path('', p.dashboard, name='dashboard'),
     path('poems/', p.poem_list, name='poems'),
     path('poems/new/', p.poem_edit, name='poem-new'),

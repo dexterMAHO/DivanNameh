@@ -70,3 +70,28 @@ class FavoriteVerse(models.Model):
     def clean(self):
         if self.verse.poem.owner_id != self.owner_id:
             raise ValidationError('این بیت متعلق به شما نیست.')
+
+
+class PoemEditRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'در انتظار بررسی'
+        APPROVED = 'approved', 'تأیید شده'
+        REJECTED = 'rejected', 'رد شده'
+
+    poem = models.ForeignKey(Poem, on_delete=models.CASCADE, related_name='edit_requests')
+    payload = models.JSONField()
+    poem_updated_at = models.DateTimeField()
+    status = models.CharField(max_length=8, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'درخواست ویرایش شعر'
+        verbose_name_plural = 'درخواست‌های ویرایش شعر'
+        constraints = [
+            models.UniqueConstraint(fields=['poem'], condition=models.Q(status='pending'), name='one_pending_poem_edit'),
+        ]
+
+    def __str__(self):
+        return str(self.poem)

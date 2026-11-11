@@ -6,13 +6,15 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_POST, require_GET, require_http_methods
+from accounts.permissions import action_password_error
 from memorization.models import MemorizationItem, ReviewLog
 from memorization.services.reviews import get_due_items
-from .models import Poem, Tag, Verse, FavoriteVerse
+from .models import Poem, PoemEditRequest, Tag, Verse, FavoriteVerse
 from .forms import PoemForm, TagForm
 from .http import private, success, failure
 from .services.poem_editor import save_poem
+from .services.edit_requests import submit_edit
 from .services.tags import save_tag
 from .services.discovery import choose_random_poem
 
@@ -59,21 +61,31 @@ def poets(request):
 def poem_detail(request, pk):
     poem = get_object_or_404(Poem.objects.prefetch_related('verses', 'tags'), pk=pk, owner=request.user)
     favorites = set(FavoriteVerse.objects.filter(owner=request.user, verse__poem=poem).values_list('verse_id', flat=True))
-    return render(request, 'poetry/detail.html', {'poem': poem, 'favorite_ids': favorites})
+    return render(request, 'poetry/detail.html', {
+        'poem': poem, 'favorite_ids': favorites, 'in_memorization': poem.items.exists(),
+        'edit_request': poem.edit_requests.order_by('-created_at', '-pk').first(),
+    })
 
 
 @private
+@require_http_methods(['GET', 'POST'])
 def poem_edit(request, pk=None):
     poem = get_object_or_404(Poem, pk=pk, owner=request.user) if pk else None
     initial = {'input_mode': 'structured'}
     form = PoemForm(request.POST or None, owner=request.user, instance=poem, initial=initial)
     if request.method == 'POST' and form.is_valid():
         try:
-            saved = save_poem(request.user, form.cleaned_data, form.cleaned_data['verses'], poem)
+            if poem:
+                if error := action_password_error(request):
+                    raise ValidationError(error)
+                submit_edit(poem, request.user, form.cleaned_data, form.cleaned_data['verses'])
+                messages.success(request, 'درخواست ویرایش برای بررسی مدیر فرستاده شد.')
+                return redirect(poem)
+            saved = save_poem(request.user, form.cleaned_data, form.cleaned_data['verses'])
             messages.success(request, 'شعر در دفتر شما ذخیره شد.')
             return redirect(saved)
         except (ValidationError, IntegrityError) as exc:
-            form.add_error(None, ' '.join(exc.messages) if isinstance(exc, ValidationError) else 'موضوع تکراری است؛ نام دیگری انتخاب کنید.')
+            form.add_error(None, ' '.join(exc.messages) if isinstance(exc, ValidationError) else 'ذخیره ممکن نشد. دوباره تلاش کنید.')
     if request.method == 'POST':
         rows = list(zip(request.POST.getlist('hemistich_1'), request.POST.getlist('hemistich_2')))
     else:
@@ -86,6 +98,9 @@ def poem_edit(request, pk=None):
 def archive(request, pk, restore=False):
     with transaction.atomic():
         poem = get_object_or_404(Poem.objects.select_for_update(), pk=pk, owner=request.user)
+        if not restore and (error := action_password_error(request, required=True)):
+            messages.error(request, error)
+            return redirect(poem)
         poem.archived_at = None if restore else timezone.now()
         poem.save(update_fields=['archived_at', 'updated_at'])
     return success(request, 'شعر بازگردانی شد.' if restore else 'شعر آرشیو شد.', poem.get_absolute_url())
@@ -127,8 +142,15 @@ def assign_tags(request, pk):
     selected = Tag.objects.filter(owner=request.user, pk__in=ids)
     if selected.count() != len(set(ids)):
         return failure(request, 'موضوع معتبر نیست.')
-    poem.tags.set(selected)
-    return success(request, 'موضوع‌ها ذخیره شدند.', poem.get_absolute_url())
+    if error := action_password_error(request):
+        return failure(request, error, status=403)
+    data = {name: getattr(poem, name) for name in ('title', 'poet_name', 'source_url', 'notes')}
+    data['tags'] = selected
+    try:
+        submit_edit(poem, request.user, data, list(poem.verses.values_list('hemistich_1', 'hemistich_2')))
+    except ValidationError as exc:
+        return failure(request, ' '.join(exc.messages), status=409)
+    return success(request, 'درخواست تغییر موضوع‌ها برای مدیر فرستاده شد.', poem.get_absolute_url())
 
 
 @private

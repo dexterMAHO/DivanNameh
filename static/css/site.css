@@ -940,3 +940,6 @@ summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: cent
   padding: var(--space-2) var(--space-1);
   overflow-wrap: anywhere;
 }
+
+.archive-options { margin-inline-start: auto; max-width: 24rem; }
+.memorize-panel form label { margin-block-end: var(--space-2); }

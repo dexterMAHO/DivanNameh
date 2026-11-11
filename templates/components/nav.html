@@ -6,6 +6,7 @@
 <a href="{% url 'tags' %}" {% if route == 'tags' or route == 'tag-detail' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='tag' %}<span>موضوع‌های دفتر</span></a>
 <a href="{% url 'poets' %}" {% if route == 'poets' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='pen' %}<span>شاعران کتابخانه</span></a>
 <a href="{% url 'treasury' %}" {% if route == 'treasury' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>گنجینهٔ فارسی</span></a>
+<a href="{% url 'settings' %}" {% if route == 'settings' %}aria-current="page"{% endif %}><span>تنظیمات حساب</span></a>
 <p class="nav-label">همراه با شعر</p>
 <a href="{% url 'review' %}" {% if route == 'review' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='repeat' %}<span>مرور امروز</span><span class="count">{{ due_count }}</span></a>
 <a href="{% url 'memorize' %}" {% if route == 'memorize' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='list' %}<span>فهرست حفظ</span></a>

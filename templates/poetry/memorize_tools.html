@@ -1,0 +1,40 @@
+{% if not poem.archived_at and poem.verses.all %}
+<section class="panel memorize-panel" {% if not in_memorization %}data-memorize-options{% endif %}>
+  <div class="section-heading">
+    <h2>{% if in_memorization %}در فهرست حفظ شماست{% else %}این شعر را به خاطر بسپار{% endif %}</h2>
+    <a class="inline-link" href="{% url 'memorize' %}">فهرست حفظ</a>
+  </div>
+  {% if not in_memorization %}
+  <form method="post" action="{% url 'item-new' %}" data-ajax>
+    {% csrf_token %}
+    <input type="hidden" name="poem_id" value="{{ poem.pk }}">
+    <input type="hidden" name="scope" value="full">
+    <input type="hidden" name="return_to_poem" value="1">
+    {% include 'components/action_password.html' %}
+    <button class="primary">حفظ تمام شعر</button>
+  </form>
+  <details>
+    <summary>انتخاب بازه‌ای از ابیات</summary>
+    <form class="range-form" method="post" action="{% url 'item-new' %}" data-ajax>
+      {% csrf_token %}
+      <input type="hidden" name="poem_id" value="{{ poem.pk }}">
+      <input type="hidden" name="scope" value="range">
+      <input type="hidden" name="return_to_poem" value="1">
+      <label>از بیت
+        <select name="start_verse_id">
+          {% for verse in poem.verses.all %}<option value="{{ verse.pk }}" data-position="{{ verse.position }}">{{ verse.position }} — {{ verse.hemistich_1|truncatechars:35 }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>تا بیت
+        <select name="end_verse_id">
+          {% for verse in poem.verses.all %}<option value="{{ verse.pk }}" data-position="{{ verse.position }}">{{ verse.position }} — {{ verse.hemistich_1|truncatechars:35 }}</option>{% endfor %}
+        </select>
+      </label>
+      {% include 'components/action_password.html' %}
+      <p class="selection-count" role="status"></p>
+      <button>افزودن بازه به حفظ</button>
+    </form>
+  </details>
+  {% endif %}
+</section>
+{% endif %}

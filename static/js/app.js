@@ -9,6 +9,14 @@ for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite
     try {
       const data = await request(form.action, form); announce(data.message);
       if (data.remaining_due_count !== undefined) document.querySelectorAll('.count').forEach(el => el.textContent = data.remaining_due_count);
+      const memorize = form.closest('[data-memorize-options]');
+      if (memorize) {
+        memorize.querySelector('h2').textContent = 'در فهرست حفظ شماست';
+        memorize.querySelectorAll('form, details').forEach(control => control.remove());
+        document.querySelectorAll('.verse.selected').forEach(row => row.classList.remove('selected'));
+        const listLink = memorize.querySelector('a');
+        listLink.focus();
+      }
       if (form.hasAttribute('data-favorite')) {
         button.textContent = data.favorite ? '★' : '☆';
         button.setAttribute('aria-pressed', String(data.favorite));

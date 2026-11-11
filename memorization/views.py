@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST, require_GET
+from accounts.permissions import action_password_error
 from poetry.http import private, success, failure
 from .models import MemorizationItem, ReviewLog
 from .forms import MemorizationItemForm, ReviewRatingForm
@@ -21,6 +22,8 @@ def items(request):
 @private
 @require_POST
 def add_item(request):
+    if error := action_password_error(request):
+        return failure(request, error, status=403)
     form = MemorizationItemForm(request.POST, owner=request.user)
     if not form.is_valid():
         return failure(request, 'شعر یا بازهٔ انتخاب‌شده معتبر نیست.', errors=form.errors)
@@ -31,7 +34,8 @@ def add_item(request):
         return failure(request, 'این کارت قبلاً اضافه شده است.', status=409, code='duplicate_item')
     except ValidationError:
         return failure(request, 'بازهٔ انتخاب‌شده معتبر نیست.', status=400, code='invalid_range')
-    return success(request, 'به فهرست حفظ افزوده شد.', 'memorize', item={'id': item.pk, 'scope': item.scope, 'poem_id': item.poem_id, 'due_at': item.due_at.isoformat()}, remaining_due_count=get_due_items(request.user).count())
+    target = item.poem.get_absolute_url() if request.POST.get('return_to_poem') == '1' else 'memorize'
+    return success(request, 'به فهرست حفظ افزوده شد.', target, item={'id': item.pk, 'scope': item.scope, 'poem_id': item.poem_id, 'due_at': item.due_at.isoformat()}, remaining_due_count=get_due_items(request.user).count())
 
 
 @private

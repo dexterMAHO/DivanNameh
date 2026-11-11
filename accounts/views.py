@@ -8,6 +8,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
@@ -18,7 +19,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from .forms import EmailLoginForm
+from .forms import ActionPasswordForm, EmailLoginForm
 from .legacy_forms import PersianAuthenticationForm, PersianUserCreationForm
 from .models import LoginChallenge, User
 
@@ -115,3 +116,23 @@ def email_confirm(request):
     response = render(request, 'accounts/email_confirm.html', {'token': token, 'error': error})
     response['Referrer-Policy'] = 'no-referrer'
     return response
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def settings_page(request):
+    submitted = request.POST.get('section')
+    password_form = ActionPasswordForm(request.POST if submitted == 'password' else None, user=request.user)
+    if request.method == 'POST':
+        if submitted == 'password':
+            with transaction.atomic():
+                user = User.objects.select_for_update().get(pk=request.user.pk)
+                password_form = ActionPasswordForm(request.POST, user=user)
+                if password_form.is_valid():
+                    user.action_password = make_password(password_form.cleaned_data['password'])
+                    user.save(update_fields=['action_password'])
+                    messages.success(request, 'رمز عملیات ذخیره شد.')
+                    return redirect('settings')
+    return render(request, 'accounts/settings.html', {
+        'password_form': password_form,
+    })

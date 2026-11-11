@@ -100,3 +100,40 @@ class PoemEditRequest(models.Model):
 
     def __str__(self):
         return str(self.poem)
+
+
+class TreasuryBook(models.Model):
+    slug = models.SlugField(max_length=120, unique=True)
+    author = models.CharField(max_length=240)
+    source_url = models.URLField(max_length=500)
+    has_contents = models.BooleanField(default=False)
+    publishes_text = models.BooleanField(default=False)
+    edition_note = models.CharField(max_length=500, blank=True)
+    dataset_digest = models.CharField(max_length=64)
+
+    class Meta:
+        ordering = ('author', 'slug')
+
+    def get_absolute_url(self):
+        return reverse('treasury-book', args=[self.slug])
+
+
+class TreasuryEntry(models.Model):
+    book = models.ForeignKey(TreasuryBook, on_delete=models.CASCADE, related_name='entries')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children')
+    key = models.SlugField(max_length=80)
+    title = models.TextField()
+    position = models.PositiveIntegerField()
+    kind = models.CharField(max_length=8, choices=[('section', 'بخش'), ('work', 'اثر')])
+    source_url = models.URLField(max_length=500, blank=True)
+    paragraphs = models.JSONField(null=True)
+
+    class Meta:
+        ordering = ('position',)
+        constraints = [
+            models.UniqueConstraint(fields=['book', 'key'], name='treasury_entry_unique_key'),
+        ]
+        indexes = [models.Index(fields=['book', 'parent', 'position'], name='treasury_browse_order')]
+
+    def get_absolute_url(self):
+        return reverse('treasury-entry', args=[self.book.slug, self.key])

@@ -4,8 +4,11 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
+
+from poetry.http import failure, success
 
 from .access import enroll_browser, issue_browser_link, readers
 from .forms import ActionPasswordForm, ProfilePhotoForm, ThemeForm
@@ -71,3 +74,19 @@ def remove_profile_photo(request):
     ProfilePhoto.objects.filter(user=request.user).delete()
     messages.success(request, 'عکس پروفایل برداشته شد.')
     return redirect('settings')
+
+
+@login_required
+@require_POST
+def header_theme(request):
+    form = ThemeForm(request.POST, instance=request.user)
+    if not form.is_valid():
+        return failure(request, 'ظاهر انتخاب‌شده معتبر نیست.')
+    theme = form.cleaned_data['theme']
+    User.objects.filter(pk=request.user.pk).update(theme=theme)
+    target = request.POST.get('next', '')
+    if not target.startswith('/') or not url_has_allowed_host_and_scheme(
+        target, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        target = 'dashboard'
+    return success(request, 'ظاهر سایت ذخیره شد.', target, theme=theme)

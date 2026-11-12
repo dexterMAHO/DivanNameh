@@ -54,17 +54,62 @@
 
 {% if entry.kind == 'work' %}
   {% if entry.paragraphs %}
-  <article class="reading-sheet treasury-text">
-    {% with couplets=entry.couplets %}
+  <div id="copy-tools" class="panel copy-tools treasury-copy" hidden>
+    <button type="button" id="copy-all">کپی ساده</button>
+    <details>
+      <summary class="button quiet">کپی پیشرفته</summary>
+      {% if couplets %}
+      <p>بیت‌ها را از متن شعر انتخاب کنید.</p>
+      <button type="button" id="copy-selected">کپی بیت‌های انتخاب‌شده</button>
+      {% endif %}
+      <label><input type="checkbox" id="copy-credit"> افزودن نام اثر و شاعر</label>
+      <button type="button" id="copy-with-options">کپی تمام متن با تنظیمات</button>
+    </details>
+    <p class="copy-status" role="status"></p>
+    <div id="copy-fallback" hidden>
+      <label for="copy-output">متن آمادهٔ کپی</label>
+      <textarea id="copy-output" rows="5" readonly></textarea>
+    </div>
+  </div>
+  {% if couplets %}
+  <form id="treasury-selection" method="post" action="{% url 'treasury-save' book.slug entry.key %}">
+    {% csrf_token %}
+    <div class="panel treasury-save">
+      <p>برای ذخیره یا حفظ بخشی از شعر، بیت‌های دلخواه را از متن انتخاب کنید.</p>
+      <div class="treasury-actions">
+        <button class="primary" name="action" value="library-all">افزودن کل شعر به کتابخانه</button>
+        <button name="action" value="library">ذخیرهٔ بیت‌های انتخاب‌شده</button>
+        <button name="action" value="memorize">افزودن به حفظ</button>
+      </div>
+      <small class="fine">اگر بیتی انتخاب نشود، کل شعر به بخش حفظ افزوده می‌شود.</small>
+    </div>
+  {% endif %}
+  <article class="reading-sheet treasury-text" aria-label="متن اثر" data-copy-credit="{{ entry.title }} · {{ book.author }}">
     {% if couplets %}
       {% for first, second in couplets %}
-      <div class="verse"><span class="verse-number">{{ forloop.counter|persian }}</span><div class="hemistich">{{ first }}</div><div class="hemistich">{{ second }}</div></div>
+      <div class="treasury-stanza">
+        <div class="verse" data-position="{{ forloop.counter }}">
+          <div class="hemistich">{{ first }}</div>
+          <div class="hemistich">{{ second }}</div>
+        </div>
+        <div class="treasury-verse-actions">
+          <label><input type="checkbox" name="verse" value="{{ forloop.counter }}"> انتخاب بیت {{ forloop.counter|persian }}</label>
+          <button class="quiet" name="action" value="favorite:{{ forloop.counter }}" aria-label="افزودن بیت {{ forloop.counter|persian }} به شاه‌بیت‌ها">☆ شاه‌بیت</button>
+          <span role="status" class="fine treasury-favorite-status"></span>
+        </div>
+      </div>
       {% endfor %}
     {% else %}
-      {% for paragraph in entry.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+      {% for paragraph in entry.paragraphs %}<p data-copy-paragraph>{{ paragraph }}</p>{% endfor %}
     {% endif %}
-    {% endwith %}
   </article>
+  {% if couplets %}
+    <div class="treasury-actions treasury-end-actions">
+      <button name="action" value="library">ذخیرهٔ بیت‌های انتخاب‌شده</button>
+      <button name="action" value="memorize">افزودن به حفظ</button>
+    </div>
+  </form>
+  {% endif %}
   {% else %}
   <section class="panel treasury-notice">
     <span class="ornament" aria-hidden="true">{% include 'components/icon.html' with name='lock' %}</span>
@@ -74,24 +119,42 @@
     </div>
   </section>
   {% endif %}
-{% elif page.object_list %}
+{% elif sections or groups %}
 <section class="panel treasury-list">
   <div class="section-heading">
-    <h2>{% if entry %}زیربخش‌های این بخش{% else %}فهرست آثار{% endif %}</h2>
-    <span class="fine">{{ page.paginator.count|tally }} مورد</span>
+    <h2>فهرست آثار{% if entry %} این بخش{% endif %}</h2>
+    <span class="fine">{{ work_count|tally }} اثر</span>
   </div>
-  <ul class="treasury-entries">
-    {% for child in page %}
-    <li class="{{ child.kind }}">
-      <a href="{{ child.get_absolute_url }}">
-        {% if child.kind == 'work' %}{% include 'components/icon.html' with name='pen' %}{% else %}{% include 'components/icon.html' with name='book' %}{% endif %}
-        <span class="entry-title">{{ child.title }}</span>
-        <span class="entry-kind fine">{{ child.get_kind_display }}</span>
-      </a>
+  {% if sections %}
+  <nav class="treasury-jump" aria-label="بخش‌های دیوان">
+    {% for section in sections %}<a class="chip" href="{{ section.get_absolute_url }}">{{ section.title }}</a>{% endfor %}
+  </nav>
+  {% endif %}
+  {% if groups %}
+  <p class="fine">حرف پایانی از مصرع دومِ بیت اول گرفته شده است؛ این دسته‌بندی تقریبی است.</p>
+  <nav class="treasury-jump" aria-label="رفتن به حرف پایانی">
+    {% for letter, works in groups %}
+    <a class="chip" href="#ending-{{ forloop.counter }}">{{ letter|default:"بدون حرف پایانی" }}</a>
+    {% endfor %}
+  </nav>
+  <ul class="treasury-groups">
+    {% for letter, works in groups %}
+    <li id="ending-{{ forloop.counter }}">
+      <h3 class="treasury-group-title"><span>{{ letter|default:"بدون حرف پایانی" }}</span><small>{{ works|length|tally }} اثر</small></h3>
+      <ul class="treasury-entries">
+        {% for child, section in works %}
+        <li class="work">
+          <a href="{{ child.get_absolute_url }}">
+            {% include 'components/icon.html' with name='pen' %}
+            <span class="entry-title">{{ child.title }}{% if section %}<small class="fine">{{ section }}</small>{% endif %}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
     </li>
     {% endfor %}
   </ul>
-  {% include 'components/pagination.html' %}
+  {% endif %}
 </section>
 {% elif not book.has_contents %}
 <section class="panel treasury-notice">

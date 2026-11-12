@@ -4,7 +4,8 @@ from django.test import TestCase
 from poetry.management.commands.fetch_poet_profiles import (
     candidate_titles, clean_metadata, describes_person, lunar_century, summarise,
 )
-from poetry.models import TreasuryBook, TreasuryEntry
+from memorization.models import MemorizationItem
+from poetry.models import FavoriteVerse, Poem, TreasuryBook, TreasuryEntry
 from poetry.templatetags.persian import persian, tally
 
 
@@ -86,6 +87,48 @@ class TreasuryPageTests(TestCase):
             source_url='https://ganjoor.net/hafez/ghazal/sh2')
         response = self.client.get('/treasury/hafez/poem-2/')
         self.assertContains(response, 'https://ganjoor.net/hafez/ghazal/sh2')
+
+    def test_nested_works_are_all_listed_and_grouped(self):
+        section = TreasuryEntry.objects.create(
+            book=self.hafez, parent=self.root, key='section-2', title='قصیده‌ها', position=2, kind='section')
+        TreasuryEntry.objects.bulk_create([
+            TreasuryEntry(book=self.hafez, parent=section, key=f'work-{i}', title=f'قصیده شماره {i} پایان',
+                          position=i, kind='work', paragraphs=['یک مصرع', 'پایانِ ي!'])
+            for i in range(65)
+        ])
+        response = self.client.get('/treasury/hafez/', {'page': 2})
+        self.assertContains(response, 'غزل ۱')
+        self.assertContains(response, 'قصیده شماره 0 پایان')
+        self.assertContains(response, 'قصیده شماره 64 پایان')
+        self.assertContains(response, '<span>ی</span>', html=True)
+
+    def test_selected_couplets_preserve_source_order_and_are_saved_once(self):
+        self.ghazal.paragraphs += ['سطر سوم', 'سطر چهارم', 'سطر پنجم', 'سطر ششم']
+        self.ghazal.save(update_fields=['paragraphs'])
+        url = '/treasury/hafez/poem-1/save/'
+        self.assertEqual(self.client.post(url, {'action': 'library', 'verse': ['3', '1', '3']}).status_code, 302)
+        self.client.post(url, {'action': 'library', 'verse': ['1', '3']})
+        poem = Poem.objects.get(owner=self.user)
+        self.assertEqual(list(poem.verses.values_list('hemistich_1', flat=True)), ['مصرع نخست', 'سطر پنجم'])
+        self.assertEqual(poem.source_url, self.ghazal.source_url)
+        self.client.post(url, {'action': 'memorize', 'verse': ['3', '1']})
+        self.assertTrue(MemorizationItem.objects.filter(owner=self.user, poem=poem).exists())
+
+    def test_whole_poem_and_single_favorite(self):
+        url = '/treasury/hafez/poem-1/save/'
+        self.assertEqual(self.client.post(url, {'action': 'library-all'}).status_code, 302)
+        self.client.post(url, {'action': 'favorite:1'})
+        self.client.post(url, {'action': 'favorite:1'})
+        self.assertEqual(FavoriteVerse.objects.get(owner=self.user).verse.hemistich_1, 'مصرع نخست')
+        self.assertEqual(self.client.post(url, {'action': 'library', 'verse': ['2']}).status_code, 400)
+        self.assertEqual(self.client.get(url).status_code, 405)
+
+    def test_header_theme_persists_and_returns_to_work(self):
+        target = self.ghazal.get_absolute_url()
+        self.assertRedirects(self.client.post('/settings/theme/', {'theme': 'dark', 'next': target}), target)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.theme, 'dark')
+        self.assertContains(self.client.get(target), 'data-theme="dark"')
 
     def test_missing_book_is_not_found(self):
         self.assertEqual(self.client.get('/treasury/unknown/').status_code, 404)

@@ -79,3 +79,29 @@ if (navToggle) {
     document.querySelector('.sidebar').classList.toggle('mobile-open', open);
   });
 }
+
+const treasury = document.getElementById('treasury-selection');
+treasury?.addEventListener('submit', async event => {
+  const button = event.submitter;
+  if (!button) return;
+  if (button.value === 'library' && !treasury.querySelector('input[name="verse"]:checked')) {
+    event.preventDefault();
+    treasury.querySelector('input[name="verse"]').focus();
+    announce('ابتدا دست‌کم یک بیت انتخاب کنید.', true);
+    return;
+  }
+  if (!button.value.startsWith('favorite:')) return;
+  event.preventDefault();
+  const status = button.parentElement.querySelector('[role="status"]');
+  const saving = request(treasury.action, treasury, button);
+  button.disabled = true;
+  try {
+    const data = await saving;
+    button.textContent = '★ شاه‌بیت';
+    status.textContent = data.message;
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});

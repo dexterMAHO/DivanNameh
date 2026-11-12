@@ -19,6 +19,20 @@
     </a>
     {% if user.is_authenticated %}
     <div class="masthead-actions">
+      <details class="header-theme">
+        <summary class="button quiet" aria-label="تغییر تم">تم</summary>
+        <form action="{% url 'header-theme' %}" method="post" class="panel">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <label for="header-theme-choice">ظاهر سایت</label>
+          <select id="header-theme-choice" name="theme">
+            <option value="auto"{% if user.theme == 'auto' %} selected{% endif %}>مطابق دستگاه</option>
+            <option value="light"{% if user.theme == 'light' %} selected{% endif %}>روشن</option>
+            <option value="dark"{% if user.theme == 'dark' %} selected{% endif %}>تاریک</option>
+          </select>
+          <button type="submit">اعمال</button>
+        </form>
+      </details>
       <a class="button primary masthead-add" href="{% url 'poem-new' %}" aria-label="افزودن شعر">
         {% include 'components/icon.html' with name='plus' %}<span>افزودن شعر</span>
       </a>

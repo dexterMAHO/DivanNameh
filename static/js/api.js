@@ -6,11 +6,11 @@ export function announce(message, error = false) {
   box.replaceChildren(p);
   if (error) box.scrollIntoView({behavior: 'smooth', block: 'nearest'});
 }
-export async function request(url, form = null) {
+export async function request(url, form = null, submitter = undefined) {
   const options = {credentials: 'same-origin', headers: {'Accept': 'application/json'}};
   if (form) {
     options.method = 'POST';
-    options.body = new FormData(form);
+    options.body = new FormData(form, submitter);
     options.headers['X-CSRFToken'] = form.querySelector('[name=csrfmiddlewaretoken]').value;
   }
   const response = await fetch(url, options);

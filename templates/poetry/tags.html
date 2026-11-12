@@ -1,1 +1,43 @@
-{% extends 'base.html' %}{% block title %}موضوع‌ها{% endblock %}{% block content %}<div class="page-heading compact"><div><span class="eyebrow">نظم میان کلمات</span><h1>موضوع‌های دفتر</h1></div></div><form class="panel inline-form" action="{% url 'tag-new' %}" method="post">{% csrf_token %}<div>{{ form.name.as_field_group }}</div><button class="primary">ساخت موضوع</button></form><div class="card-grid">{% for tag in tags %}<article class="panel"><h2><a href="{{ tag.get_absolute_url }}">{{ tag.name }}</a></h2><p>{{ tag.poem_count }} شعر</p><details><summary>تغییر نام</summary><form action="{% url 'tag-rename' tag.pk %}" method="post">{% csrf_token %}<label>نام تازه<input name="name" value="{{ tag.name }}" maxlength="60" required></label><button>ذخیره</button></form></details><form action="{% url 'tag-delete' tag.pk %}" method="post">{% csrf_token %}<button class="text-button">حذف موضوع</button></form></article>{% empty %}<div class="empty">با ساخت نخستین موضوع، شعرهایتان را دسته‌بندی کنید.</div>{% endfor %}</div>{% endblock %}
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}موضوع‌ها{% endblock %}
+{% block content %}
+<header class="page-heading compact"><h1>موضوع‌های دفتر</h1><a href="{% url 'poems' %}">کتابخانه</a></header>
+<form class="panel inline-form" action="{% url 'tag-new' %}" method="post">
+  {% csrf_token %}<div>{{ form.name.as_field_group }}</div><button class="primary">ساخت موضوع</button>
+</form>
+{% if tags|length > 1 %}
+  <details class="panel">
+    <summary>ادغام دو موضوع</summary>
+    <p class="fine">موضوع مبدأ پس از انتقال شعرهایش به مقصد حذف می‌شود.</p>
+    <form action="{% url 'tag-merge' %}" method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <label>مبدأ<select name="source" required><option value="">انتخاب کنید</option>{% for tag in tags %}<option value="{{ tag.pk }}">{{ tag.name }}</option>{% endfor %}</select></label>
+        <label>مقصد<select name="target" required><option value="">انتخاب کنید</option>{% for tag in tags %}<option value="{{ tag.pk }}">{{ tag.name }}</option>{% endfor %}</select></label>
+      </div>
+      <button>انتقال شعرها و ادغام</button>
+    </form>
+  </details>
+{% endif %}
+<div class="card-grid">
+  {% for tag in tags %}
+    <article class="panel">
+      <h2><a href="{{ tag.get_absolute_url }}">{{ tag.name }}</a></h2>
+      <p>{{ tag.poem_count|persian }} شعر</p>
+      <details {% if tag.pk == editing.pk %}open{% endif %}>
+        <summary>تغییر نام</summary>
+        <form action="{% url 'tag-rename' tag.pk %}" method="post">
+          {% csrf_token %}
+          {% if tag.pk == editing.pk %}{{ edit_form.name.as_field_group }}
+          {% else %}<label>نام تازه<input name="name" value="{{ tag.name }}" maxlength="60" required></label>{% endif %}
+          <button>ذخیره</button>
+        </form>
+      </details>
+      <form action="{% url 'tag-delete' tag.pk %}" method="post">
+        {% csrf_token %}<button class="text-button" aria-label="حذف موضوع {{ tag.name }}">حذف موضوع</button>
+      </form>
+    </article>
+  {% empty %}<p>با ساخت نخستین موضوع، شعرهایتان را دسته‌بندی کنید.</p>{% endfor %}
+</div>
+{% endblock %}

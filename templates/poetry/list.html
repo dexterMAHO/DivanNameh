@@ -1,10 +1,70 @@
 {% extends 'base.html' %}
-{% block title %}کتابخانه{% endblock %}
+{% load persian %}
+{% block title %}کتابخانهٔ اشعار{% endblock %}
 {% block content %}
-{% if poet %}<div class="breadcrumb"><a href="{% url 'poets' %}">شاعران کتابخانه</a><span>/</span>{{ poet }}</div>{% endif %}
-{% if tag %}<div class="breadcrumb"><a href="{% url 'tags' %}">موضوع‌های دفتر</a><span>/</span>{{ tag.name }}</div>{% endif %}
-<header class="page-heading"><div><span class="eyebrow">مجموعهٔ شخصی شما</span><h1>{% if tag %}شعرهای «{{ tag.name }}»{% elif poet %}شعرهای «{{ poet }}»{% elif archived %}آرشیو اشعار{% else %}کتابخانهٔ اشعار{% endif %}</h1><p class="muted">{{ page.paginator.count }} شعر؛ هر کدام، تکه‌ای از دنیای شما.</p></div><a class="button primary" href="{% url 'poem-new' %}">{% include 'components/icon.html' with name='plus' %}افزودن شعر</a></header>
-<div class="toolbar"><div class="tabs" aria-label="بخش‌های کتابخانه"><a href="{% url 'poems' %}" {% if not archived and not tag and not poet %}aria-current="page"{% endif %}>شعرهای فعال</a><a href="{% url 'poems' %}?archived=1" {% if archived %}aria-current="page"{% endif %}>آرشیو</a></div><div class="actions"><a class="inline-link" href="{% url 'tags' %}">{% include 'components/icon.html' with name='tag' %}مرور بر اساس موضوع</a><a class="inline-link" href="{% url 'poets' %}">مرور بر اساس شاعر</a></div></div>
-<div class="card-grid">{% for poem in page %}{% include 'components/poem_card.html' %}{% empty %}<section class="empty"><span class="empty-icon">{% include 'components/icon.html' with name='book' %}</span><h2>هنوز شعری اینجا نیست.</h2><p>{% if archived %}شعرهای آرشیوشده در این بخش نگهداری می‌شوند و قابل بازگردانی‌اند.{% elif tag %}این موضوع را هنگام ثبت یا ویرایش به شعرهایتان اضافه کنید.{% else %}با نوشتن نخستین شعر، کتابخانهٔ شخصی شما شکل می‌گیرد.{% endif %}</p><a class="button" href="{% url 'poem-new' %}">ثبت نخستین شعر</a></section>{% endfor %}</div>
+<header class="page-heading">
+  <div>
+    <h1>{% if tag %}شعرهای «{{ tag.name }}»{% elif poet %}شعرهای «{{ poet }}»{% elif archived %}آرشیو اشعار{% else %}کتابخانهٔ اشعار{% endif %}</h1>
+    <p class="muted">{{ page.paginator.count|persian }} شعر</p>
+  </div>
+</header>
+<nav class="toolbar" aria-label="بخش‌های کتابخانه">
+  <div class="tabs">
+    <a href="{% querystring archived=None page=None %}" {% if not archived %}aria-current="page"{% endif %}>شعرهای فعال</a>
+    <a href="{% querystring archived=1 page=None %}" {% if archived %}aria-current="page"{% endif %}>آرشیو</a>
+  </div>
+  <div class="actions">
+    <a href="{% url 'tags' %}">موضوع‌ها</a>
+    <a href="{% url 'poets' %}">شاعران دفتر</a>
+    <a href="{% url 'collections' %}">مجموعه‌ها</a>
+    <a href="{% url 'library-transfer' %}">ورود و خروج فایل</a>
+    <a href="{% url 'edit-history' %}">درخواست‌های ویرایش</a>
+  </div>
+</nav>
+<form class="panel inline-form" method="get">
+  {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
+  {% if poet %}<input type="hidden" name="poet" value="{{ poet }}">{% endif %}
+  <div>
+    <label for="library-search">عنوان، شاعر یا بخشی از شعر</label>
+    <input id="library-search" type="search" name="q" value="{{ query }}" maxlength="120">
+  </div>
+  <div>
+    <label for="library-sort">ترتیب</label>
+    <select id="library-sort" name="sort">
+      <option value="">آخرین تغییر</option>
+      <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>قدیمی‌ترین ثبت</option>
+      <option value="title" {% if sort == 'title' %}selected{% endif %}>عنوان</option>
+      <option value="poet" {% if sort == 'poet' %}selected{% endif %}>شاعر</option>
+    </select>
+  </div>
+  {% if topic_choices %}
+    <details class="library-topics"{% if active_topics %} open{% endif %}>
+      <summary>فیلتر موضوع‌ها</summary>
+      <fieldset><legend>شعر دارای همهٔ موضوع‌های انتخابی</legend>
+        {% for topic in topic_choices %}<label><input type="checkbox" name="topic" value="{{ topic.slug }}" {% if topic.slug in active_topic_slugs %}checked{% endif %}> {{ topic.name }}</label>{% endfor %}
+      </fieldset>
+    </details>
+  {% endif %}
+  <button>جست‌وجو</button>
+</form>
+{% if query or tag or poet or active_topics %}
+<p class="filter-summary">نتایج {% if query %}«{{ query }}»{% endif %}{% if poet %} · {{ poet }}{% endif %}{% if tag %} · {{ tag.name }}{% endif %}
+  {% for topic in active_topics %} · {{ topic.name }}{% endfor %}
+  <a href="{% url 'poems' %}{% if archived %}?archived=1{% endif %}">پاک‌کردن پالایه‌ها</a>
+</p>
+{% endif %}
+<div class="card-grid">
+  {% for poem in page %}
+    {% include 'components/poem_card.html' %}
+  {% empty %}
+    <section class="empty">
+      <h2>شعری در این نما پیدا نشد.</h2>
+      {% if query %}<a href="{% querystring q=None page=None %}">برداشتن عبارت جست‌وجو</a>
+      {% elif archived %}<a href="{% querystring archived=None page=None %}">شعرهای فعال</a>
+      {% elif tag %}<a href="{% url 'poems' %}">انتخاب شعر و افزودن موضوع در ویرایش</a>
+      {% else %}<a href="{% url 'poem-new' %}">افزودن شعر</a>{% endif %}
+    </section>
+  {% endfor %}
+</div>
 {% include 'components/pagination.html' %}
 {% endblock %}

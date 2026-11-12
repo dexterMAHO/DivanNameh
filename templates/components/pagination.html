@@ -1,7 +1,8 @@
+{% load persian %}
 {% if page.has_other_pages %}
 <nav class="pagination" aria-label="صفحه‌بندی">
   {% if page.has_previous %}<a href="{% querystring page=page.previous_page_number %}">صفحهٔ قبل</a>{% endif %}
-  <span>{{ page.number }} از {{ page.paginator.num_pages }}</span>
+  <span>{{ page.number|persian }} از {{ page.paginator.num_pages|persian }}</span>
   {% if page.has_next %}<a href="{% querystring page=page.next_page_number %}">صفحهٔ بعد</a>{% endif %}
 </nav>
 {% endif %}

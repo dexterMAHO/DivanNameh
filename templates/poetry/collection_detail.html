@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}{{ collection.name }} · مجموعه‌ها{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="مسیر مجموعه‌ها"><a href="{% url 'collections' %}">مجموعه‌ها</a></nav>
+<header class="page-heading compact"><h1>{{ collection.name }}</h1></header>
+{% if error %}<p role="alert" class="notice error">{{ error }}</p>{% endif %}
+<section class="panel" id="collection-items">
+  <h2>محتوای مجموعه</h2>
+  <ol class="collection-items">
+    {% for item in items %}
+      <li>
+        {% if item.poem %}
+          <a href="{{ item.poem.get_absolute_url }}">{{ item.poem.display_title }}</a> · {{ item.poem.poet_name }}
+        {% else %}
+          <a href="{{ item.favorite.verse.poem.get_absolute_url }}">{{ item.favorite.verse.hemistich_1|truncatechars:90 }}</a> · شاه‌بیت
+        {% endif %}
+        <form method="post" class="actions">
+          {% csrf_token %}<input type="hidden" name="item" value="{{ item.pk }}">
+          <button name="action" value="up" {% if forloop.first %}disabled{% endif %} aria-label="بالا بردن ردیف {{ forloop.counter|persian }}">بالا</button>
+          <button name="action" value="down" {% if forloop.last %}disabled{% endif %} aria-label="پایین بردن ردیف {{ forloop.counter|persian }}">پایین</button>
+          <button name="action" value="remove" aria-label="برداشتن ردیف {{ forloop.counter|persian }} از مجموعه">برداشتن</button>
+        </form>
+      </li>
+    {% empty %}<li>این مجموعه هنوز خالی است.</li>{% endfor %}
+  </ol>
+</section>
+<section class="panel" id="collection-choices">
+  <h2>افزودن شعر و شاه‌بیت</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <fieldset><legend>شعرها</legend>
+        {% for poem in choices %}<label><input type="checkbox" name="poem" value="{{ poem.pk }}"> {{ poem.display_title }} · {{ poem.poet_name }}</label>
+        {% empty %}<p>شعر دیگری برای افزودن نیست.</p>{% endfor %}
+      </fieldset>
+      <fieldset><legend>شاه‌بیت‌ها</legend>
+        {% for favorite in favorite_choices %}<label><input type="checkbox" name="favorite" value="{{ favorite.pk }}"> {{ favorite.verse.hemistich_1|truncatechars:90 }}</label>
+        {% empty %}<p>شاه‌بیت دیگری برای افزودن نیست.</p>{% endfor %}
+      </fieldset>
+    </div>
+    {% if choices or favorite_choices %}<button class="primary" name="action" value="add">افزودن انتخاب‌ها</button>{% endif %}
+  </form>
+  {% include 'components/pagination.html' with page=choices %}
+  {% if favorite_choices.has_other_pages %}
+    <nav class="pagination" aria-label="صفحه‌بندی شاه‌بیت‌های قابل افزودن">
+      {% if favorite_choices.has_previous %}<a href="{% querystring favorite_page=favorite_choices.previous_page_number %}#collection-choices">شاه‌بیت‌های قبلی</a>{% endif %}
+      <span>{{ favorite_choices.number|persian }} از {{ favorite_choices.paginator.num_pages|persian }}</span>
+      {% if favorite_choices.has_next %}<a href="{% querystring favorite_page=favorite_choices.next_page_number %}#collection-choices">شاه‌بیت‌های بعدی</a>{% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

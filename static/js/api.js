@@ -1,11 +1,3 @@
-export function announce(message, error = false) {
-  const box = document.getElementById('notifications');
-  const p = document.createElement('p');
-  p.className = error ? 'notice error' : 'notice';
-  p.textContent = message;
-  box.replaceChildren(p);
-  if (error) box.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest'});
-}
 export async function request(url, form = null, submitter = undefined) {
   const options = {credentials: 'same-origin', headers: {'Accept': 'application/json'}};
   if (form) {
@@ -13,10 +5,34 @@ export async function request(url, form = null, submitter = undefined) {
     options.body = new FormData(form, submitter);
     options.headers['X-CSRFToken'] = form.querySelector('[name=csrfmiddlewaretoken]').value;
   }
-  const response = await fetch(url, options);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  let response;
   let data;
-  try { data = await response.json(); } catch { throw new Error('پاسخ سرور دریافت نشد؛ دوباره تلاش کنید.'); }
-  if (!response.ok) throw new Error(data.message || 'درخواست انجام نشد؛ ورود به حساب و اتصال را بررسی کنید.');
+  try {
+    response = await fetch(url, {...options, signal: controller.signal});
+    if (response.redirected && new URL(response.url).pathname === '/login/') {
+      const error = new Error('نشست ورود پایان یافته است.');
+      error.code = 'login_required';
+      throw error;
+    }
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('پاسخ سرور قابل خواندن نیست. دوباره تلاش کنید.');
+    }
+  } catch (error) {
+    if (!response) throw new Error('اتصال برقرار نشد. دوباره تلاش کنید.');
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+  if (!response.ok) {
+    const error = new Error(data.message || (response.status === 401 ?
+      'نشست ورود پایان یافته است.' : 'درخواست انجام نشد. دوباره تلاش کنید.'));
+    error.code = data.code;
+    throw error;
+  }
   return data;
 }
 export function verseElement(first, second, position, lineLayout = false) {

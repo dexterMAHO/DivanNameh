@@ -7,6 +7,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
 from poetry.models import TreasuryBook, TreasuryEntry
+from poetry.services.treasury_metadata import metadata
+from poetry.treasury_forms import is_line_poem
 from scripts.export_ganjoor import EPUB_ROOT, PUBLISHABLE_EDITIONS, source_url
 
 
@@ -41,14 +43,15 @@ def prepare_entries(record):
 
 
 TABLE = TreasuryEntry._meta.db_table
-COLUMNS = 'id, book_id, parent_id, key, title, position, kind, source_url, paragraphs'
+COLUMNS = 'id, book_id, parent_id, key, title, position, kind, source_url, paragraphs, search_body, opening_ending, has_text, reading_count'
 # Postgres parses one JSON document far faster than it binds a parameter per column,
 # and the trip over the wire is what makes a full re-import slow.
 BULK_INSERT = f"""
 INSERT INTO {TABLE} ({COLUMNS})
 SELECT {COLUMNS} FROM json_to_recordset(%s::json)
 AS entry(id bigint, book_id bigint, parent_id bigint, key varchar, title text,
-         position integer, kind varchar, source_url varchar, paragraphs json)
+         position integer, kind varchar, source_url varchar, paragraphs json,
+         search_body text, opening_ending varchar, has_text boolean, reading_count integer)
 """
 INSERT_BATCH = 2000
 
@@ -64,8 +67,19 @@ def insert_entries(book, groups):
     entries = [entry for _, group in sorted(groups) for entry in group]
     if not entries:
         return
+    by_key = {entry['key']: entry for entry in entries}
+
+    def layout(entry):
+        sections = []
+        parent = by_key.get(entry['parent'])
+        while parent:
+            sections.append((parent['key'], parent['title']))
+            parent = by_key.get(parent['parent'])
+        return is_line_poem(book.slug, entry['key'], entry['title'], sections)
+
+    layouts = {entry['key']: bool(entry['paragraphs'] and layout(entry)) for entry in entries}
     if connection.vendor != 'postgresql':
-        insert_entries_by_depth(book, groups)
+        insert_entries_by_depth(book, groups, layouts)
         return
     with connection.cursor() as cursor:
         cursor.execute(
@@ -77,13 +91,14 @@ def insert_entries(book, groups):
             'id': ids[entry['key']], 'book_id': book.pk, 'parent_id': ids.get(entry['parent']),
             'key': entry['key'], 'title': entry['title'], 'position': entry['position'],
             'kind': entry['kind'], 'source_url': entry['source_url'], 'paragraphs': entry['paragraphs'],
+            **metadata(entry['paragraphs'], line_layout=layouts[entry['key']]),
         } for entry in entries]
         for start in range(0, len(rows), INSERT_BATCH):
             batch = json.dumps(rows[start:start + INSERT_BATCH], ensure_ascii=False)
             cursor.execute(BULK_INSERT, [batch])
 
 
-def insert_entries_by_depth(book, groups):
+def insert_entries_by_depth(book, groups, layouts):
     """SQLite and friends: let the ORM assign the keys, one generation at a time."""
     ids = {}
     for _, entries in sorted(groups):
@@ -92,6 +107,8 @@ def insert_entries_by_depth(book, groups):
             key=entry['key'], title=entry['title'], position=entry['position'],
             kind=entry['kind'], source_url=entry['source_url'], paragraphs=entry['paragraphs'],
         ) for entry in entries]
+        for row in rows:
+            row._reading_layout = layouts[row.key]
         TreasuryEntry.objects.bulk_create(rows, batch_size=INSERT_BATCH)
         ids.update((row.key, row.pk) for row in rows)
 

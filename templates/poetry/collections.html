@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}مجموعه‌ها{% endblock %}
+{% block content %}
+<header class="page-heading compact"><h1>مجموعه‌های شخصی</h1><a href="{% url 'poems' %}">کتابخانه</a></header>
+<form method="post" class="panel inline-form">
+  {% csrf_token %}
+  <div>{{ form.name.as_field_group }}</div><button class="primary">ساخت مجموعه</button>
+</form>
+<div class="card-grid">
+  {% for collection in collections %}
+    <article class="panel">
+      <h2><a href="{{ collection.get_absolute_url }}">{{ collection.name }}</a></h2>
+      <p>{{ collection.item_count|persian }} شعر و شاه‌بیت</p>
+    </article>
+  {% empty %}<p>برای مرتب‌کردن شعرها و شاه‌بیت‌ها، یک مجموعه بسازید.</p>{% endfor %}
+</div>
+{% endblock %}

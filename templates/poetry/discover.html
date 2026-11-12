@@ -1,20 +1,64 @@
-{% extends 'base.html' %}{% block title %}کشف شعر{% endblock %}{% block content %}<div class="page-heading compact"><div><span class="eyebrow">دیداری بدون قرار قبلی</span><h1>از گوشه‌ای از دفتر</h1></div></div><section id="discovery" class="poetry-panel" tabindex="-1">{% if poem %}<p class="eyebrow" id="discover-poet">{{ poem.poet_name }}</p><h2 id="discover-title">{{ poem.display_title }}</h2><div id="discover-verses">{% for verse in poem.verses.all %}{% include 'components/verse.html' %}{% endfor %}</div><a id="discover-detail" href="{{ poem.get_absolute_url }}">مشاهدهٔ شعر و افزودن به حفظ ←</a>{% else %}<h2>هنوز شعری برای کشف ندارید.</h2><a href="{% url 'poem-new' %}">ثبت نخستین شعر</a>{% endif %}</section>{% if poem %}<form id="discover-form" action="{% url 'discover' %}" data-api="{% url 'random-poem' %}"><input type="hidden" name="exclude_id" value="{{ poem.pk }}"><button class="primary">شعر دیگری ←</button></form>{% endif %}{% if only_one %}<p class="fine">فعلاً یک شعر در دفتر دارید؛ با افزودن شعرهای بیشتر، انتخاب‌های تازه‌ای خواهید دید.</p>{% endif %}
-<section class="poetry-panel" id="treasury-discovery">
-  <h2>کشف شعر از گنجینهٔ فارسی</h2>
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}کشف شعر{% endblock %}
+{% block content %}
+<header class="page-heading compact"><h1>کشف شعر</h1></header>
+<form class="panel" method="get">
+  <div class="form-grid">
+    <label>منبع<select name="source">
+      <option value="both" {% if source == 'both' %}selected{% endif %}>دفتر شخصی و گنجینه</option>
+      <option value="library" {% if source == 'library' %}selected{% endif %}>دفتر شخصی</option>
+      <option value="treasury" {% if source == 'treasury' %}selected{% endif %}>گنجینهٔ فارسی</option>
+    </select></label>
+    <label>نام شاعر<input type="search" name="poet" value="{{ poet }}" maxlength="120"></label>
+    <label>موضوع دفتر شخصی<select name="topic">
+      <option value="">همهٔ موضوع‌ها</option>
+      {% for tag in topics %}<option value="{{ tag.slug }}" {% if topic == tag.slug %}selected{% endif %}>{{ tag.name }}</option>{% endfor %}
+    </select></label>
+    <label>طول شعر<select name="length">
+      <option value="">هر طولی</option>
+      <option value="short" {% if length == 'short' %}selected{% endif %}>کوتاه، تا ۸ ردیف</option>
+      <option value="long" {% if length == 'long' %}selected{% endif %}>بلند، بیش از ۸ ردیف</option>
+    </select></label>
+  </div>
+  <button class="primary">انتخاب شعر</button>
+</form>
+{% if source != 'treasury' %}
+<section id="discovery" class="poetry-panel" tabindex="-1">
+  <h2>از دفتر شخصی</h2>
+  {% if poem %}
+    <p class="eyebrow">{{ poem.poet_name }}</p>
+    <h3>{{ poem.display_title }}</h3>
+    {% for verse in poem.verses.all|slice:':4' %}{% include 'components/verse.html' %}{% endfor %}
+    <p class="fine">{% if filtered %}از میان شعرهای مطابق پالایه‌های شما{% else %}از میان شعرهای فعال دفتر شما{% endif %}</p>
+    <div class="actions">
+      <a class="button" href="{{ poem.get_absolute_url }}">خواندن کامل شعر</a>
+      <a class="button" href="{% querystring source=source exclude_id=poem.pk keep_work=treasury_pick.entry.pk keep_poem=None treasury_exclude=None %}#discovery">شعر دیگری از دفتر</a>
+    </div>
+  {% else %}
+    <p>{% if filtered %}شعری با این پالایه‌ها در دفتر پیدا نشد.{% else %}هنوز شعری برای کشف ندارید.{% endif %}</p>
+    <a href="{% url 'poems' %}">دیدن دفتر شخصی</a>
+  {% endif %}
+</section>
+{% endif %}
+{% if source != 'library' %}
+<section id="treasury-discovery" class="poetry-panel" tabindex="-1">
+  <h2>از گنجینهٔ فارسی</h2>
   {% if treasury_pick %}
     <p class="eyebrow">{{ treasury_pick.entry.book.author }}</p>
     <h3>{{ treasury_pick.entry.title }}</h3>
     {% for first, second in treasury_pick.rows %}
       {% include 'components/verse_text.html' with position=forloop.counter line_layout=treasury_pick.line_layout %}
     {% endfor %}
-    <a href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل شعر در گنجینه ←</a>
-    <form action="{% url 'discover' %}#treasury-discovery" method="get">
-      <input type="hidden" name="treasury_exclude" value="{{ treasury_pick.entry.pk }}">
-      <button type="submit">شعر دیگری از گنجینه</button>
-    </form>
+    <p class="fine">{% if poet or length %}از میان آثار قابل خواندن مطابق پالایه‌ها{% else %}از میان آثار قابل خواندن گنجینه{% endif %}</p>
+    <div class="actions">
+      <a class="button" href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل اثر</a>
+      <a class="button" href="{% querystring source=source treasury_exclude=treasury_pick.entry.pk keep_poem=poem.pk keep_work=None exclude_id=None %}#treasury-discovery">شعر دیگری از گنجینه</a>
+    </div>
   {% else %}
-    <p>شعر قابل نمایش در گنجینه پیدا نشد.</p>
-    <a href="{% url 'treasury' %}">رفتن به گنجینهٔ فارسی ←</a>
+    <p>شعر قابل خواندنی با این انتخاب پیدا نشد.</p>
+    <a href="{% url 'treasury-works' %}">جست‌وجوی آثار گنجینه</a>
   {% endif %}
 </section>
+{% endif %}
 {% endblock %}

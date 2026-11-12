@@ -1,3 +1,73 @@
-{% extends 'base.html' %}{% block title %}ثبت شعر{% endblock %}{% block content %}<div class="breadcrumb"><a href="{% url 'poems' %}">کتابخانه</a> / {% if poem %}ویرایش{% else %}برگ تازه{% endif %}</div><div class="page-heading compact"><div><span class="eyebrow">کلمات را به دفتر بسپارید</span><h1>{% if poem %}ویرایش شعر{% else %}افزودن شعر{% endif %}</h1></div></div>{% if poem %}<p class="notice">ویرایش پس از تأیید مدیر اعمال می‌شود. ترتیب بیت‌ها ثابت است و حذف بیت پشتیبانی نمی‌شود.</p>{% endif %}
-<form method="post" id="poem-editor" class="editor">{% csrf_token %}{{ form.non_field_errors }}<section class="panel"><h2>شناسنامهٔ شعر</h2><div class="form-grid"><div>{{ form.poet_name.as_field_group }}</div><div>{{ form.title.as_field_group }}</div><div>{{ form.source_url.as_field_group }}</div><div>{{ form.new_tag.as_field_group }}</div></div><label for="tag-search">جست‌وجوی موضوع</label><input type="search" id="tag-search" placeholder="نام موضوع…"><div class="tag-options">{{ form.tags.as_field_group }}</div>{{ form.notes.as_field_group }}</section>
-<section class="panel"><h2>ابیات شعر</h2>{{ form.input_mode.as_field_group }}<div id="structured-rows">{% for first,second in rows %}<div class="verse-input"><span class="row-number">{{ forloop.counter }}</span><label>مصرع اول<input name="hemistich_1" maxlength="1000" value="{{ first }}"></label><label>مصرع دوم (اختیاری)<input name="hemistich_2" maxlength="1000" value="{{ second }}"></label>{% if not poem %}<button type="button" class="remove-row text-button">حذف ردیف</button>{% endif %}</div>{% endfor %}</div><button type="button" id="add-verse">＋ افزودن بیت</button><div id="bulk-entry">{{ form.bulk_text.as_field_group }}<p class="fine">در روش «هر خط یک بیت»، مصرع‌ها را با | جدا کنید. در روش «هر دو خط»، تعداد سطرهای غیرخالی باید زوج باشد.</p><button type="button" id="parse-verses">انتقال به ردیف‌های قابل ویرایش</button></div><p id="editor-error" role="alert"></p><button type="button" id="preview-button">پیش‌نمایش شعر</button><div id="preview" class="poetry-panel" hidden></div></section>{% if poem and user.action_password %}<section class="panel">{% include 'components/action_password.html' %}</section>{% endif %}<div class="form-actions"><button class="primary" type="submit">{% if poem %}ارسال برای تأیید مدیر{% else %}ذخیرهٔ شعر در دفتر{% endif %}</button> <a class="inline-link" href="{% url 'poems' %}">بازگشت به کتابخانه</a></div></form>{% endblock %}
+{% extends 'base.html' %}
+{% load static persian %}
+{% block title %}{% if poem %}ویرایش شعر{% else %}افزودن شعر{% endif %}{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'js/editor.js' %}"></script>{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="مسیر کتابخانه">
+  <a href="{% url 'poems' %}">کتابخانه</a>
+  {% if poem %}<span aria-hidden="true">/</span><a href="{{ poem.get_absolute_url }}">{{ poem.display_title }}</a>{% endif %}
+</nav>
+<div class="page-heading compact">
+  <h1>{% if poem %}ویرایش شعر{% else %}افزودن شعر{% endif %}</h1>
+</div>
+{% if poem %}<p class="notice">ویرایش پس از تأیید مدیر اعمال می‌شود. ترتیب ردیف‌های موجود ثابت است.</p>{% endif %}
+<form method="post" id="poem-editor" class="editor" data-draft-key="poem-draft-{{ user.pk }}-{{ poem.pk|default:'new' }}" data-revision="{{ revision }}" data-minimum="{{ original_count|default:0 }}">
+  {% csrf_token %}
+  {% if revision %}<input type="hidden" name="revision" value="{{ revision }}">{% endif %}
+  {% if retry_request %}<p class="notice">متن درخواست قبلی در فرم بارگذاری شد. دلیل رد {{ retry_request.rejection_reason|default:'ثبت نشده است' }}.</p>{% endif %}
+  {% if form.non_field_errors %}<div role="alert" tabindex="-1" data-form-error>{{ form.non_field_errors }}</div>{% endif %}
+  <details class="panel" id="draft-controls" hidden>
+    <summary>پیش‌نویس خودکار</summary>
+    <p class="fine">در صورت فعال‌سازی، پیش‌نویس در همین مرورگر نگه‌داری می‌شود. در دستگاه مشترک می‌توانید آن را خاموش کنید یا پیش‌نویس را پاک کنید.</p>
+    <label><input type="checkbox" id="draft-enabled"> ذخیرهٔ خودکار پیش‌نویس در این مرورگر</label>
+    <div class="actions">
+      <button type="button" id="restore-draft" hidden>بازیابی پیش‌نویس</button>
+      <button type="button" id="discard-draft" hidden>پاک‌کردن پیش‌نویس</button>
+    </div>
+    <p id="draft-status" class="inline-status" role="status"></p>
+  </details>
+  <section class="panel">
+    <h2>شناسنامهٔ شعر</h2>
+    <div class="form-grid">
+      <div>{{ form.poet_name.as_field_group }}</div>
+      <div>{{ form.title.as_field_group }}</div>
+      <div>{{ form.source_url.as_field_group }}</div>
+      <div>{{ form.new_tag.as_field_group }}</div>
+    </div>
+    <div hidden data-tag-search><label for="tag-search">جست‌وجوی موضوع</label><input type="search" id="tag-search"></div>
+    <div class="tag-options">{{ form.tags.as_field_group }}</div>
+    {{ form.notes.as_field_group }}
+  </section>
+  <section class="panel">
+    <h2>متن شعر</h2>
+    <input type="hidden" name="layout_control" value="1">
+    {{ form.line_layout.as_field_group }}
+    {{ form.input_mode.as_field_group }}
+    <noscript><p class="fine">برای ورود چند ردیف از گزینه‌های چسباندن متن استفاده کنید. برای ویرایش ردیف‌های موجود، روش ورود ساختاریافته را انتخاب کنید.</p></noscript>
+    <p id="editor-error" role="alert" tabindex="-1"></p>
+    <div id="structured-rows">
+      {% for first,second in rows %}
+        <div class="verse-input">
+          <span class="row-number" aria-hidden="true">{{ forloop.counter|persian }}</span>
+          <label><span class="first-label">مصرع اول ردیف {{ forloop.counter|persian }}</span><input name="hemistich_1" maxlength="1000" value="{{ first }}"></label>
+          <label><span class="second-label">مصرع دوم ردیف {{ forloop.counter|persian }} (اختیاری)</span><input name="hemistich_2" maxlength="1000" value="{{ second }}"></label>
+          {% if forloop.counter > original_count %}<button type="button" class="remove-row text-button" hidden>حذف ردیف {{ forloop.counter|persian }}</button>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <button type="button" id="add-verse" hidden>افزودن ردیف</button>
+    <div id="bulk-entry">
+      {{ form.bulk_text.as_field_group }}
+      <p class="fine">در روش «هر خط یک ردیف»، مصرع‌های کلاسیک را با | جدا کنید. در روش «هر دو خط»، تعداد سطرهای غیرخالی باید زوج باشد.</p>
+      <button type="button" id="parse-verses" hidden>انتقال به ردیف‌ها</button>
+    </div>
+    <button type="button" id="preview-button" hidden>پیش‌نمایش شعر</button>
+    <section id="preview" class="poetry-panel" tabindex="-1" aria-label="پیش‌نمایش شعر" hidden></section>
+  </section>
+  {% if poem and user.action_password %}<section class="panel">{% include 'components/action_password.html' %}</section>{% endif %}
+  <div class="form-actions">
+    <button class="primary" type="submit">{% if poem %}ارسال برای تأیید مدیر{% else %}ذخیرهٔ شعر در دفتر{% endif %}</button>
+    <a class="inline-link" href="{% if poem %}{{ poem.get_absolute_url }}{% else %}{% url 'poems' %}{% endif %}">انصراف</a>
+  </div>
+</form>
+{% endblock %}

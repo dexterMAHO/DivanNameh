@@ -1,40 +1,51 @@
+{% load persian %}
 {% if not poem.archived_at and poem.verses.all %}
-<section class="panel memorize-panel" {% if not in_memorization %}data-memorize-options{% endif %}>
+<section class="panel memorize-panel" id="study" data-memorize-options>
   <div class="section-heading">
-    <h2>{% if in_memorization %}در فهرست حفظ شماست{% else %}این شعر را به خاطر بسپار{% endif %}</h2>
-    <a class="inline-link" href="{% url 'memorize' %}">فهرست حفظ</a>
+    <h2>حفظ شعر</h2>
+    <a href="{% url 'memorize' %}">فهرست حفظ</a>
   </div>
-  {% if not in_memorization %}
-  <form method="post" action="{% url 'item-new' %}" data-ajax>
-    {% csrf_token %}
-    <input type="hidden" name="poem_id" value="{{ poem.pk }}">
-    <input type="hidden" name="scope" value="full">
-    <input type="hidden" name="return_to_poem" value="1">
-    {% include 'components/action_password.html' %}
-    <button class="primary">حفظ تمام شعر</button>
-  </form>
-  <details>
-    <summary>انتخاب بازه‌ای از ابیات</summary>
+  {% for message in messages %}{% if 'study-inline' in message.tags %}<p class="notice error" role="alert">{{ message }}</p>{% endif %}{% endfor %}
+  <ul class="study-cards" id="poem-study-cards" {% if not study_cards %}hidden{% endif %}>
+    {% for card in study_cards %}<li>{{ card.scope_label|persian }} · {{ card.get_status_display }}</li>{% endfor %}
+  </ul>
+  {% if not has_full_card %}
+    <form method="post" action="{% url 'item-new' %}" data-ajax>
+      {% csrf_token %}
+      <input type="hidden" name="poem_id" value="{{ poem.pk }}">
+      <input type="hidden" name="scope" value="full">
+      <input type="hidden" name="return_to_poem" value="1">
+      {% include 'components/action_password.html' %}
+      <button class="primary">حفظ تمام شعر</button>
+      <p role="status" class="inline-status"></p>
+    </form>
+  {% endif %}
+  <details id="study-range">
+    <summary>حفظ یک بازه</summary>
     <form class="range-form" method="post" action="{% url 'item-new' %}" data-ajax>
       {% csrf_token %}
       <input type="hidden" name="poem_id" value="{{ poem.pk }}">
       <input type="hidden" name="scope" value="range">
       <input type="hidden" name="return_to_poem" value="1">
-      <label>از بیت
-        <select name="start_verse_id">
-          {% for verse in poem.verses.all %}<option value="{{ verse.pk }}" data-position="{{ verse.position }}">{{ verse.position }} — {{ verse.hemistich_1|truncatechars:35 }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>تا بیت
-        <select name="end_verse_id">
-          {% for verse in poem.verses.all %}<option value="{{ verse.pk }}" data-position="{{ verse.position }}">{{ verse.position }} — {{ verse.hemistich_1|truncatechars:35 }}</option>{% endfor %}
-        </select>
-      </label>
+      <div class="form-grid">
+        <label>آغاز بازه
+          <select name="start_verse_id">
+            {% for verse in poem.verses.all %}<option value="{{ verse.pk }}" data-position="{{ verse.position }}">{{ verse.position|persian }} · {{ verse.hemistich_1|truncatechars:35 }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>پایان بازه
+          <select name="end_verse_id" aria-describedby="range-selection-count">
+            {% for verse in poem.verses.all %}<option value="{{ verse.pk }}" data-position="{{ verse.position }}">{{ verse.position|persian }} · {{ verse.hemistich_1|truncatechars:35 }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+      <p class="selection-count" role="status" id="range-selection-count"></p>
+      <p class="range-preview fine"></p>
       {% include 'components/action_password.html' %}
-      <p class="selection-count" role="status"></p>
       <button>افزودن بازه به حفظ</button>
+      <p role="status" class="inline-status"></p>
     </form>
   </details>
-  {% endif %}
+  <p class="inline-status" role="status" id="study-feedback"></p>
 </section>
 {% endif %}

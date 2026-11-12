@@ -22,6 +22,7 @@ from .models import BrowserAccessLink, User
 
 BROWSER_COOKIE = 'divannameh_reader_browser'
 BROWSER_AGE = 90 * 24 * 60 * 60
+BROWSER_SESSION = 'reader_trusted_browser'
 
 
 def digest(token):
@@ -53,11 +54,15 @@ def safe_next(request):
     return ''
 
 
-def trusted_browser(request, user):
+def browser_digest(request):
     token = request.get_signed_cookie(BROWSER_COOKIE, default='', max_age=BROWSER_AGE)
-    if not token:
+    return digest(token) if token else ''
+
+
+def trusted_browser(request, user):
+    token_hash = browser_digest(request)
+    if not token_hash:
         return False
-    token_hash = digest(token)
     # Keep accepting the cookie issued before accounts supported multiple browsers.
     return (constant_time_compare(token_hash, user.browser_token_hash)
             or user.trusted_browsers.filter(token_hash=token_hash, expires_at__gt=timezone.now()).exists())
@@ -70,10 +75,14 @@ def enroll_browser(request, user, target=''):
         token = secrets.token_urlsafe(32)
     now = timezone.now()
     user.trusted_browsers.filter(expires_at__lte=now).delete()
-    user.trusted_browsers.update_or_create(
-        token_hash=digest(token), defaults={'expires_at': now + timedelta(seconds=BROWSER_AGE)},
+    browser, _ = user.trusted_browsers.update_or_create(
+        token_hash=digest(token),
+        defaults={'expires_at': now + timedelta(seconds=BROWSER_AGE)},
+        create_defaults={'expires_at': now + timedelta(seconds=BROWSER_AGE),
+                         'label': request.POST.get('browser_label', '').strip()[:80]},
     )
     login(request, user)
+    request.session[BROWSER_SESSION] = browser.pk
     response = redirect(target or 'dashboard')
     response.set_signed_cookie(BROWSER_COOKIE, token, max_age=BROWSER_AGE, httponly=True,
                         secure=settings.SESSION_COOKIE_SECURE, samesite='Lax')
@@ -129,7 +138,10 @@ def username_access(request, signup=False):
             else:
                 user = readers().filter(username=username).first()
                 if user and trusted_browser(request, user):
+                    browser = user.trusted_browsers.filter(token_hash=browser_digest(request)).first()
                     login(request, user)
+                    if browser:
+                        request.session[BROWSER_SESSION] = browser.pk
                     return redirect(target or 'dashboard')
                 form.add_error(None, 'ورود با این مرورگر ممکن نیست. از مرورگر ثبت‌شده استفاده کنید یا پیوند دسترسی بگیرید.')
     challenge = None
@@ -175,6 +187,25 @@ def confirm_browser(request):
     response = render(request, 'accounts/browser_confirm.html', {'token': token, 'error': error})
     response['Referrer-Policy'] = 'no-referrer'
     return response
+
+
+@never_cache
+@require_http_methods(['GET', 'POST'])
+def recover(request):
+    if request.user.is_authenticated:
+        return redirect('settings')
+    error = False
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+        if 32 <= len(code) <= 80:
+            with transaction.atomic():
+                user = readers().select_for_update().filter(recovery_digest=digest(code)).first()
+                if user:
+                    user.recovery_digest = None
+                    user.save(update_fields=['recovery_digest'])
+                    return enroll_browser(request, user)
+        error = True
+    return render(request, 'accounts/recover.html', {'error': error})
 
 
 @require_POST

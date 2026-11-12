@@ -1,7 +1,10 @@
+import secrets
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
+from django.utils import timezone
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -10,8 +13,8 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from poetry.http import failure, success
 
-from .access import enroll_browser, issue_browser_link, readers
-from .forms import AppearanceForm, ActionPasswordForm, ProfilePhotoForm, ThemeForm
+from .access import browser_digest, digest, enroll_browser, issue_browser_link, readers
+from .forms import AppearanceForm, ActionPasswordForm, ProfilePhotoForm, ReadingForm, ThemeForm
 from .models import ProfilePhoto, User
 
 
@@ -26,8 +29,31 @@ def settings_page(request):
         request.POST if submitted == 'photo' else None,
         request.FILES if submitted == 'photo' else None,
     )
+    reading_form = ReadingForm(request.POST if submitted == 'reading' else None, instance=request.user)
     browser_link = None
+    recovery_code = None
+    current_digest = browser_digest(request)
+    is_reader = not request.user.is_staff and not request.user.is_superuser
     if request.method == 'POST':
+        if submitted == 'reading' and reading_form.is_valid():
+            User.objects.filter(pk=request.user.pk).update(**reading_form.cleaned_data)
+            messages.success(request, 'تنظیمات خواندن ذخیره شد.')
+            return redirect('settings')
+        if submitted == 'recovery' and is_reader:
+            recovery_code = secrets.token_urlsafe(32)
+            User.objects.filter(pk=request.user.pk).update(recovery_digest=digest(recovery_code))
+        if submitted == 'revoke-browser' and is_reader:
+            identifier = request.POST.get('browser_id', '')
+            if not identifier.isascii() or not identifier.isdigit() or len(identifier) > 18:
+                return redirect('settings')
+            browser = get_object_or_404(request.user.trusted_browsers, pk=identifier)
+            if browser.token_hash != current_digest:
+                with transaction.atomic():
+                    User.objects.select_for_update().get(pk=request.user.pk)
+                    User.objects.filter(pk=request.user.pk, browser_token_hash=browser.token_hash).update(browser_token_hash='')
+                    browser.delete()
+                messages.success(request, 'دسترسی مرورگر لغو شد.')
+            return redirect('settings')
         if submitted == 'browser':
             with transaction.atomic():
                 user = get_object_or_404(readers().select_for_update(), pk=request.user.pk)
@@ -52,11 +78,16 @@ def settings_page(request):
             ProfilePhoto.objects.update_or_create(user=request.user, defaults={'image': photo_form.cleaned_data['photo']})
             messages.success(request, 'عکس پروفایل ذخیره شد.')
             return redirect('settings')
+    browsers = list(request.user.trusted_browsers.filter(expires_at__gt=timezone.now()).order_by('-expires_at')) if is_reader else []
+    for browser in browsers:
+        browser.is_current = browser.token_hash == current_digest
     response = render(request, 'accounts/settings.html', {
         'theme_form': theme_form, 'password_form': password_form, 'photo_form': photo_form,
-        'browser_link': browser_link,
+        'browser_link': browser_link, 'browsers': browsers, 'recovery_code': recovery_code,
+        'has_recovery': bool(recovery_code or request.user.recovery_digest),
+        'reading_form': reading_form, 'current_browser_known': any(browser.is_current for browser in browsers),
     })
-    if browser_link:
+    if browser_link or recovery_code:
         response['Referrer-Policy'] = 'no-referrer'
     return response
 

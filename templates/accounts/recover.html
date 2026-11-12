@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}بازیابی حساب{% endblock %}
+{% block content %}
+<section class="login panel">
+  <h1>بازیابی حساب</h1>
+  <p>کد یک‌بارمصرفی را وارد کنید که از تنظیمات حساب ذخیره کرده‌اید.</p>
+  {% if error %}<p class="notice error" role="alert" id="recovery-error">کد معتبر نیست یا قبلاً استفاده شده است.</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <label for="recovery-code">کد بازیابی</label>
+    <input type="password" id="recovery-code" name="code" autocomplete="off" maxlength="80" required {% if error %}aria-invalid="true" aria-describedby="recovery-error"{% endif %}>
+    <label for="recovery-browser-label">نام دستگاه (اختیاری)</label>
+    <input id="recovery-browser-label" name="browser_label" maxlength="80" autocomplete="off">
+    <button class="primary">ثبت مرورگر و ورود</button>
+  </form>
+  <a href="{% url 'login' %}">بازگشت به ورود</a>
+</section>
+{% endblock %}

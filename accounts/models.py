@@ -18,6 +18,18 @@ class User(AbstractUser):
         ('forest', 'سرو'), ('plum', 'ارغوان'),
     ], default='paper')
 
+    recovery_digest = models.CharField(max_length=64, unique=True, null=True, blank=True, editable=False)
+    reading_size = models.CharField(max_length=8, choices=[
+        ('normal', 'معمولی'), ('large', 'درشت'), ('largest', 'بسیار درشت'),
+    ], default='normal')
+    reading_spacing = models.CharField(max_length=8, choices=[
+        ('normal', 'معمولی'), ('wide', 'باز'),
+    ], default='normal')
+    reading_layout = models.CharField(max_length=8, choices=[
+        ('original', 'چیدمان اثر'), ('stacked', 'مصرع‌ها زیر هم'), ('columns', 'مصرع‌ها کنار هم در عرض کافی'),
+    ], default='original')
+    reading_numbers = models.BooleanField(default=True)
+
     def verify_action_password(self, password):
         return check_password(password, self.action_password)
 
@@ -33,6 +45,8 @@ class LoginChallenge(models.Model):
 
 
 class TrustedBrowser(models.Model):
+    label = models.CharField(max_length=80, blank=True)
+    registered_at = models.DateTimeField(auto_now_add=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trusted_browsers')
     token_hash = models.CharField(max_length=64, unique=True, editable=False)
     expires_at = models.DateTimeField()

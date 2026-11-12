@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}آمار مرور{% endblock %}
+{% block content %}
+<header class="page-heading compact">
+  <div><h1>آمار مرور</h1><p>{{ due_now|persian }} کارت آمادهٔ مرور</p></div>
+  <a href="{% url 'memorize' %}">فهرست حفظ</a>
+</header>
+<div class="settings-grid">
+  <section class="panel">
+    <h2>هفت روز اخیر</h2>
+    <table class="data-table">
+      <thead><tr><th scope="col">روز</th><th scope="col">مرورها</th><th scope="col">امتیاز «دوباره»</th></tr></thead>
+      <tbody>{% for day, row in history %}<tr><th scope="row"><time datetime="{{ day|date:'Y-m-d' }}">{{ day|date:'j F'|persian }}</time></th><td>{{ row.reviews|default:0|persian }} <meter class="stats-meter" aria-hidden="true" max="{{ review_max }}" value="{{ row.reviews|default:0 }}"></meter></td><td>{{ row.again|default:0|persian }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+  <section class="panel">
+    <h2>موعد کارت‌ها در هفت روز پیش رو</h2>
+    <p class="fine">کارت‌های آماده در شمار بالای صفحه آمده‌اند. موعدها با ثبت هر مرور تغییر می‌کنند.</p>
+    <table class="data-table">
+      <thead><tr><th scope="col">روز</th><th scope="col">کارت‌ها</th></tr></thead>
+      <tbody>{% for day, total in forecast %}<tr><th scope="row"><time datetime="{{ day|date:'Y-m-d' }}">{{ day|date:'j F'|persian }}</time></th><td>{{ total|persian }} <meter class="stats-meter" aria-hidden="true" max="{{ upcoming_max }}" value="{{ total }}"></meter></td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+  <section class="panel">
+    <h2>کارت‌هایی با بیشترین امتیاز «دوباره»</h2>
+    <ul>{% for row in difficult %}<li><a href="{% url 'poem-detail' row.item__poem_id %}#study">{{ row.item__poem__title|default:row.item__poem__poet_name }}</a> · کارت {{ row.item_id|persian }} · {{ row.times|persian }} بار</li>
+    {% empty %}<li>هنوز امتیاز «دوباره» ثبت نشده است.</li>{% endfor %}</ul>
+  </section>
+</div>
+{% endblock %}

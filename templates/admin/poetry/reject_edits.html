@@ -1,0 +1,16 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>رد درخواست ویرایش</h1>
+<ul>{% for edit in edits %}<li>{{ edit.poem }}</li>{% endfor %}</ul>
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="reject_edits">
+  <input type="hidden" name="confirmed" value="yes">
+  {% for edit in edits %}<input type="hidden" name="{{ action_checkbox_name }}" value="{{ edit.pk }}">{% endfor %}
+  {% if error %}<p role="alert">دلیل رد باید بین ۱ تا ۵۰۰ نویسه باشد.</p>{% endif %}
+  <label for="reason">دلیل رد برای درخواست‌دهنده</label>
+  <textarea id="reason" name="reason" rows="4" maxlength="500" required></textarea>
+  <button type="submit">تأیید رد درخواست‌ها</button>
+  <a href="{% url 'admin:poetry_poemeditrequest_changelist' %}">انصراف</a>
+</form>
+{% endblock %}

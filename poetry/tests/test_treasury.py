@@ -79,7 +79,7 @@ class TreasuryPageTests(TestCase):
         self.assertContains(response, 'class="hemistich">مصرع نخست')
         self.assertContains(response, 'class="hemistich">مصرع دوم')
         # The stored text replaces the old "read it on Ganjoor" link.
-        self.assertNotContains(response, 'https://ganjoor.net/hafez/ghazal/sh1')
+        self.assertNotContains(response, 'href="https://ganjoor.net/hafez/ghazal/sh1"')
 
     def test_work_without_text_still_points_at_the_source(self):
         TreasuryEntry.objects.create(
@@ -88,7 +88,7 @@ class TreasuryPageTests(TestCase):
         response = self.client.get('/treasury/hafez/poem-2/')
         self.assertContains(response, 'https://ganjoor.net/hafez/ghazal/sh2')
 
-    def test_nested_works_are_all_listed_and_grouped(self):
+    def test_nested_works_are_grouped_and_paginated(self):
         section = TreasuryEntry.objects.create(
             book=self.hafez, parent=self.root, key='section-2', title='قصیده‌ها', position=2, kind='section')
         TreasuryEntry.objects.bulk_create([
@@ -96,11 +96,14 @@ class TreasuryPageTests(TestCase):
                           position=i, kind='work', paragraphs=['یک مصرع', 'پایانِ ي!'])
             for i in range(65)
         ])
-        response = self.client.get('/treasury/hafez/', {'page': 2})
-        self.assertContains(response, 'غزل ۱')
-        self.assertContains(response, 'قصیده شماره 0 پایان')
-        self.assertContains(response, 'قصیده شماره 64 پایان')
-        self.assertContains(response, '<span>ی</span>', html=True)
+        first = self.client.get('/treasury/hafez/')
+        second = self.client.get('/treasury/hafez/', {'page': 2})
+        self.assertContains(first, 'غزل ۱')
+        self.assertContains(first, 'قصیده شماره 0 پایان')
+        self.assertNotContains(first, 'قصیده شماره 64 پایان')
+        self.assertContains(second, 'قصیده شماره 64 پایان')
+        self.assertNotContains(second, 'قصیده شماره 0 پایان')
+        self.assertContains(second, '<span>ی</span>', html=True)
 
     def test_selected_couplets_preserve_source_order_and_are_saved_once(self):
         self.ghazal.paragraphs += ['سطر سوم', 'سطر چهارم', 'سطر پنجم', 'سطر ششم']

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}ورود و خروج کتابخانه{% endblock %}
+{% block content %}
+<header class="page-heading compact"><h1>ورود و خروج کتابخانه</h1><a href="{% url 'poems' %}">کتابخانه</a></header>
+<section class="panel">
+  <h2>دریافت نسخهٔ دفتر</h2>
+  <p>JSON برای انتقال شعرها، موضوع‌ها، شاه‌بیت‌ها، کارت‌های حفظ و تاریخچهٔ مرور است. Markdown نسخهٔ قابل خواندن شعرها و یادداشت‌هاست.</p>
+  <p class="fine">تنظیمات حساب و مجموعه‌ها در این خروجی قرار نمی‌گیرند.</p>
+  <div class="actions">
+    <a class="button" href="{% url 'library-export' 'json' %}">دریافت JSON</a>
+    <a class="button" href="{% url 'library-export' 'md' %}">دریافت Markdown</a>
+  </div>
+</section>
+<section class="panel">
+  <h2>ورود فایل</h2>
+  <p class="fine">فایل JSON دیوان‌نامه تا ۱۶ مگابایت و ۱۰۰۰ شعر. پیش‌نمایش تا ۳۰ دقیقه معتبر است.</p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}{{ form.file.as_field_group }}
+    <button name="action" value="preview">بررسی فایل</button>
+  </form>
+</section>
+{% if staged %}
+  <section class="panel">
+    <h2>پیش‌نمایش ورود</h2>
+    <ul>
+      <li>{{ counts.new|default:0|persian }} شعر تازه</li>
+      <li>{{ counts.duplicate|default:0|persian }} نسخهٔ یکسان. موضوع‌ها و شاه‌بیت‌ها ادغام می‌شوند.</li>
+      <li>{{ incoming_cards|persian }} کارت حفظ در فایل</li>
+      <li>{{ counts.variant|default:0|persian }} شعر هم‌نام با متن متفاوت</li>
+    </ul>
+    {% if variants %}<ul>{% for row in variants %}<li>{{ row.title }} · {{ row.poet }}</li>{% endfor %}</ul>{% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="revision" value="{{ revision }}">
+      {% if variants %}<label><input type="checkbox" name="include_variants" value="yes"> نسخه‌های هم‌نام را جداگانه وارد کن</label>{% endif %}
+      <div class="actions">
+        <button class="primary" name="action" value="apply">تأیید و ورود</button>
+        <button name="action" value="discard">پاک‌کردن پیش‌نمایش</button>
+      </div>
+    </form>
+  </section>
+{% endif %}
+{% endblock %}

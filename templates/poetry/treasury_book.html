@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
-{% load persian %}
+{% load persian static %}
+{% block scripts %}{% if book.publishes_text and entry.paragraphs %}<script type="module" src="{% static 'js/poem-copy.js' %}"></script>{% endif %}{% endblock %}
 {% block title %}{% if entry %}{{ entry.title }}{% else %}{{ book.author }}{% endif %} · گنجینهٔ فارسی{% endblock %}
 {% block content %}
 {% if entry.kind == "work" %}<div class="treasury-work">{% endif %}
 <nav class="breadcrumb treasury-breadcrumb" aria-label="مسیر گنجینه">
   <a href="{% url 'treasury' %}">گنجینهٔ فارسی</a>
+  {% if treasury_back %}<span aria-hidden="true">/</span><a href="{{ treasury_back }}">بازگشت به نتایج</a>{% endif %}
   {% if entry %}<span aria-hidden="true">/</span><a href="{{ book.get_absolute_url }}">{{ book.author }}</a>{% endif %}
   {% for ancestor in ancestors %}
     <span aria-hidden="true">/</span><a href="{{ ancestor.get_absolute_url }}">{{ ancestor.title }}</a>
@@ -17,10 +19,6 @@
     <span class="eyebrow">{% if entry.kind == 'work' %}اثری از {{ book.author }}{% else %}بخشی از دیوان {{ book.author }}{% endif %}</span>
     <h1>{{ entry.title }}</h1>
   </div>
-  <a class="poet-chip" href="{{ book.get_absolute_url }}">
-    {% include 'components/poet_portrait.html' with book=book size='tiny' %}
-    <span>{{ book.author }}</span>
-  </a>
 </header>
 {% else %}
 <section class="panel poet-profile">
@@ -54,54 +52,29 @@
 {% endif %}
 
 {% if entry.kind == 'work' %}
-  {% if entry.paragraphs %}
-  <div id="copy-tools" class="panel copy-tools treasury-copy" hidden>
-    <button type="button" id="copy-all">کپی ساده</button>
-    <details>
-      <summary class="button quiet">کپی پیشرفته</summary>
-      {% if rows %}
-      <p>از متن شعر انتخاب کنید.</p>
-      <button type="button" id="copy-selected">کپی گزیده</button>
-      {% endif %}
-      <label><input type="checkbox" id="copy-credit"> افزودن نام اثر و شاعر</label>
-      <button type="button" id="copy-with-options">کپی تمام متن با تنظیمات</button>
-    </details>
-    <p class="copy-status" role="status"></p>
-    <div id="copy-fallback" hidden>
-      <label for="copy-output">متن آمادهٔ کپی</label>
-      <textarea id="copy-output" rows="5" readonly></textarea>
-    </div>
-  </div>
+  {% if book.publishes_text and entry.paragraphs %}
   {% if rows %}
   <form id="treasury-selection" method="post" action="{% url 'treasury-save' book.slug entry.key %}">
     {% csrf_token %}
-    <div class="panel treasury-save">
-      <p>برای ذخیره یا حفظ بخشی از شعر، نشان ذخیره را کنار {% if line_layout %}سطرهای{% else %}بیت‌های{% endif %} دلخواه بزنید.</p>
-      <div class="treasury-actions">
-        <button class="primary" name="action" value="library-all">افزودن کل شعر به کتابخانه</button>
-        <button name="action" value="library">ذخیرهٔ گزیده</button>
-        <button name="action" value="memorize">افزودن به حفظ</button>
-      </div>
-      <small class="fine">اگر چیزی انتخاب نشود، کل شعر به بخش حفظ افزوده می‌شود.</small>
-    </div>
   {% endif %}
-  <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem{% endif %}" aria-label="متن اثر" data-copy-credit="{{ entry.title }} · {{ book.author }}">
+  {% if rows %}<button type="button" class="text-button resume-reading" hidden>ادامه از آخرین جای خواندن</button>{% endif %}
+  <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem{% endif %}" aria-label="متن اثر" data-reading-key="{{ user.pk }}-treasury-{{ book.slug }}-{{ entry.key }}-{{ book.dataset_digest }}" data-copy-credit="{{ entry.title }} · {{ book.author }}{% if entry.source_url %} · {{ entry.source_url }}{% endif %}">
     {% if rows %}
       {% for first, second in rows %}
       <div class="treasury-stanza">
         {% include 'components/verse_text.html' with position=forloop.counter %}
         <div class="treasury-verse-actions">
-          <label class="treasury-bookmark icon-button" title="انتخاب برای ذخیره">
-            <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای ذخیره">
+          <label class="treasury-bookmark icon-button" title="انتخاب برای گزیده">
+            <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای گزیده">
             {% include 'components/icon.html' with name='bookmark' %}
           </label>
-          <button class="icon-button treasury-favorite" name="action"
+          <button type="submit" formnovalidate class="icon-button treasury-favorite" name="action"
             value="{% if forloop.counter in saved_positions %}unfavorite{% else %}favorite{% endif %}:{{ forloop.counter }}"
             aria-pressed="{% if forloop.counter in saved_positions %}true{% else %}false{% endif %}"
             aria-label="شاه‌بیت {{ forloop.counter|persian }}" title="شاه‌بیت">
             {% include 'components/icon.html' with name='star' %}
           </button>
-          <span role="status" class="fine treasury-favorite-status"></span>
+          <span role="status" class="inline-status treasury-favorite-status"></span>
         </div>
       </div>
       {% endfor %}
@@ -110,12 +83,33 @@
     {% endif %}
   </article>
   {% if rows %}
-    <div class="treasury-actions treasury-end-actions">
-      <button name="action" value="library">ذخیرهٔ گزیده</button>
-      <button name="action" value="memorize">افزودن به حفظ</button>
-    </div>
+    <section class="panel" id="treasury-tools">
+      <h2>ذخیره و حفظ اثر</h2>
+      <p class="fine">با نشانک کنار متن، گزیدهٔ کپی، ذخیره یا حفظ را انتخاب کنید. ستاره، شاه‌بیت را ثبت می‌کند.</p>
+      <p class="inline-status" role="status" id="treasury-feedback"></p>
+      <div class="actions">
+        <button type="button" id="clear-selection" hidden>پاک‌کردن انتخاب</button>
+        <button name="action" value="library-all">ذخیرهٔ کل اثر</button>
+        <button name="action" value="library">ذخیرهٔ گزیده</button>
+      </div>
+      {% include 'components/action_password.html' with operation_optional=True %}
+      <button name="action" value="memorize">حفظ گزیده یا کل اثر</button>
+      <p class="fine">اگر گزیده‌ای انتخاب نشده باشد، کل اثر به حفظ افزوده می‌شود. ثبت شاه‌بیت یک نسخهٔ تک‌ردیفی در دفتر می‌سازد.</p>
+      {% if merge_targets %}
+        <details>
+          <summary>افزودن گزیده به نسخهٔ موجود</summary>
+          <label for="merge-poem">شعر مقصد</label>
+          <select id="merge-poem" name="merge_poem">
+            <option value="">انتخاب کنید</option>
+            {% for poem in merge_targets %}<option value="{{ poem.pk }}">{{ poem.title }} · {{ poem.pk|persian }}</option>{% endfor %}
+          </select>
+          <button name="action" value="merge">افزودن گزیده به انتهای نسخه</button>
+        </details>
+      {% endif %}
+    </section>
   </form>
   {% endif %}
+  {% include 'poetry/copy_tools.html' with has_selection=rows %}
   {% else %}
   <section class="panel treasury-notice">
     <span class="ornament" aria-hidden="true">{% include 'components/icon.html' with name='lock' %}</span>
@@ -125,12 +119,17 @@
     </div>
   </section>
   {% endif %}
-{% elif sections or groups %}
+{% elif book.has_contents %}
 <section class="panel treasury-list">
   <div class="section-heading">
     <h2>فهرست آثار{% if entry %} این بخش{% endif %}</h2>
     <span class="fine">{{ work_count|tally }} اثر</span>
   </div>
+  <form class="inline-form" method="get">
+    <div><label for="book-work-search">جست‌وجوی عنوان در این بخش</label><input id="book-work-search" type="search" name="q" value="{{ work_query }}" maxlength="120"></div>
+    <button>جست‌وجو</button>
+    <a href="{% url 'treasury-works' %}?book={{ book.slug|urlencode }}">جست‌وجوی مصرع در دیوان</a>
+  </form>
   {% if sections %}
   <nav class="treasury-jump" aria-label="بخش‌های دیوان">
     {% for section in sections %}<a class="chip" href="{{ section.get_absolute_url }}">{{ section.title }}</a>{% endfor %}
@@ -146,13 +145,13 @@
   <ul class="treasury-groups">
     {% for letter, works in groups %}
     <li id="ending-{{ forloop.counter }}">
-      <h3 class="treasury-group-title"><span>{{ letter|default:"بدون حرف پایانی" }}</span><small>{{ works|length|tally }} اثر</small></h3>
+      <h3 class="treasury-group-title"><span>{{ letter|default:"بدون حرف پایانی" }}</span><small>{{ works|length|tally }} اثر در این صفحه</small></h3>
       <ul class="treasury-entries">
         {% for child, section in works %}
         <li class="work">
           <a href="{{ child.get_absolute_url }}">
             {% include 'components/icon.html' with name='pen' %}
-            <span class="entry-title">{{ child.title }}{% if section %}<small class="fine">{{ section }}</small>{% endif %}</span>
+            <span class="entry-title">{{ child.title }} <small>{% if child.has_text and book.publishes_text %}متن در گنجینه{% else %}فقط نمایه{% endif %}</small>{% if section %}<small class="fine">{{ section }}</small>{% endif %}</span>
           </a>
         </li>
         {% endfor %}
@@ -160,7 +159,10 @@
     </li>
     {% endfor %}
   </ul>
+  {% else %}
+    <p>اثری در این نما پیدا نشد.</p>
   {% endif %}
+  {% include 'components/pagination.html' %}
 </section>
 {% elif not book.has_contents %}
 <section class="panel treasury-notice">
@@ -173,7 +175,7 @@
 {% endif %}
 
 <div class="reading-tools">
-  {% if entry.kind == 'work' and not entry.paragraphs and entry.source_url %}
+  {% if entry.kind == 'work' and entry.source_url and not entry_has_text %}
   <a class="inline-link" href="{{ entry.source_url }}" rel="noopener noreferrer nofollow" target="_blank">خواندن این اثر در گنجور</a>
   {% endif %}
   {% if book.publishes_text %}

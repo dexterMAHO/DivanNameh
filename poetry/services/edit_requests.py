@@ -1,3 +1,5 @@
+from itertools import zip_longest
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import QueryDict
@@ -14,6 +16,7 @@ EDITABLE_FIELDS = ('title', 'poet_name', 'source_url', 'notes')
 def original_poem(poem):
     return {
         **{name: getattr(poem, name) for name in EDITABLE_FIELDS},
+        'line_layout': poem.line_layout,
         'topics': list(poem.tags.values_list('name', flat=True)),
         'verses': list(poem.verses.values_list('hemistich_1', 'hemistich_2')),
     }
@@ -26,6 +29,33 @@ def requested_topics(edit):
     return sorted(set(filter(None, [*tags.values_list('name', flat=True), edit.payload['new_tag']])))
 
 
+def edit_changes(edit):
+    before = edit.original
+    if before is None and edit.poem.updated_at == edit.poem_updated_at:
+        before = original_poem(edit.poem)
+    after = {**edit.payload, 'topics': requested_topics(edit)}
+    labels = {
+        'title': 'عنوان', 'poet_name': 'شاعر', 'source_url': 'منبع',
+        'notes': 'یادداشت', 'topics': 'موضوع‌ها', 'line_layout': 'چیدمان',
+    }
+    changes = []
+    for key, label in labels.items():
+        previous = before.get(key, '') if before else ''
+        proposed = after.get(key, '')
+        if key == 'topics':
+            previous, proposed = '، '.join(sorted(previous)), '، '.join(sorted(proposed))
+        if key == 'line_layout':
+            layouts = {True: 'سطری', False: 'دومصرعی', '': ''}
+            previous, proposed = layouts[previous], layouts[proposed]
+        if before is None or previous != proposed:
+            changes.append((label, previous, proposed))
+    previous_verses = before.get('verses', []) if before else []
+    for position, (previous, proposed) in enumerate(zip_longest(previous_verses, after.get('verses', []), fillvalue=()), 1):
+        if tuple(previous) != tuple(proposed):
+            changes.append((f'ردیف {position}', '\n'.join(filter(None, previous)), '\n'.join(filter(None, proposed))))
+    return changes, before is not None
+
+
 @transaction.atomic
 def submit_edit(poem, owner, data, verses):
     current = Poem.objects.select_for_update().get(pk=poem.pk, owner=owner)
@@ -35,6 +65,7 @@ def submit_edit(poem, owner, data, verses):
     tags = list(data['tags'])
     payload['tags'] = [tag.pk for tag in tags]
     payload['topics'] = sorted(set(filter(None, [*(tag.name for tag in tags), payload['new_tag']])))
+    payload['line_layout'] = data.get('line_layout', current.line_layout)
     payload['verses'] = verses
     _, created = PoemEditRequest.objects.get_or_create(
         poem=current, status=PoemEditRequest.Status.PENDING,
@@ -48,7 +79,7 @@ def submit_edit(poem, owner, data, verses):
 
 
 @transaction.atomic
-def decide_edit(edit, reviewer, *, approve):
+def decide_edit(edit, reviewer, *, approve, rejection_reason=''):
     if not reviewer.is_active or not reviewer.is_superuser:
         raise ValidationError('فقط مدیر می‌تواند درخواست را بررسی کند.')
     poem = Poem.objects.select_for_update().get(pk=edit.poem_id)
@@ -64,6 +95,9 @@ def decide_edit(edit, reviewer, *, approve):
         data = QueryDict(mutable=True)
         data.update({name: payload[name] for name in (*EDITABLE_FIELDS, 'new_tag')})
         data['input_mode'] = 'structured'
+        data['layout_control'] = '1'
+        if payload.get('line_layout', poem.line_layout):
+            data['line_layout'] = 'on'
         data.setlist('tags', payload['tags'])
         data.setlist('hemistich_1', [verse[0] for verse in payload['verses']])
         data.setlist('hemistich_2', [verse[1] for verse in payload['verses']])
@@ -72,6 +106,7 @@ def decide_edit(edit, reviewer, *, approve):
             raise ValidationError('اطلاعات درخواست دیگر معتبر نیست. موضوع‌ها و متن را بررسی کنید.')
         save_poem(poem.owner, form.cleaned_data, form.cleaned_data['verses'], poem)
     edit.status = PoemEditRequest.Status.APPROVED if approve else PoemEditRequest.Status.REJECTED
+    edit.rejection_reason = '' if approve else rejection_reason.strip()[:500]
     edit.decided_at = timezone.now()
     edit.decided_by = reviewer
-    edit.save(update_fields=['status', 'decided_at', 'decided_by', 'original'])
+    edit.save(update_fields=['status', 'decided_at', 'decided_by', 'original', 'rejection_reason'])

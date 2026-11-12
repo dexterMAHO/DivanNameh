@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}راهنمای طراحی{% endblock %}
 {% block content %}
-<header class="page-heading"><div><span class="eyebrow">دفتر ادبی معاصر</span><h1>راهنمای طراحی دیوان نامه</h1><p class="muted">نمونهٔ زندهٔ توکن‌ها و کامپوننت‌ها. مرجع کامل: design-system/divannameh/MASTER.md</p></div></header>
+<header class="page-heading"><div><span class="eyebrow">دفتر ادبی معاصر</span><h1>راهنمای طراحی دیوان نامه</h1><p class="muted">نمونهٔ فرم، دکمه، حالت خالی و کارت در پالت انتخابی</p></div></header>
 
 <p class="muted">نمونه‌ها با پالت و حالت نمایش حساب شما هماهنگ‌اند. <a href="{% url 'settings' %}">انتخاب ظاهر دفتر</a></p>
 <div class="section-heading"><div><span class="eyebrow">توکن‌های پایه</span><h2>رنگ‌ها</h2></div></div>
@@ -31,6 +31,10 @@
     <div><label for="ds-input">فیلد متنی</label><input id="ds-input" placeholder=""></div>
     <div><label for="ds-select">انتخاب</label><select id="ds-select"><option>گزینهٔ نخست</option><option>گزینهٔ دوم</option></select></div>
   </div>
+  <div class="form-grid">
+    <div><label for="ds-invalid">نام موضوع نمونه</label><input id="ds-invalid" data-example value="عاشقانه" aria-invalid="true" aria-describedby="ds-invalid-message"><p class="errorlist" id="ds-invalid-message">این موضوع قبلاً ثبت شده است.</p></div>
+    <div><label for="ds-focus">نمونهٔ حلقهٔ فوکوس</label><input id="ds-focus" class="design-sample-focus"></div>
+  </div>
   <label for="ds-textarea">چندخطی</label><textarea id="ds-textarea" rows="3"></textarea>
   <label><input type="checkbox" checked> گزینهٔ قابل انتخاب</label>
 </section>
@@ -46,7 +50,6 @@
     <h2><a href="#">عنوان نمونهٔ شعر</a></h2>
     <p class="excerpt">مصرعی برای نمایش برش شعر در کارت کتابخانه</p>
     <div class="tags"><span class="chip">عاشقانه</span></div>
-    <div class="card-footer"><a class="inline-link" href="#">خواندن شعر{% include 'components/icon.html' with name='arrow' %}</a>{% include 'components/icon.html' with name='book' %}</div>
   </article>
   <section class="empty"><span class="empty-icon">{% include 'components/icon.html' with name='pen' %}</span><h2>حالت خالی</h2><p>عنوان، علت و یک اقدام مرتبط.</p><button class="button" type="button">اقدام نمونه</button></section>
 </div>

@@ -1,12 +1,13 @@
-{% load static %}<!doctype html>
-<html lang="fa" dir="rtl" data-theme="{{ user.theme|default:'auto' }}" data-palette="{{ user.palette|default:'paper' }}">
+{% load static persian %}<!doctype html>
+<html lang="fa" dir="rtl" data-theme="{{ user.theme|default:'auto' }}" data-palette="{{ user.palette|default:'paper' }}" data-reading-size="{{ user.reading_size }}" data-reading-spacing="{{ user.reading_spacing }}" data-reading-layout="{{ user.reading_layout }}" data-reading-numbers="{{ user.reading_numbers|yesno:'yes,no,yes' }}">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{% block title %}دفتر شخصی شعر{% endblock %} | دیوان نامه</title>
-  <link rel="preload" href="{% static 'fonts/Vazirmatn.ttf' %}" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="{% static 'fonts/Vazirmatn.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <script type="module" src="{% static 'js/app.js' %}"></script>
+  {% block scripts %}{% endblock %}
 </head>
 <body{% if not user.is_authenticated %} class="guest"{% endif %}>
 {% include 'components/icons.html' %}
@@ -19,15 +20,22 @@
     </a>
     {% if user.is_authenticated %}
     <div class="masthead-actions">
-      <form id="header-theme" action="{% url 'header-theme' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <input type="hidden" name="theme" value="{% if user.theme == 'dark' %}light{% else %}dark{% endif %}">
-        <button class="icon-button" aria-label="تغییر تم روشن و تاریک" title="تغییر تم">
+      <details id="header-theme">
+        <summary class="icon-button" aria-label="حالت نمایش، {{ user.get_theme_display }}">
           {% include 'components/icon.html' with name='moon' class='theme-moon' %}
           {% include 'components/icon.html' with name='sun' class='theme-sun' %}
-        </button>
-      </form>
+          <span class="visually-hidden">انتخاب حالت نمایش</span>
+        </summary>
+        <form action="{% url 'header-theme' %}" method="post" class="theme-options panel">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button name="theme" value="auto" aria-pressed="{% if user.theme == 'auto' %}true{% else %}false{% endif %}"{% if user.theme == 'auto' %} data-current{% endif %}>مطابق دستگاه</button>
+          <button name="theme" value="light" aria-pressed="{% if user.theme == 'light' %}true{% else %}false{% endif %}"{% if user.theme == 'light' %} data-current{% endif %}>روشن</button>
+          <button name="theme" value="dark" aria-pressed="{% if user.theme == 'dark' %}true{% else %}false{% endif %}"{% if user.theme == 'dark' %} data-current{% endif %}>تاریک</button>
+          <p class="inline-status" role="status"></p>
+        </form>
+      </details>
+      <span id="theme-feedback" class="visually-hidden" role="status"></span>
       <a class="button primary masthead-add" href="{% url 'poem-new' %}" aria-label="افزودن شعر">
         {% include 'components/icon.html' with name='plus' %}<span>افزودن شعر</span>
       </a>
@@ -38,6 +46,13 @@
         {% include 'components/icon.html' with name='menu' %}
       </button>
     </div>
+    {% with route=request.resolver_match.url_name %}
+      <nav class="mobile-shortcuts" aria-label="میانبرهای اصلی">
+        <a href="{% url 'poems' %}" {% if route == 'poems' %}aria-current="page"{% endif %}>کتابخانهٔ شخصی</a>
+        <a href="{% url 'treasury' %}" {% if route == 'treasury' %}aria-current="page"{% endif %}>گنجینه</a>
+        <a href="{% url 'review' %}" {% if route == 'review' %}aria-current="page"{% endif %}>مرور{% if due_count %} · <span class="count">{{ due_count|persian }}</span>{% endif %}</a>
+      </nav>
+    {% endwith %}
     {% endif %}
   </header>
   {% if user.is_authenticated %}
@@ -45,16 +60,26 @@
     <nav id="main-nav" aria-label="ناوبری اصلی">{% include 'components/nav.html' %}</nav>
     <form class="sidebar-logout" action="{% url 'logout' %}" method="post">
       {% csrf_token %}<button class="quiet">{% include 'components/icon.html' with name='logout' %}خروج از حساب</button>
-      {% if not user.is_staff and not user.is_superuser %}
-      <button class="text-button" name="forget" value="1">خروج و فراموشی مرورگر</button>
-      {% endif %}
     </form>
+    {% if not user.is_staff and not user.is_superuser %}
+      <details class="forget-browser">
+        <summary>فراموش‌کردن این مرورگر</summary>
+        <p class="fine">برای ورود دوباره به مرورگر ثبت‌شدهٔ دیگری یا کد بازیابی نیاز دارید. <a href="{% url 'settings' %}">مدیریت مرورگرها و کد بازیابی</a></p>
+        <form action="{% url 'logout' %}" method="post">
+          {% csrf_token %}<button name="forget" value="1">تأیید خروج و فراموشی</button>
+        </form>
+      </details>
+    {% endif %}
   </aside>
   {% endif %}
   <div class="workspace">
     <div class="content-wrap">
       <div id="notifications" role="status" aria-live="polite" aria-atomic="true">
-        {% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}
+        {% for message in messages %}
+          {% if request.resolver_match.url_name != 'poem-detail' or 'study-inline' not in message.tags %}
+            <p class="notice {{ message.tags }}" data-message-tags="{{ message.tags }}">{{ message }}</p>
+          {% endif %}
+        {% endfor %}
       </div>
       <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
     </div>

@@ -1,7 +1,12 @@
+{% load persian %}
 <article class="poem-card">
-  <div class="card-meta"><span>{{ poem.poet_name }}</span><span>{{ poem.verses.all|length }} بیت</span></div>
-  <h2><a href="{{ poem.get_absolute_url }}">{{ poem.display_title }}</a></h2>
-  {% with first=poem.verses.all.0 %}<p class="excerpt">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>{% endwith %}
-  <div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% empty %}<span class="fine">بدون موضوع</span>{% endfor %}</div>
-  <div class="card-footer"><a class="inline-link" href="{{ poem.get_absolute_url }}">خواندن شعر{% include 'components/icon.html' with name='arrow' %}</a>{% include 'components/icon.html' with name='book' %}</div>
+  <div class="card-meta">
+    <span>{{ poem.poet_name }}</span>
+    <span>{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span>
+  </div>
+  {% if card_heading == 'h3' %}<h3>{% else %}<h2>{% endif %}<a href="{{ poem.get_absolute_url }}{% if request.resolver_match.url_name == 'poems' or request.resolver_match.url_name == 'tag-detail' %}?from={{ request.get_full_path|urlencode:'' }}{% endif %}">{{ poem.display_title }}</a>{% if card_heading == 'h3' %}</h3>{% else %}</h2>{% endif %}
+  {% with first=poem.excerpt_verse %}
+    <p class="excerpt">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>
+  {% endwith %}
+  {% if poem.tags.all %}<div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}
 </article>

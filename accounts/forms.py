@@ -31,7 +31,7 @@ class AppearanceForm(ThemeForm):
 
 
 class ActionPasswordForm(forms.Form):
-    current_password = forms.CharField(label='رمز فعلی عملیات', required=False, max_length=128, widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}))
+    current_password = forms.CharField(label='رمز فعلی عملیات', max_length=128, widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}))
     password = forms.CharField(label='رمز جدید عملیات', max_length=128, widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}))
     confirmation = forms.CharField(label='تکرار رمز جدید', max_length=128, widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}))
 
@@ -48,7 +48,7 @@ class ActionPasswordForm(forms.Form):
 
     def clean(self):
         data = super().clean()
-        if self.user.action_password and not self.user.verify_action_password(data.get('current_password', '')):
+        if 'current_password' in data and not self.user.verify_action_password(data['current_password']):
             self.add_error('current_password', 'رمز فعلی درست نیست.')
         if data.get('password') and data.get('confirmation') != data['password']:
             self.add_error('confirmation', 'دو رمز یکسان نیستند.')
@@ -73,3 +73,11 @@ class ProfilePhotoForm(forms.Form):
         except (OSError, UnidentifiedImageError, Image.DecompressionBombError) as exc:
             raise forms.ValidationError('یک عکس JPG، PNG یا WebP معتبر انتخاب کنید.') from exc
         return output.getvalue()
+
+
+class ReadingForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['reading_size', 'reading_spacing', 'reading_layout', 'reading_numbers']
+        labels = {'reading_size': 'اندازهٔ قلم شعر', 'reading_spacing': 'فاصلهٔ سطرها',
+                  'reading_layout': 'چیدمان', 'reading_numbers': 'نمایش شمارهٔ ردیف'}

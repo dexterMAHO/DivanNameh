@@ -1,23 +1,16 @@
-{% if poem.verses.all %}
-<section class="panel copy-tools" id="copy-tools" hidden aria-label="ابزارهای کپی شعر">
-  <button type="button" id="copy-all">کپی شعر</button>
+<section class="copy-tools" id="copy-tools" hidden aria-label="کپی شعر">
   <details>
-    <summary class="button quiet">کپی پیشرفته</summary>
-    <fieldset class="copy-verse-list">
-      <legend>بیت‌های موردنظر را انتخاب کنید</legend>
-      {% for verse in poem.verses.all %}
-      <label>
-        <input type="checkbox" value="{{ verse.position }}">
-        <span><b>بیت {{ verse.position }}</b> {{ verse.hemistich_1 }}{% if verse.hemistich_2 %} / {{ verse.hemistich_2 }}{% endif %}</span>
-      </label>
-      {% endfor %}
-    </fieldset>
-    <button type="button" id="copy-selected">کپی بیت‌های انتخاب‌شده</button>
+    <summary class="button quiet">کپی شعر</summary>
+    {% if has_selection %}<p class="fine">برای کپی گزیده، بیت‌ها یا سطرهای متن را انتخاب کنید.</p>{% endif %}
+    <label><input type="checkbox" id="copy-credit"> درج نام اثر، شاعر و منبع موجود</label>
+    <div class="actions">
+      <button type="button" id="copy-all">کپی تمام متن</button>
+      {% if has_selection %}<button type="button" id="copy-selected">کپی گزیده</button>{% endif %}
+    </div>
   </details>
-  <p class="copy-status" role="status"></p>
+  <p class="copy-status inline-status" role="status"></p>
   <div id="copy-fallback" hidden>
     <label for="copy-output">متن آمادهٔ کپی</label>
     <textarea id="copy-output" rows="5" readonly></textarea>
   </div>
 </section>
-{% endif %}

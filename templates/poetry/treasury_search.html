@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}جست‌وجوی آثار گنجینه{% endblock %}
+{% block content %}
+<header class="page-heading compact">
+  <div><h1>جست‌وجوی آثار گنجینه</h1><p>عنوان، شاعر و مصرعِ آثار دارای متن را جست‌وجو کنید.</p></div>
+  <a href="{% url 'treasury' %}">فهرست شاعران</a>
+</header>
+<form method="get" class="panel inline-form">
+  {% if book_slug %}<input type="hidden" name="book" value="{{ book_slug }}">{% endif %}
+  <div><label for="work-search">عنوان، شاعر یا مصرع</label><input id="work-search" name="q" type="search" value="{{ query }}" maxlength="120"></div>
+  <button>جست‌وجو</button>
+  {% if book_slug %}<a href="{% querystring book=None page=None %}">جست‌وجو در همهٔ گنجینه</a>{% endif %}
+</form>
+{% if query or book_slug %}
+  <p class="filter-summary">{{ page.paginator.count|persian }} اثر پیدا شد.</p>
+  <div class="card-grid">
+    {% for entry in page %}
+      <article class="panel">
+        <h2><a href="{{ entry.get_absolute_url }}?from={{ request.get_full_path|urlencode:'' }}">{{ entry.title }}</a></h2>
+        <p>{{ entry.book.author }} · {% if entry.has_text and entry.book.publishes_text %}متن در گنجینه{% else %}فقط نمایه{% endif %}</p>
+        {% if entry.snippet %}<blockquote>{{ entry.snippet|truncatechars:220 }}</blockquote>{% endif %}
+        {% if entry.source_url %}<a href="{{ entry.source_url }}" rel="nofollow">منبع اثر</a>{% endif %}
+      </article>
+    {% empty %}
+      <section class="empty"><h2>اثری با این جست‌وجو پیدا نشد.</h2><p>بخشی کوتاه‌تر از عنوان یا مصرع را وارد کنید.</p></section>
+    {% endfor %}
+  </div>
+  {% include 'components/pagination.html' %}
+{% endif %}
+{% endblock %}

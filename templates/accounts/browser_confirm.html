@@ -10,6 +10,8 @@
   <form method="post" action="{% url 'confirm-browser' %}">
     {% csrf_token %}
     <input type="hidden" name="token" value="{{ token }}">
+    <label for="browser-label">نام دستگاه (اختیاری)</label>
+    <input id="browser-label" name="browser_label" maxlength="80" autocomplete="off">
     <button class="primary wide">ثبت مرورگر و ورود</button>
   </form>
   {% endif %}

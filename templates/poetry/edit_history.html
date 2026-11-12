@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}درخواست‌های ویرایش{% endblock %}
+{% block content %}
+{% if edit %}
+  <nav class="breadcrumb" aria-label="مسیر درخواست‌ها"><a href="{% url 'edit-history' %}">درخواست‌های من</a></nav>
+  <header class="page-heading compact">
+    <div><h1>درخواست ویرایش {{ edit.poem.display_title }}</h1><p>{{ edit.get_status_display }}</p></div>
+    <a href="{{ edit.poem.get_absolute_url }}">دیدن شعر</a>
+  </header>
+  <section class="panel">
+    <h2>وضعیت درخواست</h2>
+    <p>ارسال <time datetime="{{ edit.created_at|date:'c' }}">{{ edit.created_at|date:'j F Y، H:i'|persian }}</time></p>
+    {% if edit.decided_at %}<p>تصمیم <time datetime="{{ edit.decided_at|date:'c' }}">{{ edit.decided_at|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
+    {% if edit.status == 'rejected' %}
+      <p>دلیل رد {{ edit.rejection_reason|default:'ثبت نشده است' }}</p>
+      <a class="button" href="{% url 'poem-edit' edit.poem_id %}?retry={{ edit.pk }}">اصلاح درخواست قبلی</a>
+    {% endif %}
+  </section>
+  <section class="panel">
+    <h2>تفاوت متن و اطلاعات</h2>
+    {% if not has_original %}<p class="fine">نسخهٔ اولیهٔ این درخواست در دسترس نیست.</p>{% endif %}
+    <dl class="edit-diff">
+      {% for label, before, after in rows %}
+        <dt>{{ label|persian }}</dt>
+        {% if has_original %}<dd><span class="fine">پیش از درخواست</span><div>{{ before|default:'—'|linebreaksbr }}</div></dd>{% endif %}
+        <dd><span class="fine">درخواست‌شده</span><div>{{ after|default:'—'|linebreaksbr }}</div></dd>
+      {% empty %}<dd>تغییری ثبت نشده است.</dd>{% endfor %}
+    </dl>
+  </section>
+{% else %}
+  <header class="page-heading compact"><h1>درخواست‌های من</h1><a href="{% url 'poems' %}">کتابخانه</a></header>
+  <div class="card-grid">
+    {% for row in page %}
+      <article class="panel"><h2><a href="{% url 'edit-history-detail' row.pk %}">{{ row.poem.title|default:row.poem.poet_name }}</a></h2>
+      <p>{{ row.get_status_display }} · <time datetime="{{ row.created_at|date:'c' }}">{{ row.created_at|date:'j F Y'|persian }}</time></p></article>
+    {% empty %}<p>هنوز درخواست ویرایش ثبت نکرده‌اید.</p>{% endfor %}
+  </div>
+  {% include 'components/pagination.html' %}
+{% endif %}
+{% endblock %}

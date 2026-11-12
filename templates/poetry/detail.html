@@ -1,19 +1,66 @@
 {% extends 'base.html' %}
+{% load persian static %}
+{% block scripts %}<script type="module" src="{% static 'js/poem-copy.js' %}"></script>{% endblock %}
 {% block title %}{{ poem.display_title }}{% endblock %}
 {% block content %}
-<div class="breadcrumb"><a href="{% url 'poems' %}">کتابخانه</a><span>/</span><a href="{% url 'poems' %}?poet={{ poem.poet_name|urlencode:'' }}">{{ poem.poet_name }}</a></div>
-<div class="reading-tools"><a class="inline-link" href="{% url 'poems' %}">{% include 'components/icon.html' with name='book' %}بازگشت به کتابخانه</a><a class="button quiet" href="{% url 'poem-edit' poem.pk %}">{% include 'components/icon.html' with name='pen' %}درخواست ویرایش</a></div>
-{% if edit_request %}<p class="notice">درخواست ویرایش {{ edit_request.get_status_display }} است.</p>{% endif %}
+<nav class="breadcrumb" aria-label="مسیر کتابخانه">
+  <a href="{{ library_back }}">کتابخانه</a><span aria-hidden="true">/</span>
+  <a href="{% url 'poems' %}?poet={{ poem.poet_name|urlencode:'' }}">{{ poem.poet_name }}</a>
+</nav>
+{% if edit_request %}<p class="notice">درخواست ویرایش {{ edit_request.get_status_display }} است. <a href="{% url 'edit-history-detail' edit_request.pk %}">دیدن درخواست</a></p>{% endif %}
 {% if poem.archived_at %}<p class="notice">{% include 'components/icon.html' with name='archive' %}این شعر آرشیو شده و در صف مرور نمایش داده نمی‌شود.</p>{% endif %}
-{% include 'poetry/copy_tools.html' %}
-<article class="reading-sheet">
+<article class="reading-sheet" data-reading-key="{{ user.pk }}-poem-{{ poem.pk }}" data-copy-credit="{{ poem.display_title }} · {{ poem.poet_name }}{% if poem.source_url %} · {{ poem.source_url }}{% endif %}">
   <header class="poem-heading"><span class="eyebrow">از دفترِ {{ poem.poet_name }}</span><h1>{{ poem.display_title }}</h1><div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div><div class="literary-divider" aria-hidden="true"><span></span>{% include 'components/icon.html' with name='book' %}<span></span></div></header>
-  <div class="poetry-panel">{% for verse in poem.verses.all %}<div class="verse-row">{% include 'components/verse.html' %}<form method="post" action="{% if verse.pk in favorite_ids %}{% url 'unfavorite' verse.pk %}{% else %}{% url 'favorite' verse.pk %}{% endif %}" data-favorite data-add="{% url 'favorite' verse.pk %}" data-remove="{% url 'unfavorite' verse.pk %}">{% csrf_token %}<button class="favorite icon-button" data-position="{{ verse.position }}" aria-label="{% if verse.pk in favorite_ids %}برداشتن نشان{% else %}افزودن به{% endif %} شاه‌بیت {{ verse.position }}" aria-pressed="{% if verse.pk in favorite_ids %}true{% else %}false{% endif %}">{% include 'components/icon.html' with name='star' %}</button></form></div>{% endfor %}</div>
-  <div class="poem-colophon"><span>{{ poem.verses.all|length }} بیت</span><span>ستارهٔ کنار بیت، آن را به شاه‌بیت‌ها می‌افزاید.</span></div>
+  <button type="button" class="text-button resume-reading" hidden>ادامه از آخرین جای خواندن</button>
+  <div class="poetry-panel">
+    {% for verse in poem.verses.all %}
+      <div class="verse-row">
+        {% include 'components/verse.html' %}
+        <div class="verse-actions">
+          <label class="icon-button treasury-bookmark copy-choice" hidden>
+            <input class="visually-hidden" type="checkbox" data-copy-verse value="{{ verse.position }}" aria-label="انتخاب ردیف {{ verse.position|persian }} برای کپی">
+            {% include 'components/icon.html' with name='bookmark' %}
+          </label>
+          <form method="post" action="{% if verse.pk in favorite_ids %}{% url 'unfavorite' verse.pk %}{% else %}{% url 'favorite' verse.pk %}{% endif %}" data-favorite data-add="{% url 'favorite' verse.pk %}" data-remove="{% url 'unfavorite' verse.pk %}">
+            {% csrf_token %}
+            <button class="favorite icon-button" aria-label="شاه‌بیت ردیف {{ verse.position|persian }}" aria-pressed="{% if verse.pk in favorite_ids %}true{% else %}false{% endif %}">{% include 'components/icon.html' with name='star' %}</button>
+            <span class="inline-status" role="status"></span>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="poem-colophon"><span>{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span><span>ستارهٔ کنار متن، شاه‌بیت را ثبت می‌کند.</span></div>
 </article>
+{% include 'poetry/copy_tools.html' with has_selection=True %}
 {% include 'poetry/memorize_tools.html' %}
+{% if origin_entry %}
+  <details class="panel" id="poem-origin" {% if origin_comparison is not None %}open{% endif %}>
+    <summary>منشأ این گزیده در گنجینه</summary>
+    <p><a href="{{ origin_entry.get_absolute_url }}">{{ origin_entry.title }}</a> · {{ origin_entry.book.author }}</p>
+    <p class="fine">{{ poem.treasury_positions|length|persian }} ردیف از نسخهٔ مرجع</p>
+    <ol>{% for verse in poem.verses.all %}{% if verse.treasury_position %}
+      <li>ردیف {{ verse.position|persian }} دفتر از ردیف {{ verse.treasury_position|persian }} اثر</li>
+    {% endif %}{% endfor %}</ol>
+    {% if edition_changed %}
+      <p class="notice">نسخهٔ مرجع پس از ذخیره تغییر کرده است. متن نسخهٔ شخصی حفظ شده است.</p>
+      {% if origin_comparison is None %}<a href="{% querystring compare=1 %}#poem-origin">مقایسه با متن فعلی گنجینه</a>
+      {% else %}
+        <p class="fine">مقایسه بر اساس شمارهٔ ردیف مرجع انجام می‌شود.</p>
+        <dl class="edit-diff">
+          {% for position, saved, current in origin_comparison %}
+            <dt>ردیف {{ position|persian }} مرجع</dt>
+            <dd>در دفتر · {{ saved.0 }}{% if saved.1 %}<br>{{ saved.1 }}{% endif %}</dd>
+            <dd>در گنجینه · {% if current %}{{ current.0 }}{% if current.1 %}<br>{{ current.1 }}{% endif %}{% else %}این ردیف در متن قابل‌نمایش کنونی نیست.{% endif %}</dd>
+          {% empty %}<dt>تفاوتی در ردیف‌های ثبت‌شده دیده نشد.</dt>{% endfor %}
+        </dl>
+      {% endif %}
+    {% endif %}
+  </details>
+{% endif %}
 {% if poem.notes %}<section class="panel"><span class="eyebrow">یادداشت شخصی</span><h2>حاشیهٔ دفتر</h2><div class="notes">{{ poem.notes|linebreaksbr }}</div></section>{% endif %}
 <div class="reading-tools">
+  {% if edit_request.status != 'pending' %}<a class="button quiet" href="{% url 'poem-edit' poem.pk %}">درخواست ویرایش</a>{% endif %}
   {% if poem.source_url %}<a class="inline-link" href="{{ poem.source_url }}" rel="noopener noreferrer" target="_blank">مشاهدهٔ منبع شعر</a>{% endif %}
   {% if poem.archived_at %}
   <form method="post" action="{% url 'poem-restore' poem.pk %}">

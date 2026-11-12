@@ -43,15 +43,22 @@ class MemorizationItem(models.Model):
 
     @property
     def scope_label(self):
-        return 'تمام شعر' if self.scope == 'full' else f'بیت {self.start_verse.position} تا {self.end_verse.position}'
+        if self.scope == 'full':
+            return 'تمام شعر'
+        unit = 'سطر' if self.poem.line_layout else 'بیت'
+        return f'{unit} {self.start_verse.position} تا {self.end_verse.position}'
 
 class ReviewLog(models.Model):
     RATINGS = [('again', 'دوباره؛ یادم نبود'), ('hard', 'سخت؛ با زحمت'), ('good', 'خوب؛ درست یادم آمد'), ('easy', 'آسان؛ کاملاً یادم بود')]
     item = models.ForeignKey(MemorizationItem, on_delete=models.CASCADE, related_name='logs')
     request_id = models.UUIDField(unique=True)
+    transfer_id = models.UUIDField(null=True, blank=True, editable=False)
     rating = models.CharField(max_length=5, choices=RATINGS)
     reviewed_at = models.DateTimeField(default=timezone.now)
     previous_due_at = models.DateTimeField()
     next_due_at = models.DateTimeField()
     previous_interval_days = models.PositiveIntegerField()
     next_interval_days = models.PositiveIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['item', 'transfer_id'], name='unique_review_transfer')]

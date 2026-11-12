@@ -5,9 +5,11 @@ from poetry.models import Poem, Verse
 from .tags import save_tag
 
 
-def parse_verses(text, mode):
+def parse_verses(text, mode, *, line_layout=False):
     lines = [line.strip() for line in text.splitlines() if line.strip()]
-    if mode == 'pairs':
+    if line_layout:
+        rows = [(line, '') for line in lines]
+    elif mode == 'pairs':
         if len(lines) % 2:
             raise ValidationError('تعداد سطرها فرد است؛ مصرع آخر را کامل کنید یا حالت هر خط یک بیت را انتخاب کنید.')
         rows = list(zip(lines[::2], lines[1::2]))
@@ -18,14 +20,17 @@ def parse_verses(text, mode):
     return validate_verses(rows)
 
 
-def validate_verses(rows):
+def validate_verses(rows, *, minimum=0):
+    rows = list(rows)
+    while len(rows) > minimum and not any(part.strip() for part in rows[-1]):
+        rows.pop()
     if not 1 <= len(rows) <= 500:
         raise ValidationError('بین ۱ تا ۵۰۰ بیت وارد کنید.')
     result = []
-    for first, second in rows:
+    for position, (first, second) in enumerate(rows, 1):
         first, second = first.strip(), second.strip()
         if not first or max(len(first), len(second)) > 1000:
-            raise ValidationError('مصرع اول الزامی است و هر مصرع حداکثر ۱۰۰۰ نویسه دارد.')
+            raise ValidationError(f'ردیف {position} باید مصرع اول داشته باشد و هر مصرع حداکثر ۱۰۰۰ نویسه دارد.')
         result.append((first, second))
     return result
 
@@ -46,6 +51,7 @@ def save_poem(owner, data, rows, poem=None):
         raise ValidationError('حذف بیت در این نسخه مجاز نیست؛ متن بیت‌ها را اصلاح کنید.')
     for field in ['title', 'poet_name', 'source_url', 'notes']:
         setattr(poem, field, data[field])
+    poem.line_layout = data.get('line_layout', poem.line_layout)
     poem.full_clean()
     poem.save()
     if data.get('new_tag'):

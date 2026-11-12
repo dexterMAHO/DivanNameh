@@ -1,76 +1,106 @@
-import {announce, request, verseElement} from './api.js';
-import './editor.js';
-import './poem-copy.js';
-import './treasury-layout.js';
+import {request} from './api.js';
+const digits = new Intl.NumberFormat('fa-IR', {useGrouping: false});
+
+for (const message of document.querySelectorAll('[data-message-tags]')) {
+  const key = message.dataset.messageTags.split(' ').find(tag => tag.startsWith('poem-draft-'));
+  if (key) {
+    try { localStorage.removeItem(key); } catch { /* Storage can be blocked by the browser. */ }
+  }
+}
+
+function showStatus(status, message, error = false) {
+  status.textContent = message;
+  status.toggleAttribute('data-error', error);
+}
+
+function appendLogin(status, error) {
+  if (error.code !== 'login_required') return;
+  const login = document.createElement('a');
+  login.href = '/login/?next=' + encodeURIComponent(location.pathname + location.search);
+  login.textContent = 'ورود دوباره';
+  status.append(' ', login);
+}
+
 for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite]')) {
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    const button = form.querySelector('button'); if (button.disabled) return;
+    const button = event.submitter || form.querySelector('button');
+    if (button.disabled) return;
+    const status = form.querySelector('[role="status"]');
+    button.setAttribute('aria-disabled', 'true');
     button.disabled = true;
     try {
-      const data = await request(form.action, form); announce(data.message);
-      if (data.remaining_due_count !== undefined) document.querySelectorAll('.count').forEach(el => el.textContent = data.remaining_due_count);
-      const memorize = form.closest('[data-memorize-options]');
-      if (memorize) {
-        memorize.querySelector('h2').textContent = 'در فهرست حفظ شماست';
-        memorize.querySelectorAll('form, details').forEach(control => control.remove());
-        document.querySelectorAll('.verse.selected').forEach(row => row.classList.remove('selected'));
-        const listLink = memorize.querySelector('a');
-        listLink.focus();
+      const data = await request(form.action, form);
+      if (data.remaining_due_count !== undefined) {
+        document.querySelectorAll('.count').forEach(el => el.textContent = digits.format(data.remaining_due_count));
+      }
+      if (data.item) {
+        const cards = document.getElementById('poem-study-cards');
+        const card = document.createElement('li');
+        card.textContent = data.item.label + ' · فعال';
+        cards.append(card);
+        cards.hidden = false;
+        if (data.item.scope === 'full') {
+          const feedback = document.getElementById('study-feedback');
+          showStatus(feedback, data.message);
+          form.hidden = true;
+          document.querySelector('#study-range summary').focus();
+        }
+        const password = form.elements.action_password;
+        if (password) password.value = '';
       }
       if (form.hasAttribute('data-favorite')) {
-        button.setAttribute('aria-label', `${data.favorite ? 'برداشتن نشان' : 'افزودن به'} شاه‌بیت ${button.dataset.position}`);
         button.setAttribute('aria-pressed', String(data.favorite));
         form.action = data.favorite ? form.dataset.remove : form.dataset.add;
       }
-    } catch (error) { announce(error.message, true); }
-    finally { button.disabled = false; }
+      showStatus(status, data.message);
+    } catch (error) {
+      showStatus(status, error.message, true);
+      appendLogin(status, error);
+    } finally {
+      button.disabled = false;
+      button.removeAttribute('aria-disabled');
+    }
   });
 }
+
 for (const form of document.querySelectorAll('.range-form')) {
-  const selects = [...form.querySelectorAll('select')];
+  const [startSelect, endSelect] = form.querySelectorAll('select');
+  const summary = form.closest('details');
   const update = () => {
-    const [start, end] = selects.map(s => Number(s.selectedOptions[0].dataset.position));
-    form.querySelector('.selection-count').textContent = end < start ? 'بیت پایانی باید پس از بیت آغازین باشد.' : `${end - start + 1} بیت انتخاب شده`;
-    for (const row of document.querySelectorAll('[data-position].verse')) row.classList.toggle('selected', Number(row.dataset.position) >= start && Number(row.dataset.position) <= end);
+    const start = Number(startSelect.selectedOptions[0].dataset.position);
+    const end = Number(endSelect.selectedOptions[0].dataset.position);
+    const valid = end >= start;
+    form.querySelector('.selection-count').textContent = valid ?
+      digits.format(end - start + 1) + ' ردیف انتخاب شده' : 'پایان بازه باید از آغاز آن عقب‌تر نباشد.';
+    form.querySelector('.range-preview').textContent = valid ?
+      [startSelect.selectedOptions[0].text, endSelect.selectedOptions[0].text].filter((text, index, all) => all.indexOf(text) === index).join(' تا ') : '';
+    endSelect.setAttribute('aria-invalid', String(!valid));
+    form.querySelector('button').disabled = !valid;
+    for (const row of document.querySelectorAll('.reading-sheet .verse[data-position]')) {
+      const position = Number(row.dataset.position);
+      row.classList.toggle('selected', summary.open && valid && position >= start && position <= end);
+    }
   };
-  selects.forEach(s => s.addEventListener('change', update));
-  form.closest('details').addEventListener('toggle', () => {
-    if (form.closest('details').open) update();
-    else document.querySelectorAll('.verse.selected').forEach(row => row.classList.remove('selected'));
-  });
+  startSelect.addEventListener('change', update);
+  endSelect.addEventListener('change', update);
+  summary.addEventListener('toggle', update);
+  if (summary.open) update();
 }
 const answer = document.getElementById('review-answer');
 if (answer) {
   const buttons = [...answer.querySelectorAll('button')];
   buttons.forEach(b => b.disabled = true);
   answer.addEventListener('toggle', () => {
-    answer.querySelector('summary').setAttribute('aria-expanded', String(answer.open));
     buttons.forEach(b => b.disabled = !answer.open);
   });
   document.getElementById('rating-form').addEventListener('submit', event => {
+    if (!event.submitter) return;
     // Preserve the selected submitter when disabling the buttons.
     const input = document.createElement('input'); input.type = 'hidden'; input.name = 'rating'; input.value = event.submitter.value;
     event.target.append(input); buttons.forEach(b => b.disabled = true);
   });
 }
-const discovery = document.getElementById('discover-form');
-if (discovery) discovery.addEventListener('submit', async event => {
-  event.preventDefault(); const button = discovery.querySelector('button'); button.disabled = true;
-  try {
-    const url = new URL(discovery.dataset.api, location.origin); url.searchParams.set('exclude_id', discovery.elements.exclude_id.value);
-    const {poem} = await request(url);
-    if (!poem) { announce('شعری برای نمایش وجود ندارد.'); return; }
-    document.getElementById('discover-poet').textContent = poem.poet_name;
-    document.getElementById('discover-title').textContent = poem.title;
-    document.getElementById('discover-detail').href = poem.detail_url;
-    document.getElementById('discover-verses').replaceChildren(...poem.verses.map(v => verseElement(v.hemistich_1, v.hemistich_2, v.position, poem.line_layout)));
-    const same = discovery.elements.exclude_id.value === String(poem.id);
-    discovery.elements.exclude_id.value = poem.id;
-    document.getElementById('discovery').focus(); announce(same ? 'فعلاً همین یک شعر در دفتر شماست.' : 'شعر تازه‌ای از دفتر انتخاب شد.');
-  } catch (error) { announce(error.message, true); } finally { button.disabled = false; }
-});
-
 const navToggle = document.getElementById('nav-toggle');
 if (navToggle) {
   document.body.classList.add('has-js');
@@ -79,7 +109,11 @@ if (navToggle) {
     navToggle.setAttribute('aria-expanded', String(open));
     sidebar.classList.toggle('mobile-open', open);
   };
-  navToggle.addEventListener('click', () => setOpen(navToggle.getAttribute('aria-expanded') !== 'true'));
+  navToggle.addEventListener('click', () => {
+    const open = navToggle.getAttribute('aria-expanded') !== 'true';
+    setOpen(open);
+    if (open) sidebar.querySelector('nav a').focus();
+  });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && navToggle.getAttribute('aria-expanded') === 'true') {
       setOpen(false);
@@ -93,52 +127,119 @@ if (navToggle) {
 }
 
 const treasury = document.getElementById('treasury-selection');
-treasury?.addEventListener('submit', async event => {
+if (treasury) {
+  const selected = () => [...treasury.querySelectorAll('input[name="verse"]:checked')];
+  const clear = document.getElementById('clear-selection');
+  const feedback = document.getElementById('treasury-feedback');
+  const update = () => {
+    const count = selected().length;
+    clear.hidden = !count;
+    treasury.querySelector('button[value="memorize"]').textContent =
+      count ? 'حفظ ' + digits.format(count) + ' ردیف انتخابی' : 'حفظ کل اثر';
+    treasury.querySelector('button[value="library"]').textContent =
+      count ? 'ذخیرهٔ ' + digits.format(count) + ' ردیف انتخابی' : 'ذخیرهٔ گزیده';
+    showStatus(feedback, count ? digits.format(count) + ' ردیف انتخاب شده' : '');
+  };
+  treasury.addEventListener('change', event => {
+    if (event.target.name === 'verse') update();
+  });
+  clear.addEventListener('click', () => {
+    selected().forEach(input => input.checked = false);
+    update();
+    treasury.querySelector('button[value="library-all"]').focus();
+  });
+  update();
+
+  treasury.addEventListener('submit', async event => {
+    const button = event.submitter;
+    if (!button) return;
+    event.preventDefault();
+    if (['library', 'merge'].includes(button.value) && !selected().length) {
+      showStatus(feedback, 'ابتدا بخشی از متن را با نشانک انتخاب کنید.', true);
+      treasury.querySelector('input[name="verse"]').focus();
+      return;
+    }
+    const favorite = button.matches('.treasury-favorite');
+    const status = favorite ? button.parentElement.querySelector('[role="status"]') : feedback;
+    const saving = request(treasury.getAttribute('action'), treasury, button);
+    button.disabled = true;
+    try {
+      const data = await saving;
+      if (favorite) {
+        const position = button.value.split(':')[1];
+        button.value = (data.favorite ? 'unfavorite:' : 'favorite:') + position;
+        button.setAttribute('aria-pressed', String(data.favorite));
+      }
+      showStatus(status, data.message);
+      if (data.target_url) {
+        const link = document.createElement('a');
+        link.href = data.target_url;
+        link.textContent = data.target_label;
+        status.append(' ', link);
+      }
+      if (data.remaining_due_count !== undefined) {
+        document.querySelectorAll('.count').forEach(el => el.textContent = digits.format(data.remaining_due_count));
+      }
+    } catch (error) {
+      showStatus(status, error.message, true);
+      appendLogin(status, error);
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+const themeMenu = document.getElementById('header-theme');
+const themeForm = themeMenu?.querySelector('form');
+themeForm?.addEventListener('submit', async event => {
   const button = event.submitter;
   if (!button) return;
-  if (button.value === 'library' && !treasury.querySelector('input[name="verse"]:checked')) {
-    event.preventDefault();
-    treasury.querySelector('input[name="verse"]').focus();
-    announce('ابتدا دست‌کم یک بیت انتخاب کنید.', true);
-    return;
-  }
-  if (!button.matches('.treasury-favorite')) return;
   event.preventDefault();
-  const status = button.parentElement.querySelector('[role="status"]');
-  const saving = request(treasury.getAttribute('action'), treasury, button);
+  const pending = request(themeForm.action, themeForm, button);
+  const status = themeForm.querySelector('[role="status"]');
   button.disabled = true;
   try {
-    const data = await saving;
-    const position = button.value.split(':')[1];
-    button.value = `${data.favorite ? 'unfavorite' : 'favorite'}:${position}`;
-    button.setAttribute('aria-pressed', String(data.favorite));
-    status.textContent = data.message;
-  } catch (error) {
-    status.textContent = error.message;
-  } finally {
-    button.disabled = false;
-  }
-});
-
-const themeForm = document.getElementById('header-theme');
-themeForm?.addEventListener('submit', async event => {
-  event.preventDefault();
-  const button = themeForm.querySelector('button');
-  const root = document.documentElement;
-  const dark = root.dataset.theme === 'dark' ||
-    (root.dataset.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
-  themeForm.elements.theme.value = dark ? 'light' : 'dark';
-  button.disabled = true;
-  try {
-    const data = await request(themeForm.action, themeForm);
-    root.dataset.theme = data.theme;
+    const data = await pending;
+    document.documentElement.dataset.theme = data.theme;
+    for (const choice of themeForm.querySelectorAll('button')) {
+      const current = choice.value === data.theme;
+      choice.toggleAttribute('data-current', current);
+      choice.setAttribute('aria-pressed', String(current));
+    }
+    const summary = themeMenu.querySelector('summary');
+    summary.setAttribute('aria-label', 'حالت نمایش، ' + button.textContent);
+    status.textContent = '';
+    themeMenu.open = false;
+    summary.focus({preventScroll: true});
+    showStatus(document.getElementById('theme-feedback'), data.message + ' ' + button.textContent);
     document.dispatchEvent(new CustomEvent('theme-saved', {detail: data.theme}));
   } catch (error) {
-    announce(error.message, true);
+    showStatus(status, error.message, true);
   } finally {
     button.disabled = false;
   }
 });
+themeMenu?.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && themeMenu.open) {
+    themeMenu.open = false;
+    themeMenu.querySelector('summary').focus();
+  }
+});
+for (const button of document.querySelectorAll('[data-copy-field]')) {
+  button.hidden = false;
+  button.addEventListener('click', async () => {
+    const field = document.getElementById(button.dataset.copyField);
+    const status = button.nextElementSibling;
+    try {
+      await navigator.clipboard.writeText(field.value);
+      showStatus(status, 'کپی شد.');
+    } catch {
+      field.focus();
+      field.select();
+      showStatus(status, 'متن انتخاب شد. آن را کپی کنید.');
+    }
+  });
+}
 
 // Preview is temporary; only a successful server form submission persists it.
 const appearanceForm = document.getElementById('appearance-form');
@@ -169,5 +270,6 @@ if (appearanceForm) {
 }
 
 // Keep server validation errors discoverable after a full-page form submit.
-const invalidField = document.querySelector('[aria-invalid="true"]');
+const invalidField = document.querySelector('[aria-invalid="true"]:not([data-example])');
 if (invalidField) invalidField.focus();
+else document.querySelector('[data-form-error]')?.focus();

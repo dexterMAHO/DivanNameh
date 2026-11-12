@@ -1,1 +1,52 @@
-{% extends 'base.html' %}{% block title %}فهرست حفظ{% endblock %}{% block content %}<div class="page-heading compact"><div><span class="eyebrow">{{ page.paginator.count }} کارت برای همراهی با شعر</span><h1>فهرست حفظ</h1></div><a class="button primary" href="{% url 'review' %}">مرور امروز ←</a></div>{% for item in page %}<article class="panel study-item"><div><span class="eyebrow">{{ item.poem.poet_name }} · {{ item.scope_label }}</span><h2><a href="{{ item.poem.get_absolute_url }}">{{ item.poem.display_title }}</a></h2><p>{{ item.get_status_display }}{% if item.poem.archived_at %} · شعر آرشیوشده{% endif %} · {{ item.review_count }} مرور ثبت‌شده</p><p class="fine">موعد بعد: {{ item.due_at|date:'Y/m/d H:i' }} · فاصله: {{ item.interval_days }} روز</p>{% if item.interval_days >= 30 %}<span class="chip">مرور بلندمدت</span>{% endif %}</div><div class="actions"><form action="{% if item.status == 'active' %}{% url 'item-pause' item.pk %}{% else %}{% url 'item-resume' item.pk %}{% endif %}" method="post">{% csrf_token %}<button>{% if item.status == 'active' %}توقف مرور{% else %}فعال‌سازی{% endif %}</button></form><form action="{% url 'item-delete' item.pk %}" method="post">{% csrf_token %}<button class="text-button">حذف کارت</button></form></div></article>{% empty %}<div class="empty"><h2>جای شعر در حافظهٔ شما خالی است.</h2><p>از صفحهٔ هر شعر، تمام شعر یا چند بیت را برای حفظ انتخاب کنید.</p><a href="{% url 'poems' %}">انتخاب از کتابخانه ←</a></div>{% endfor %}{% include 'components/pagination.html' %}{% endblock %}
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}فهرست حفظ{% endblock %}
+{% block content %}
+<header class="page-heading compact">
+  <div><h1>فهرست حفظ</h1><p class="muted">{{ page.paginator.count|persian }} کارت در این نما</p></div>
+  <div class="actions">
+    {% if due_count %}<a class="button primary" href="{% url 'review' %}">مرور امروز</a>{% endif %}
+    <a class="button" href="{% url 'study-stats' %}">آمار مرور</a>
+  </div>
+</header>
+<nav class="tabs study-tabs" aria-label="وضعیت کارت‌ها">
+  <a href="{% querystring state=None page=None %}" {% if not state %}aria-current="page"{% endif %}>همه</a>
+  <a href="{% querystring state='due' page=None %}" {% if state == 'due' %}aria-current="page"{% endif %}>آمادهٔ مرور</a>
+  <a href="{% querystring state='upcoming' page=None %}" {% if state == 'upcoming' %}aria-current="page"{% endif %}>موعد آینده</a>
+  <a href="{% querystring state='paused' page=None %}" {% if state == 'paused' %}aria-current="page"{% endif %}>متوقف</a>
+  <a href="{% querystring state='archived' page=None %}" {% if state == 'archived' %}aria-current="page"{% endif %}>شعر آرشیوی</a>
+</nav>
+{% for item in page %}
+  <article class="panel study-item">
+    <div>
+      <p class="eyebrow">{{ item.poem.poet_name }} · {{ item.scope_label|persian }}</p>
+      <h2><a href="{{ item.poem.get_absolute_url }}">{{ item.poem.display_title }}</a></h2>
+      <p>{{ item.get_status_display }} · {{ item.review_count|persian }} مرور ثبت‌شده</p>
+      {% if item.poem.archived_at %}
+        <p class="fine">شعر آرشیو شده و از صف مرور خارج است. <a href="{{ item.poem.get_absolute_url }}">دیدن شعر و بازگردانی</a></p>
+      {% elif item.status == 'active' %}
+        <p class="fine">موعد <time datetime="{{ item.due_at|date:'c' }}">{{ item.due_at|date:'j F Y، H:i'|persian }}</time> · فاصله {{ item.interval_days|persian }} روز</p>
+      {% endif %}
+    </div>
+    <div class="actions">
+      {% if not item.poem.archived_at %}
+        <form action="{% if item.status == 'active' %}{% url 'item-pause' item.pk %}{% else %}{% url 'item-resume' item.pk %}{% endif %}" method="post">
+          {% csrf_token %}<input type="hidden" name="return_query" value="{% querystring %}">
+          <button>{% if item.status == 'active' %}توقف مرور{% else %}فعال‌سازی{% endif %}</button>
+        </form>
+      {% endif %}
+      <form action="{% url 'item-delete' item.pk %}" method="post">
+        {% csrf_token %}<input type="hidden" name="return_query" value="{% querystring %}">
+        <button class="text-button">حذف کارت</button>
+      </form>
+    </div>
+  </article>
+{% empty %}
+  <section class="empty">
+    <h2>کارتی در این نما نیست.</h2>
+    {% if state %}<a href="{% url 'memorize' %}">همهٔ کارت‌ها</a>
+    {% else %}<a href="{% url 'poems' %}">انتخاب شعر برای حفظ</a>{% endif %}
+  </section>
+{% endfor %}
+{% include 'components/pagination.html' %}
+{% endblock %}

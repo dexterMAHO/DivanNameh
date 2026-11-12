@@ -8,60 +8,50 @@
     <h1>گنجینهٔ فارسی</h1>
     <p>زندگی‌نامهٔ کوتاه، تصویر و فهرست آثار {{ totals.poets|tally }} شاعر و نویسنده، روی هم {{ totals.works|tally }} اثر.</p>
   </div>
+  <a class="button" href="{% url 'treasury-works' %}">جست‌وجوی آثار و ابیات</a>
 </header>
 
 <section class="panel treasury-filters" aria-labelledby="treasury-filters-title">
   <h2 class="visually-hidden" id="treasury-filters-title">پالایش گنجینه</h2>
-  <form class="inline-form" method="get" action="{% url 'treasury' %}">
+  <form class="treasury-filter-form" method="get" action="{% url 'treasury' %}">
+    <div class="treasury-filter-query">
+      <label for="treasury-search">نام شاعر، زادگاه یا زندگی‌نامه</label>
+      <input id="treasury-search" type="search" name="q" value="{{ query }}" maxlength="120" placeholder="برای نمونه، شیراز">
+    </div>
     <div>
-      <label for="treasury-search">جست‌وجو در نام، زادگاه و زندگی‌نامه</label>
-      <input id="treasury-search" type="search" name="q" value="{{ query }}" maxlength="120"
-             placeholder="برای نمونه: شیراز">
+      <label for="treasury-letter">حرف نخست نام</label>
+      <select id="treasury-letter" name="letter">
+        <option value="">همهٔ حروف</option>
+        {% for item in alphabet %}<option value="{{ item }}" {% if letter == item %}selected{% endif %}>{{ item }}</option>{% endfor %}
+      </select>
     </div>
-    {% if letter %}<input type="hidden" name="letter" value="{{ letter }}">{% endif %}
-    {% if century %}<input type="hidden" name="century" value="{{ century }}">{% endif %}
-    {% if sort != 'name' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
-    <button type="submit">جست‌وجو</button>
+    <div>
+      <label for="treasury-century">سدهٔ قمری</label>
+      <select id="treasury-century" name="century">
+        <option value="">همهٔ سده‌ها</option>
+        {% for item in centuries %}<option value="{{ item }}" {% if century == item|stringformat:'d' %}selected{% endif %}>سدهٔ {{ item|persian }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="treasury-sort">ترتیب نمایش</label>
+      <select id="treasury-sort" name="sort">
+        <option value="name" {% if sort == 'name' %}selected{% endif %}>الفبایی</option>
+        <option value="works" {% if sort == 'works' %}selected{% endif %}>پرکارترین</option>
+        <option value="era" {% if sort == 'era' %}selected{% endif %}>کهن‌ترین</option>
+      </select>
+    </div>
+    <button type="submit">جست‌وجو و پالایش</button>
   </form>
-
-  <div class="filter-group">
-    <span class="filter-label" id="letter-rail-label">حرف نخست نام</span>
-    <div class="letter-rail" role="group" aria-labelledby="letter-rail-label">
-      <a href="{% querystring letter=None page=None %}" {% if not letter %}aria-current="true"{% endif %}>همه</a>
-      {% for item in alphabet %}
-      <a href="{% querystring letter=item page=None %}" {% if letter == item %}aria-current="true"{% endif %}>{{ item }}</a>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="filter-group">
-    <span class="filter-label" id="century-chips-label">سدهٔ قمری</span>
-    <div class="chip-row" role="group" aria-labelledby="century-chips-label">
-      <a class="chip" href="{% querystring century=None page=None %}" {% if not century %}aria-current="true"{% endif %}>همه</a>
-      {% for item in centuries %}
-      <a class="chip" href="{% querystring century=item page=None %}"
-         {% if century == item|stringformat:'d' %}aria-current="true"{% endif %}>سدهٔ {{ item|persian }}</a>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="filter-footer">
-    <div class="chip-row" role="group" aria-label="ترتیب نمایش">
-      <a class="chip" href="{% querystring sort=None page=None %}" {% if sort == 'name' %}aria-current="true"{% endif %}>الفبایی</a>
-      <a class="chip" href="{% querystring sort='works' page=None %}" {% if sort == 'works' %}aria-current="true"{% endif %}>پرکارترین</a>
-      <a class="chip" href="{% querystring sort='era' page=None %}" {% if sort == 'era' %}aria-current="true"{% endif %}>کهن‌ترین</a>
-    </div>
-    <p class="fine" role="status">
-      {{ matches|tally }} شاعر یافت شد{% if filtered %} · <a class="inline-link" href="{% url 'treasury' %}">برداشتن پالایه‌ها</a>{% endif %}
-    </p>
-  </div>
+  <p class="fine">
+    {{ matches|tally }} شاعر یافت شد{% if filtered or sort != 'name' %} · <a class="inline-link" href="{% url 'treasury' %}">برداشتن پالایه‌ها</a>{% endif %}
+  </p>
 </section>
 
 <div class="card-grid poet-grid">
   {% for book in page %}
   <article class="poet-card">
     <a class="poet-card-head" href="{{ book.get_absolute_url }}">
-      {% include 'components/poet_portrait.html' with book=book %}
+      {% include 'components/poet_portrait.html' with book=book decorative=True %}
       <span class="poet-identity">
         <span class="poet-name">{{ book.author }}</span>
         {% if book.life_span %}<span class="poet-dates">{{ book.life_span|persian }}</span>{% endif %}

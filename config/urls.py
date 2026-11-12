@@ -4,7 +4,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from accounts import access, views as a
 from .health import health
-from poetry import treasury_views, views as p
+from poetry import collection_views, library_views, treasury_views, views as p
 from memorization import views as m
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('login/', access.username_access, name='login'),
     path('logout/', access.sign_out, name='logout'),
     path('signup/', access.username_access, {'signup': True}, name='signup'),
+    path('login/recover/', access.recover, name='recover-account'),
     path('login/confirm/', access.confirm_browser, name='confirm-browser'),
     path('settings/', a.settings_page, name='settings'),
     path('settings/theme/', a.header_theme, name='header-theme'),
@@ -20,6 +21,10 @@ urlpatterns = [
     path('settings/photo/remove/', a.remove_profile_photo, name='profile-photo-remove'),
     path('', p.dashboard, name='dashboard'),
     path('poems/', p.poem_list, name='poems'),
+    path('poems/transfer/', library_views.library_transfer, name='library-transfer'),
+    path('poems/export/<slug:extension>/', library_views.library_export, name='library-export'),
+    path('poems/edits/', p.edit_history, name='edit-history'),
+    path('poems/edits/<int:pk>/', p.edit_history, name='edit-history-detail'),
     path('poems/new/', p.poem_edit, name='poem-new'),
     path('poems/<int:pk>/', p.poem_detail, name='poem-detail'),
     path('poems/<int:pk>/edit/', p.poem_edit, name='poem-edit'),
@@ -28,6 +33,7 @@ urlpatterns = [
     path('poems/<int:pk>/topics/', p.assign_tags, name='poem-tags'),
     path('topics/', p.tags, name='tags'),
     path('topics/view/<str:slug>/', p.poem_list, name='tag-detail'),
+    path('topics/merge/', p.tag_merge, name='tag-merge'),
     path('topics/new/', p.tag_change, name='tag-new'),
     path('topics/<int:pk>/rename/', p.tag_change, {'action': 'rename'}, name='tag-rename'),
     path('topics/<int:pk>/delete/', p.tag_change, {'action': 'delete'}, name='tag-delete'),
@@ -37,8 +43,11 @@ urlpatterns = [
     path('tags/new/', p.tag_change),
     path('tags/<int:pk>/rename/', p.tag_change, {'action': 'rename'}),
     path('tags/<int:pk>/delete/', p.tag_change, {'action': 'delete'}),
+    path('collections/', collection_views.collections, name='collections'),
+    path('collections/<int:pk>/', collection_views.collection_detail, name='collection-detail'),
     path('poets/', p.poets, name='poets'),
     path('treasury/', treasury_views.index, name='treasury'),
+    path('treasury/works/', treasury_views.works_search, name='treasury-works'),
     path('treasury/<slug:slug>/', treasury_views.book_detail, name='treasury-book'),
     path('treasury/<slug:slug>/<slug:key>/', treasury_views.book_detail, name='treasury-entry'),
     path('treasury/<slug:slug>/<slug:key>/save/', treasury_views.save_selection, name='treasury-save'),
@@ -46,6 +55,7 @@ urlpatterns = [
     path('verses/<int:pk>/favorite/', p.favorite, name='favorite'),
     path('verses/<int:pk>/unfavorite/', p.favorite, {'remove': True}, name='unfavorite'),
     path('memorize/', m.items, name='memorize'),
+    path('memorize/stats/', m.stats, name='study-stats'),
     path('memorize/items/', m.add_item, name='item-new'),
     path('memorize/items/<int:pk>/pause/', m.item_action, {'action': 'pause'}, name='item-pause'),
     path('memorize/items/<int:pk>/resume/', m.item_action, {'action': 'resume'}, name='item-resume'),

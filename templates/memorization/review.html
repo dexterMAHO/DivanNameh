@@ -1,1 +1,66 @@
-{% extends 'base.html' %}{% block title %}مرور امروز{% endblock %}{% block content %}<div class="page-heading compact"><div><span class="eyebrow">یک مکث برای به یاد آوردن</span><h1>مرور امروز</h1></div><span class="stamp">{{ remaining }} کارت باقی‌مانده</span></div>{% if item %}<section class="review-card poetry-panel"><p class="eyebrow">{{ item.poem.poet_name }} · {{ item.scope_label }}</p><h2>{{ item.poem.title|default:'شعر بی‌عنوان' }}</h2><p class="muted">از این مصرع شروع کنید و ادامه را از حفظ بخوانید.</p><p class="cue">{{ cue.hemistich_1 }}</p><details id="review-answer"><summary class="button primary">نمایش پاسخ</summary><div>{% for verse in verses %}{% include 'components/verse.html' %}{% endfor %}</div><form method="post" action="{% url 'rate' item.pk %}" id="rating-form">{% csrf_token %}<input type="hidden" name="request_id" value="{{ request_id }}"><h3>چطور به یاد آوردید؟</h3><div class="rating-actions">{% for value,label in ratings %}<button name="rating" value="{{ value }}">{{ label }}</button>{% endfor %}</div></form></details></section>{% else %}<section class="empty"><div class="ornament">❧</div><h2>مروری برای الان باقی نمانده.</h2><p>برای دیدار بعدی آماده‌اید. می‌توانید شعر تازه‌ای به فهرست حفظ اضافه کنید.</p><a class="button" href="{% url 'memorize' %}">دیدن موعد کارت‌ها</a> <a href="{% url 'poems' %}">کتابخانه ←</a></section>{% endif %}{% endblock %}
+{% extends 'base.html' %}
+{% load persian static %}
+{% block scripts %}{% if mode == 'blanks' and item %}<script type="module" src="{% static 'js/practice.js' %}"></script>{% endif %}{% endblock %}
+{% block title %}مرور امروز{% endblock %}
+{% block content %}
+<header class="page-heading compact">
+  <h1>مرور امروز</h1>
+  {% if remaining %}<span class="stamp">{{ remaining|persian }} کارت باقی‌مانده</span>{% endif %}
+</header>
+{% if item %}
+  <form method="get" class="inline-form practice-mode">
+    <label for="practice-mode">روش تمرین
+      <select id="practice-mode" name="mode">
+        {% for value, label in modes %}<option value="{{ value }}" {% if mode == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <button>تغییر روش</button>
+  </form>
+  <section class="review-card poetry-panel">
+    <p class="eyebrow">{{ item.poem.poet_name }} · {{ item.scope_label|persian }}</p>
+    <h2>{{ item.poem.display_title }}</h2>
+    {% if mode == 'blanks' %}
+      <p class="muted">واژه‌های جاافتاده را به یاد بیاورید و پاسخ را باز کنید.</p>
+      <p class="cue">{% for word, hidden in blanks %}{% if hidden %}<span aria-label="واژهٔ جاافتاده">ـــــ</span>{% else %}{{ word }}{% endif %} {% endfor %}</p>
+    {% else %}
+      <p class="muted">از این سطر شروع کنید و ادامه را از حفظ بخوانید.</p>
+      <p class="cue">{{ cue }}</p>
+    {% endif %}
+    {% if mode == 'blanks' %}
+      <div id="typed-practice" hidden>
+        <label for="practice-response">سطر کامل را برای خودسنجی بنویسید</label>
+        <input type="text" id="practice-response" autocomplete="off">
+        <button type="button" id="check-practice">مقایسه با متن شعر</button>
+        <p role="status" class="inline-status"></p>
+      </div>
+    {% endif %}
+    <details id="review-answer">
+      <summary class="button primary"><span class="when-closed">نمایش پاسخ</span><span class="when-open">پنهان‌کردن پاسخ</span></summary>
+      <form method="post" action="{% url 'rate' item.pk %}" id="rating-form">
+        {% csrf_token %}
+        <input type="hidden" name="request_id" value="{{ request_id }}">
+        <input type="hidden" name="mode" value="{{ mode }}">
+        <h3>چطور به یاد آوردید؟</h3>
+        <div class="rating-actions">
+          {% for value,label in ratings %}<button name="rating" value="{{ value }}">{{ label }}</button>{% endfor %}
+        </div>
+      </form>
+      <div class="review-verses">
+        {% for verse in verses %}
+          {% if mode == 'progressive' and not forloop.first %}
+            <details><summary>نمایش ردیف {{ forloop.counter|persian }}</summary>{% include 'components/verse.html' %}</details>
+          {% else %}{% include 'components/verse.html' %}{% endif %}
+        {% endfor %}
+      </div>
+    </details>
+  </section>
+{% else %}
+  <section class="empty">
+    <h2>{% if reviewed_today %}مرور امروز انجام شد{% elif has_cards %}مروری برای الان باقی نمانده{% else %}هنوز کارت حفظ ندارید{% endif %}</h2>
+    {% if next_study %}<p>نزدیک‌ترین موعد <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
+    {% if has_cards %}<a class="button" href="{% url 'memorize' %}">فهرست حفظ</a>
+    {% else %}<a class="button" href="{% url 'poems' %}">انتخاب شعر برای حفظ</a>{% endif %}
+    {% if reviewed_today %}<a href="{% url 'study-stats' %}">آمار مرور</a>{% endif %}
+  </section>
+{% endif %}
+{% endblock %}

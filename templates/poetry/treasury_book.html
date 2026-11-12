@@ -75,7 +75,7 @@
   <form id="treasury-selection" method="post" action="{% url 'treasury-save' book.slug entry.key %}">
     {% csrf_token %}
     <div class="panel treasury-save">
-      <p>برای ذخیره یا حفظ بخشی از شعر، بیت‌های دلخواه را از متن انتخاب کنید.</p>
+      <p>برای ذخیره یا حفظ بخشی از شعر، نشان ذخیرهٔ کنار بیت‌های دلخواه را بزنید.</p>
       <div class="treasury-actions">
         <button class="primary" name="action" value="library-all">افزودن کل شعر به کتابخانه</button>
         <button name="action" value="library">ذخیرهٔ بیت‌های انتخاب‌شده</button>
@@ -93,8 +93,13 @@
           <div class="hemistich">{{ second }}</div>
         </div>
         <div class="treasury-verse-actions">
-          <label><input type="checkbox" name="verse" value="{{ forloop.counter }}"> انتخاب بیت {{ forloop.counter|persian }}</label>
-          <button class="quiet" name="action" value="favorite:{{ forloop.counter }}" aria-label="افزودن بیت {{ forloop.counter|persian }} به شاه‌بیت‌ها">☆ شاه‌بیت</button>
+          <label class="treasury-bookmark icon-button" title="انتخاب برای ذخیره">
+            <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب بیت {{ forloop.counter|persian }} برای ذخیره">
+            {% include 'components/icon.html' with name='bookmark' %}
+          </label>
+          <button class="icon-button treasury-favorite" name="action" value="favorite:{{ forloop.counter }}" aria-label="افزودن بیت {{ forloop.counter|persian }} به شاه‌بیت‌ها" title="افزودن به شاه‌بیت‌ها">
+            {% include 'components/icon.html' with name='star' %}
+          </button>
           <span role="status" class="fine treasury-favorite-status"></span>
         </div>
       </div>

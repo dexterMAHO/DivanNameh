@@ -1,6 +1,7 @@
 import {announce, request, verseElement} from './api.js';
 import './editor.js';
 import './poem-copy.js';
+import './treasury-layout.js';
 for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite]')) {
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -97,10 +98,29 @@ treasury?.addEventListener('submit', async event => {
   button.disabled = true;
   try {
     const data = await saving;
-    button.textContent = '★ شاه‌بیت';
+    button.dataset.saved = '';
     status.textContent = data.message;
   } catch (error) {
     status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
+const themeForm = document.getElementById('header-theme');
+themeForm?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = themeForm.querySelector('button');
+  const root = document.documentElement;
+  const dark = root.dataset.theme === 'dark' ||
+    (root.dataset.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  themeForm.elements.theme.value = dark ? 'light' : 'dark';
+  button.disabled = true;
+  try {
+    const data = await request(themeForm.action, themeForm);
+    root.dataset.theme = data.theme;
+  } catch (error) {
+    announce(error.message, true);
   } finally {
     button.disabled = false;
   }

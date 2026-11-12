@@ -108,13 +108,14 @@ def human_verified(request, answer, site_key):
 def username_access(request, signup=False):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    site_key = turnstile_site_key()
+    human_check_enabled = settings.READER_HUMAN_CHECK_ENABLED
+    site_key = turnstile_site_key() if human_check_enabled else ''
     target = safe_next(request)
     form = UsernameAccessForm(request.POST if request.method == 'POST' else None)
-    if site_key:
+    if site_key or not human_check_enabled:
         del form.fields['human_answer']
     if request.method == 'POST' and form.is_valid():
-        if not human_verified(request, form.cleaned_data.get('human_answer'), site_key):
+        if human_check_enabled and not human_verified(request, form.cleaned_data.get('human_answer'), site_key):
             form.add_error(None, 'تأیید انسان بودن انجام نشد. دوباره تلاش کنید.')
         else:
             username = form.cleaned_data['username']
@@ -132,11 +133,11 @@ def username_access(request, signup=False):
                     return redirect(target or 'dashboard')
                 form.add_error(None, 'ورود با این مرورگر ممکن نیست. از مرورگر ثبت‌شده استفاده کنید یا پیوند دسترسی بگیرید.')
     challenge = None
-    if not site_key:
+    if human_check_enabled and not site_key:
         challenge = (secrets.randbelow(9) + 1, secrets.randbelow(9) + 1)
         request.session['human_answer'] = sum(challenge)
     return render(request, 'accounts/login.html', {
-        'form': form, 'signup': signup, 'site_key': site_key, 'challenge': challenge, 'next': target,
+        'human_check_enabled': human_check_enabled, 'form': form, 'signup': signup, 'site_key': site_key, 'challenge': challenge, 'next': target,
     })
 
 

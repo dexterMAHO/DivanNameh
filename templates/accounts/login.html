@@ -11,6 +11,7 @@
     {{ form.non_field_errors }}
     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
     <p>{{ form.username.as_field_group }}</p>
+    {% if human_check_enabled %}
     {% if site_key %}
     <div class="cf-turnstile" data-sitekey="{{ site_key }}" data-action="reader-access"></div>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -18,6 +19,7 @@
     <label for="{{ form.human_answer.id_for_label }}">تأیید انسان بودن: {{ challenge.0 }} + {{ challenge.1 }} چند می‌شود؟</label>
     {{ form.human_answer.errors }}
     <input id="{{ form.human_answer.id_for_label }}" name="human_answer" type="number" inputmode="numeric" min="2" max="18" required>
+    {% endif %}
     {% endif %}
     <button class="primary wide">{% if signup %}ساخت حساب{% else %}ورود به دفتر{% endif %}</button>
   </form>

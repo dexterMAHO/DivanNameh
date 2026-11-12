@@ -35,3 +35,6 @@ LOGGING = {
     'root': {'handlers': ['console'], 'level': 'WARNING'},
     'loggers': {'django': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False}},
 }
+
+# Temporary switch: restore CAPTCHA by setting this environment variable to true.
+READER_HUMAN_CHECK_ENABLED = boolean('READER_HUMAN_CHECK_ENABLED', False)

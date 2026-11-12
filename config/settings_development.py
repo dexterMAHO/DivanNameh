@@ -23,3 +23,6 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0
+
+# Temporary switch: restore CAPTCHA by setting this environment variable to true.
+READER_HUMAN_CHECK_ENABLED = boolean('READER_HUMAN_CHECK_ENABLED', False)

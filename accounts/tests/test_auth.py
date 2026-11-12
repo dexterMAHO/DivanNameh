@@ -9,7 +9,7 @@ from django.urls import reverse
 from accounts.access import BROWSER_COOKIE
 
 
-@override_settings(TURNSTILE_SITE_KEY='', TURNSTILE_SECRET_KEY='')
+@override_settings(READER_HUMAN_CHECK_ENABLED=True, TURNSTILE_SITE_KEY='', TURNSTILE_SECRET_KEY='')
 class AuthTests(TestCase):
     def submit(self, path, username, client=None):
         client = client or self.client
@@ -133,3 +133,25 @@ class AuthTests(TestCase):
         self.client.post('/settings/', {'section': 'browser-link'})
         self.assertRedirects(Client().post('/login/confirm/', {'token': 'legacy-token'}), '/')
         self.assertContains(Client().post('/login/confirm/', {'token': 'legacy-token'}), 'پیوند معتبر نیست')
+
+
+@override_settings(READER_HUMAN_CHECK_ENABLED=False,
+                   TURNSTILE_SITE_KEY='configured-site', TURNSTILE_SECRET_KEY='configured-secret')
+class DisabledHumanCheckTests(TestCase):
+    def test_pages_do_not_render_or_generate_challenges(self):
+        for path in ('/login/', '/signup/'):
+            response = self.client.get(path)
+            self.assertNotContains(response, 'cf-turnstile')
+            self.assertNotContains(response, 'name="human_answer"')
+            self.assertNotContains(response, 'challenges.cloudflare.com')
+            self.assertNotIn('human_answer', self.client.session)
+
+    @patch('accounts.access.urlopen')
+    def test_signup_and_trusted_login_need_no_challenge(self, verify):
+        self.assertRedirects(self.client.post('/signup/', {'username': 'reader'}), '/')
+        self.client.post('/logout/')
+        self.assertRedirects(self.client.post('/login/', {'username': 'reader'}), '/')
+        verify.assert_not_called()
+        stranger = Client()
+        self.assertContains(stranger.post('/login/', {'username': 'reader'}), 'ورود با این مرورگر ممکن نیست')
+        self.assertNotIn('_auth_user_id', stranger.session)

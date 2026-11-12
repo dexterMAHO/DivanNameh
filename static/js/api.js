@@ -19,9 +19,9 @@ export async function request(url, form = null, submitter = undefined) {
   if (!response.ok) throw new Error(data.message || 'درخواست انجام نشد؛ ورود به حساب و اتصال را بررسی کنید.');
   return data;
 }
-export function verseElement(first, second, position) {
-  const row = document.createElement('div'); row.className = 'verse';
-  const number = document.createElement('span'); number.className = 'verse-number'; number.textContent = position;
+export function verseElement(first, second, position, lineLayout = false) {
+  const row = document.createElement('div'); row.className = lineLayout ? 'verse verse-line' : 'verse';
+  const number = document.createElement('span'); number.className = 'verse-number'; number.textContent = Number(position).toLocaleString('fa-IR', {useGrouping: false});
   row.append(number);
   for (const text of [first, second]) {
     if (!text) continue;

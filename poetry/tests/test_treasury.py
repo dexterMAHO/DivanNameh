@@ -123,6 +123,42 @@ class TreasuryPageTests(TestCase):
         self.assertEqual(self.client.post(url, {'action': 'library', 'verse': ['2']}).status_code, 400)
         self.assertEqual(self.client.get(url).status_code, 405)
 
+    def test_modern_selection_stays_in_source_line_order_in_library(self):
+        book = make_book('shrab-sphri', 'سهراب سپهری', publishes_text=True)
+        poem = TreasuryEntry.objects.create(
+            book=book, key='water', title='آب', kind='work', position=1,
+            paragraphs=['آب را گل نکنیم', 'در فرودست\nانگار کفتری می‌خورد آب'],
+        )
+        url = poem.get_absolute_url()
+        self.assertContains(self.client.get(url), 'treasury-line-poem')
+        saved = self.client.post(url + 'save/', {'action': 'library', 'verse': ['3', '1']})
+        selection = Poem.objects.get(owner=self.user)
+        self.assertTrue(selection.line_layout)
+        self.assertEqual(list(selection.verses.values_list('hemistich_1', 'hemistich_2')), [
+            ('آب را گل نکنیم', ''), ('انگار کفتری می‌خورد آب', ''),
+        ])
+        self.assertRedirects(saved, selection.get_absolute_url())
+        self.assertContains(self.client.get(selection.get_absolute_url()), 'class="verse verse-line"', count=2)
+
+    def test_favorite_toggle_persists_on_treasury_page(self):
+        url = self.ghazal.get_absolute_url()
+        added = self.client.post(url + 'save/', {'action': 'favorite:1'}, HTTP_ACCEPT='application/json')
+        self.assertTrue(added.json()['favorite'])
+        self.assertContains(self.client.get(url), 'value="unfavorite:1"')
+        removed = self.client.post(url + 'save/', {'action': 'unfavorite:1'}, HTTP_ACCEPT='application/json')
+        self.assertFalse(removed.json()['favorite'])
+        self.assertContains(self.client.get(url), 'value="favorite:1"')
+        self.assertFalse(FavoriteVerse.objects.filter(owner=self.user).exists())
+
+    def test_discovery_works_without_personal_poems_and_avoids_repeating_the_treasury_pick(self):
+        other = TreasuryEntry.objects.create(
+            book=self.hafez, key='other', title='شعر دیگری', kind='work', position=2,
+            paragraphs=['سطر اول', 'سطر دوم'],
+        )
+        response = self.client.get('/discover/', {'treasury_exclude': self.ghazal.pk})
+        self.assertContains(response, other.get_absolute_url())
+        self.assertContains(response, 'هنوز شعری برای کشف ندارید.')
+
     def test_header_theme_persists_and_returns_to_work(self):
         target = self.ghazal.get_absolute_url()
         self.assertRedirects(self.client.post('/settings/theme/', {'theme': 'dark', 'next': target}), target)

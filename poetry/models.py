@@ -27,6 +27,7 @@ class Poem(models.Model):
     poet_name = models.CharField('شاعر', max_length=160)
     source_url = models.URLField('نشانی منبع', max_length=500, blank=True)
     notes = models.TextField('یادداشت', blank=True)
+    line_layout = models.BooleanField(default=False)
     treasury_selection = models.CharField(max_length=64, null=True, editable=False)
     tags = models.ManyToManyField(Tag, blank=True, related_name='poems', verbose_name='موضوع‌ها')
     archived_at = models.DateTimeField(null=True, blank=True)

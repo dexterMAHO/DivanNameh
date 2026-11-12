@@ -12,11 +12,11 @@ if (tools) {
     fallback.hidden = true;
     output.value = '';
     if (!rows.length) {
-      status.textContent = 'ابتدا دست‌کم یک بیت انتخاب کنید.';
+      status.textContent = 'ابتدا دست‌کم یک بخش از شعر را انتخاب کنید.';
       return;
     }
     const body = rows.map(row => row.matches('[data-copy-paragraph]') ? row.textContent.trim() :
-      [...row.querySelectorAll('.hemistich')].map(line => line.textContent.trim()).join('\n')).join('\n\n');
+      [...row.querySelectorAll('.hemistich')].map(line => line.textContent.trim()).join('\n')).join(treasury?.classList.contains('treasury-line-poem') || rows[0]?.classList.contains('verse-line') ? '\n' : '\n\n');
     const text = credit && treasury ? body + '\n\n' + treasury.dataset.copyCredit : body;
     try {
       await navigator.clipboard.writeText(text);

@@ -1160,17 +1160,23 @@ summary.button::-webkit-details-marker { display: none; }
   .treasury-filters { gap: var(--space-4); padding: var(--space-4); }
 }
 
-@font-face {
-  font-family: Nastaliq;
-  src: url('../fonts/NotoNastaliqUrdu.ttf') format('truetype');
-  font-weight: 400 700;
-  font-display: swap;
+/* The work heading, controls, text and source share one reading column. */
+.treasury-work {
+  inline-size: 100%;
+  max-inline-size: var(--width-reading);
+  min-inline-size: 0;
+  margin-inline: auto;
+  overflow-wrap: anywhere;
 }
-
-.hemistich {
-  font-family: Nastaliq, var(--font-literary);
-  line-height: 2.65;
+.treasury-work > *, .treasury-work .page-heading > div { min-inline-size: 0; }
+.treasury-work :is(button, summary, .poet-chip) {
+  max-inline-size: 100%;
+  white-space: normal;
 }
+.treasury-work .page-heading { flex-wrap: wrap; }
+.verse-number { font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.verse-line { grid-template-columns: minmax(0, 1fr); }
+.verse-line .hemistich:only-of-type { text-align: start; }
 .treasury-text {
   text-align: start;
   padding: clamp(.75rem, 3vw, 2.5rem);
@@ -1178,19 +1184,39 @@ summary.button::-webkit-details-marker { display: none; }
 .treasury-text .verse {
   grid-template-columns: minmax(0, 1fr);
   padding: 0;
+  padding-inline-start: 2.75rem;
   row-gap: clamp(.5rem, var(--hemistich-gap, 1rem), 1.75rem);
 }
 .treasury-text .hemistich {
   justify-self: start;
   max-inline-size: 100%;
   border-block-end: 1px solid var(--color-border);
+  font-size: var(--fitted-font-size, inherit);
+  white-space: nowrap;
+  overflow: auto;
+}
+.treasury-text .verse-number {
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  translate: none;
+  font-size: var(--text-base);
 }
 .treasury-text .hemistich + .hemistich {
   justify-self: end;
   padding-inline-start: 0;
 }
+.treasury-line-poem .treasury-stanza {
+  padding-block: var(--space-1);
+}
+.treasury-line-poem .hemistich {
+  border-block-end: 0;
+  justify-self: start;
+  line-height: 1.8;
+}
 .treasury-stanza { padding-block: var(--space-4); }
-.treasury-stanza + .treasury-stanza { border-block-start: 1px solid var(--color-border); }
+.treasury-text:not(.treasury-line-poem) .treasury-stanza + .treasury-stanza {
+  border-block-start: 1px solid var(--color-border);
+}
 .treasury-stanza:has(input:checked) { background: var(--color-primary-soft); }
 .treasury-verse-actions, .treasury-actions, .treasury-jump {
   display: flex;
@@ -1224,7 +1250,7 @@ summary.button::-webkit-details-marker { display: none; }
 }
 .treasury-bookmark:focus-within { outline: 2px solid var(--color-focus); }
 .treasury-bookmark:has(input:checked) .icon,
-.treasury-favorite[data-saved] .icon {
+.treasury-favorite[aria-pressed=true] .icon {
   color: var(--color-primary);
   fill: currentColor;
 }
@@ -1258,3 +1284,6 @@ summary.button::-webkit-details-marker { display: none; }
 @media (max-width: 480px) {
   .masthead { flex-wrap: wrap; }
 }
+
+#treasury-discovery { margin-block-start: var(--space-8); }
+#treasury-discovery form { margin-block-start: var(--space-4); }

@@ -1,1 +1,1 @@
-<div class="verse" data-position="{{ verse.position }}"><span class="verse-number">{{ verse.position }}</span><div class="hemistich">{{ verse.hemistich_1 }}</div>{% if verse.hemistich_2 %}<div class="hemistich">{{ verse.hemistich_2 }}</div>{% endif %}</div>
+{% include 'components/verse_text.html' with position=verse.position first=verse.hemistich_1 second=verse.hemistich_2 line_layout=verse.poem.line_layout %}

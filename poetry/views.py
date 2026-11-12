@@ -17,6 +17,7 @@ from .services.poem_editor import save_poem
 from .services.edit_requests import submit_edit
 from .services.tags import save_tag
 from .services.discovery import choose_random_poem
+from .treasury_views import discover_work
 
 
 @private
@@ -177,7 +178,11 @@ def discover(request, api=False):
     poem = choose_random_poem(request.user, request.GET.get('exclude_id'))
     if api:
         data = None if poem is None else {'id': poem.pk, 'title': poem.display_title, 'poet_name': poem.poet_name,
-                'detail_url': poem.get_absolute_url(), 'verses': list(poem.verses.values('id', 'position', 'hemistich_1', 'hemistich_2')),
+                'detail_url': poem.get_absolute_url(), 'line_layout': poem.line_layout, 'verses': list(poem.verses.values('id', 'position', 'hemistich_1', 'hemistich_2')),
                 'tags': [{'name': tag.name, 'url': tag.get_absolute_url()} for tag in poem.tags.all()]}
         return JsonResponse({'ok': True, 'poem': data})
-    return render(request, 'poetry/discover.html', {'poem': poem, 'only_one': Poem.objects.filter(owner=request.user, archived_at__isnull=True).count() == 1})
+    return render(request, 'poetry/discover.html', {
+        'poem': poem,
+        'only_one': Poem.objects.filter(owner=request.user, archived_at__isnull=True).count() == 1,
+        'treasury_pick': discover_work(request.GET.get('treasury_exclude')),
+    })

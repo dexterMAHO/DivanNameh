@@ -1,24 +1,41 @@
 const sheet = document.querySelector('.treasury-text');
 const verses = sheet ? [...sheet.querySelectorAll('.verse')] : [];
+const lines = verses.flatMap(verse => [...verse.querySelectorAll('.hemistich')]);
 
-if (verses.length) {
+if (lines.length) {
   const goldenRatio = (1 + Math.sqrt(5)) / 2;
   let previousWidth;
-  const updateGaps = () => {
-    const gaps = verses.map(verse => {
-      const [first, second] = verse.children;
-      const width = Math.max(first.offsetWidth, second.offsetWidth);
-      const height = first.offsetHeight + second.offsetHeight;
-      // Aim for a golden rectangle around the two lines. CSS bounds the gap
-      // so wrapped lines and very wide verses still read as a single couplet.
-      return width / goldenRatio - height;
+
+  function fitPoem() {
+    for (const line of lines) line.style.removeProperty('--fitted-font-size');
+
+    const fittedSizes = lines.map(line => {
+      const available = line.clientWidth;
+      const naturalWidth = line.scrollWidth;
+      if (!available || naturalWidth <= available) return null;
+      return parseFloat(getComputedStyle(line).fontSize) * (available - 1) / naturalWidth;
     });
-    verses.forEach((verse, index) => verse.style.setProperty('--hemistich-gap', `${gaps[index]}px`));
-  };
+    lines.forEach((line, index) => {
+      if (fittedSizes[index] !== null) {
+        line.style.setProperty('--fitted-font-size', `${fittedSizes[index]}px`);
+      }
+    });
+
+    const gaps = verses.map(verse => {
+      const [first, second] = verse.querySelectorAll('.hemistich');
+      if (!second) return null;
+      const width = Math.max(first.offsetWidth, second.offsetWidth);
+      return width / goldenRatio - first.offsetHeight - second.offsetHeight;
+    });
+    verses.forEach((verse, index) => {
+      if (gaps[index] !== null) verse.style.setProperty('--hemistich-gap', `${gaps[index]}px`);
+    });
+  }
+
   new ResizeObserver(([entry]) => {
     if (entry.contentRect.width === previousWidth) return;
     previousWidth = entry.contentRect.width;
-    updateGaps();
+    fitPoem();
   }).observe(sheet);
-  document.fonts.ready.then(updateGaps);
+  document.fonts.ready.then(fitPoem);
 }

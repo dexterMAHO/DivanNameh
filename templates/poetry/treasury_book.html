@@ -2,6 +2,7 @@
 {% load persian %}
 {% block title %}{% if entry %}{{ entry.title }}{% else %}{{ book.author }}{% endif %} · گنجینهٔ فارسی{% endblock %}
 {% block content %}
+{% if entry.kind == "work" %}<div class="treasury-work">{% endif %}
 <nav class="breadcrumb treasury-breadcrumb" aria-label="مسیر گنجینه">
   <a href="{% url 'treasury' %}">گنجینهٔ فارسی</a>
   {% if entry %}<span aria-hidden="true">/</span><a href="{{ book.get_absolute_url }}">{{ book.author }}</a>{% endif %}
@@ -58,9 +59,9 @@
     <button type="button" id="copy-all">کپی ساده</button>
     <details>
       <summary class="button quiet">کپی پیشرفته</summary>
-      {% if couplets %}
-      <p>بیت‌ها را از متن شعر انتخاب کنید.</p>
-      <button type="button" id="copy-selected">کپی بیت‌های انتخاب‌شده</button>
+      {% if rows %}
+      <p>از متن شعر انتخاب کنید.</p>
+      <button type="button" id="copy-selected">کپی گزیده</button>
       {% endif %}
       <label><input type="checkbox" id="copy-credit"> افزودن نام اثر و شاعر</label>
       <button type="button" id="copy-with-options">کپی تمام متن با تنظیمات</button>
@@ -71,33 +72,33 @@
       <textarea id="copy-output" rows="5" readonly></textarea>
     </div>
   </div>
-  {% if couplets %}
+  {% if rows %}
   <form id="treasury-selection" method="post" action="{% url 'treasury-save' book.slug entry.key %}">
     {% csrf_token %}
     <div class="panel treasury-save">
-      <p>برای ذخیره یا حفظ بخشی از شعر، نشان ذخیرهٔ کنار بیت‌های دلخواه را بزنید.</p>
+      <p>برای ذخیره یا حفظ بخشی از شعر، نشان ذخیره را کنار {% if line_layout %}سطرهای{% else %}بیت‌های{% endif %} دلخواه بزنید.</p>
       <div class="treasury-actions">
         <button class="primary" name="action" value="library-all">افزودن کل شعر به کتابخانه</button>
-        <button name="action" value="library">ذخیرهٔ بیت‌های انتخاب‌شده</button>
+        <button name="action" value="library">ذخیرهٔ گزیده</button>
         <button name="action" value="memorize">افزودن به حفظ</button>
       </div>
-      <small class="fine">اگر بیتی انتخاب نشود، کل شعر به بخش حفظ افزوده می‌شود.</small>
+      <small class="fine">اگر چیزی انتخاب نشود، کل شعر به بخش حفظ افزوده می‌شود.</small>
     </div>
   {% endif %}
-  <article class="reading-sheet treasury-text" aria-label="متن اثر" data-copy-credit="{{ entry.title }} · {{ book.author }}">
-    {% if couplets %}
-      {% for first, second in couplets %}
+  <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem{% endif %}" aria-label="متن اثر" data-copy-credit="{{ entry.title }} · {{ book.author }}">
+    {% if rows %}
+      {% for first, second in rows %}
       <div class="treasury-stanza">
-        <div class="verse" data-position="{{ forloop.counter }}">
-          <div class="hemistich">{{ first }}</div>
-          <div class="hemistich">{{ second }}</div>
-        </div>
+        {% include 'components/verse_text.html' with position=forloop.counter %}
         <div class="treasury-verse-actions">
           <label class="treasury-bookmark icon-button" title="انتخاب برای ذخیره">
-            <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب بیت {{ forloop.counter|persian }} برای ذخیره">
+            <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای ذخیره">
             {% include 'components/icon.html' with name='bookmark' %}
           </label>
-          <button class="icon-button treasury-favorite" name="action" value="favorite:{{ forloop.counter }}" aria-label="افزودن بیت {{ forloop.counter|persian }} به شاه‌بیت‌ها" title="افزودن به شاه‌بیت‌ها">
+          <button class="icon-button treasury-favorite" name="action"
+            value="{% if forloop.counter in saved_positions %}unfavorite{% else %}favorite{% endif %}:{{ forloop.counter }}"
+            aria-pressed="{% if forloop.counter in saved_positions %}true{% else %}false{% endif %}"
+            aria-label="شاه‌بیت {{ forloop.counter|persian }}" title="شاه‌بیت">
             {% include 'components/icon.html' with name='star' %}
           </button>
           <span role="status" class="fine treasury-favorite-status"></span>
@@ -108,9 +109,9 @@
       {% for paragraph in entry.paragraphs %}<p data-copy-paragraph>{{ paragraph }}</p>{% endfor %}
     {% endif %}
   </article>
-  {% if couplets %}
+  {% if rows %}
     <div class="treasury-actions treasury-end-actions">
-      <button name="action" value="library">ذخیرهٔ بیت‌های انتخاب‌شده</button>
+      <button name="action" value="library">ذخیرهٔ گزیده</button>
       <button name="action" value="memorize">افزودن به حفظ</button>
     </div>
   </form>
@@ -179,4 +180,5 @@
   <p class="fine source-note">متن از نسخهٔ گنجور · <a href="{{ book.edition_note }}" rel="noopener noreferrer nofollow" target="_blank">اطلاعات بازنشر</a></p>
   {% endif %}
 </div>
+{% if entry.kind == "work" %}</div>{% endif %}
 {% endblock %}

@@ -64,7 +64,7 @@ if (discovery) discovery.addEventListener('submit', async event => {
     document.getElementById('discover-poet').textContent = poem.poet_name;
     document.getElementById('discover-title').textContent = poem.title;
     document.getElementById('discover-detail').href = poem.detail_url;
-    document.getElementById('discover-verses').replaceChildren(...poem.verses.map(v => verseElement(v.hemistich_1, v.hemistich_2, v.position)));
+    document.getElementById('discover-verses').replaceChildren(...poem.verses.map(v => verseElement(v.hemistich_1, v.hemistich_2, v.position, poem.line_layout)));
     const same = discovery.elements.exclude_id.value === String(poem.id);
     discovery.elements.exclude_id.value = poem.id;
     document.getElementById('discovery').focus(); announce(same ? 'فعلاً همین یک شعر در دفتر شماست.' : 'شعر تازه‌ای از دفتر انتخاب شد.');
@@ -91,14 +91,16 @@ treasury?.addEventListener('submit', async event => {
     announce('ابتدا دست‌کم یک بیت انتخاب کنید.', true);
     return;
   }
-  if (!button.value.startsWith('favorite:')) return;
+  if (!button.matches('.treasury-favorite')) return;
   event.preventDefault();
   const status = button.parentElement.querySelector('[role="status"]');
-  const saving = request(treasury.action, treasury, button);
+  const saving = request(treasury.getAttribute('action'), treasury, button);
   button.disabled = true;
   try {
     const data = await saving;
-    button.dataset.saved = '';
+    const position = button.value.split(':')[1];
+    button.value = `${data.favorite ? 'unfavorite' : 'favorite'}:${position}`;
+    button.setAttribute('aria-pressed', String(data.favorite));
     status.textContent = data.message;
   } catch (error) {
     status.textContent = error.message;

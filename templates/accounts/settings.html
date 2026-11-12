@@ -1,8 +1,39 @@
 {% extends 'base.html' %}
 {% block title %}تنظیمات حساب{% endblock %}
 {% block content %}
-<header class="page-heading compact"><h1>تنظیمات حساب</h1></header>
+<header class="page-heading compact"><div><span class="eyebrow">دفتر، به سلیقهٔ شما</span><h1>تنظیمات حساب</h1><p>ظاهر دفتر و تنظیمات ورودتان را از اینجا مدیریت کنید.</p></div></header>
 <div class="settings-grid">
+  <section class="panel appearance-panel" aria-labelledby="appearance-heading">
+    <h2 id="appearance-heading">ظاهر دفتر</h2>
+    <p class="muted" id="appearance-help">رنگ دلخواهتان را امتحان کنید؛ با ذخیره، انتخاب شما در همهٔ صفحات و دستگاه‌ها اعمال می‌شود.</p>
+    <form method="post" id="appearance-form" aria-describedby="appearance-help">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="theme">
+      {{ theme_form.non_field_errors }}
+      <div class="appearance-mode">{{ theme_form.theme.as_field_group }}</div>
+      <fieldset class="palette-fieldset">
+        <legend>پالت رنگی</legend>
+        {{ theme_form.palette.errors }}
+        <div class="palette-options">
+          {% for option in theme_form.palette %}
+          <label class="palette-option" for="{{ option.id_for_label }}">
+            {{ option.tag }}
+            <span class="palette-swatch" data-swatch="{{ option.data.value }}" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>{{ option.choice_label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="appearance-preview" aria-label="نمونهٔ ظاهر دفتر">
+        <span class="eyebrow">پیش‌نمایش دفتر شما</span>
+        <p>هر روز، چند بیت نزدیک‌تر.</p>
+        <span class="stamp">رنگ منتخب شما</span>
+      </div>
+      <div class="form-actions"><button class="primary">ذخیرهٔ ظاهر</button><button type="button" id="appearance-reset" hidden>برگرداندن پیش‌نمایش</button></div>
+      <p class="fine appearance-status" id="appearance-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
   {% if not user.is_staff and not user.is_superuser %}
   <section class="panel">
     <h2>مرورگرهای ورود</h2>
@@ -19,15 +50,6 @@
     {% endif %}
   </section>
   {% endif %}
-  <section class="panel">
-    <h2>ظاهر سایت</h2>
-    <form method="post">
-      {% csrf_token %}
-      <input type="hidden" name="section" value="theme">
-      {{ theme_form.as_p }}
-      <button>ذخیرهٔ ظاهر</button>
-    </form>
-  </section>
   <section class="panel">
     <h2>عکس پروفایل</h2>
     {% include 'components/avatar.html' %}

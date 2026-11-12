@@ -1,5 +1,5 @@
 {% load static %}<!doctype html>
-<html lang="fa" dir="rtl" data-theme="{{ user.theme|default:'auto' }}">
+<html lang="fa" dir="rtl" data-theme="{{ user.theme|default:'auto' }}" data-palette="{{ user.palette|default:'paper' }}">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{% block title %}دفتر شخصی شعر{% endblock %} | دیوان نامه</title>
@@ -31,17 +31,17 @@
       <a class="button primary masthead-add" href="{% url 'poem-new' %}" aria-label="افزودن شعر">
         {% include 'components/icon.html' with name='plus' %}<span>افزودن شعر</span>
       </a>
-      <a class="profile-link" href="{% url 'settings' %}" aria-label="تنظیمات حساب">
+      <a class="profile-link" {% if request.resolver_match.url_name == 'settings' %}aria-current="page"{% endif %} href="{% url 'settings' %}" aria-label="تنظیمات حساب">
         {% include 'components/avatar.html' %}<span>تنظیمات</span>
       </a>
-      <button class="icon-button" id="nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="فهرست ناوبری">
+      <button class="icon-button" id="nav-toggle" type="button" aria-controls="navigation-panel" aria-expanded="false" aria-label="فهرست ناوبری">
         {% include 'components/icon.html' with name='menu' %}
       </button>
     </div>
     {% endif %}
   </header>
   {% if user.is_authenticated %}
-  <aside class="sidebar" aria-label="دفتر شخصی">
+  <aside id="navigation-panel" class="sidebar" aria-label="دفتر شخصی">
     <nav id="main-nav" aria-label="ناوبری اصلی">{% include 'components/nav.html' %}</nav>
     <form class="sidebar-logout" action="{% url 'logout' %}" method="post">
       {% csrf_token %}<button class="quiet">{% include 'components/icon.html' with name='logout' %}خروج از حساب</button>

@@ -20,7 +20,14 @@ class ThemeForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['theme']
-        labels = {'theme': 'ظاهر سایت'}
+        labels = {'theme': 'حالت نمایش'}
+
+
+class AppearanceForm(ThemeForm):
+    class Meta(ThemeForm.Meta):
+        fields = ['theme', 'palette']
+        labels = {'theme': 'حالت نمایش', 'palette': 'پالت رنگی'}
+        widgets = {'palette': forms.RadioSelect}
 
 
 class ActionPasswordForm(forms.Form):

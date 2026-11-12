@@ -1,7 +1,7 @@
 {% with route=request.resolver_match.url_name %}
 <p class="nav-label">دفتر شما</p>
 <a href="{% url 'dashboard' %}" {% if route == 'dashboard' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='grid' %}<span>پیشخوان</span></a>
-<a href="{% url 'poems' %}" {% if route == 'poems' or route == 'poem-detail' or route == 'poem-edit' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>کتابخانهٔ اشعار</span></a>
+<a href="{% url 'poems' %}" {% if route == 'poems' or route == 'poem-detail' or route == 'poem-edit' or route == 'poem-new' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>کتابخانهٔ اشعار</span></a>
 <a href="{% url 'favorites' %}" {% if route == 'favorites' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='star' %}<span>شاه‌بیت‌ها</span></a>
 <a href="{% url 'tags' %}" {% if route == 'tags' or route == 'tag-detail' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='tag' %}<span>موضوع‌های دفتر</span></a>
 <a href="{% url 'poets' %}" {% if route == 'poets' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='pen' %}<span>شاعران کتابخانه</span></a>

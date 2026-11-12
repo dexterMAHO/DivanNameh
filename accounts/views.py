@@ -11,7 +11,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from poetry.http import failure, success
 
 from .access import enroll_browser, issue_browser_link, readers
-from .forms import ActionPasswordForm, ProfilePhotoForm, ThemeForm
+from .forms import AppearanceForm, ActionPasswordForm, ProfilePhotoForm, ThemeForm
 from .models import ProfilePhoto, User
 
 
@@ -20,9 +20,12 @@ from .models import ProfilePhoto, User
 @require_http_methods(['GET', 'POST'])
 def settings_page(request):
     submitted = request.POST.get('section')
-    theme_form = ThemeForm(request.POST if submitted == 'theme' else None, instance=request.user)
+    theme_form = AppearanceForm(request.POST if submitted == 'theme' else None, instance=request.user)
     password_form = ActionPasswordForm(request.POST if submitted == 'password' else None, user=request.user)
-    photo_form = ProfilePhotoForm(request.POST if submitted == 'photo' else None, request.FILES)
+    photo_form = ProfilePhotoForm(
+        request.POST if submitted == 'photo' else None,
+        request.FILES if submitted == 'photo' else None,
+    )
     browser_link = None
     if request.method == 'POST':
         if submitted == 'browser':
@@ -33,7 +36,7 @@ def settings_page(request):
         if submitted == 'browser-link':
             browser_link = issue_browser_link(request, request.user)
         if submitted == 'theme' and theme_form.is_valid():
-            User.objects.filter(pk=request.user.pk).update(theme=theme_form.cleaned_data['theme'])
+            User.objects.filter(pk=request.user.pk).update(**theme_form.cleaned_data)
             messages.success(request, 'ظاهر سایت ذخیره شد.')
             return redirect('settings')
         if submitted == 'password':

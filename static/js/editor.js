@@ -27,7 +27,13 @@ if (editor) {
   add.addEventListener('click', () => {
     try { const row = addRow(); row.querySelector('input').focus(); } catch (e) { error.textContent = e.message; }
   });
-  rows.addEventListener('click', event => { if (event.target.matches('.remove-row')) { event.target.closest('.verse-input').remove(); renumber(); } });
+  rows.addEventListener('click', event => {
+    if (!event.target.matches('.remove-row')) return;
+    const row = event.target.closest('.verse-input');
+    const next = row.nextElementSibling || row.previousElementSibling;
+    row.remove(); renumber();
+    (next?.querySelector('input') || add).focus();
+  });
   function parsed() {
     if (mode.value === 'structured') return [...rows.children].map(row => [...row.querySelectorAll('input')].map(i => i.value.trim()));
     const lines = document.getElementById('id_bulk_text').value.split('\n').map(x => x.trim()).filter(Boolean);

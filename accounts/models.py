@@ -13,6 +13,11 @@ class User(AbstractUser):
         ('auto', 'مطابق دستگاه'), ('light', 'روشن'), ('dark', 'تاریک'),
     ], default='auto')
 
+    palette = models.CharField(max_length=12, choices=[
+        ('paper', 'کاغذ و انار'), ('ocean', 'لاجورد'),
+        ('forest', 'سرو'), ('plum', 'ارغوان'),
+    ], default='paper')
+
     def verify_action_password(self, password):
         return check_password(password, self.action_password)
 

@@ -4,7 +4,7 @@ export function announce(message, error = false) {
   p.className = error ? 'notice error' : 'notice';
   p.textContent = message;
   box.replaceChildren(p);
-  if (error) box.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  if (error) box.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest'});
 }
 export async function request(url, form = null, submitter = undefined) {
   const options = {credentials: 'same-origin', headers: {'Accept': 'application/json'}};

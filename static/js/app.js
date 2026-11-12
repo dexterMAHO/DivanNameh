@@ -19,7 +19,7 @@ for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite
         listLink.focus();
       }
       if (form.hasAttribute('data-favorite')) {
-        button.textContent = data.favorite ? '★' : '☆';
+        button.setAttribute('aria-label', `${data.favorite ? 'برداشتن نشان' : 'افزودن به'} شاه‌بیت ${button.dataset.position}`);
         button.setAttribute('aria-pressed', String(data.favorite));
         form.action = data.favorite ? form.dataset.remove : form.dataset.add;
       }
@@ -74,11 +74,22 @@ if (discovery) discovery.addEventListener('submit', async event => {
 const navToggle = document.getElementById('nav-toggle');
 if (navToggle) {
   document.body.classList.add('has-js');
-  navToggle.addEventListener('click', () => {
-    const open = navToggle.getAttribute('aria-expanded') !== 'true';
+  const sidebar = document.querySelector('.sidebar');
+  const setOpen = open => {
     navToggle.setAttribute('aria-expanded', String(open));
-    document.querySelector('.sidebar').classList.toggle('mobile-open', open);
+    sidebar.classList.toggle('mobile-open', open);
+  };
+  navToggle.addEventListener('click', () => setOpen(navToggle.getAttribute('aria-expanded') !== 'true'));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && navToggle.getAttribute('aria-expanded') === 'true') {
+      setOpen(false);
+      navToggle.focus();
+    }
   });
+  document.addEventListener('click', event => {
+    if (!sidebar.contains(event.target) && !navToggle.contains(event.target)) setOpen(false);
+  });
+  matchMedia('(max-width: 1024px)').addEventListener('change', () => setOpen(false));
 }
 
 const treasury = document.getElementById('treasury-selection');
@@ -121,9 +132,42 @@ themeForm?.addEventListener('submit', async event => {
   try {
     const data = await request(themeForm.action, themeForm);
     root.dataset.theme = data.theme;
+    document.dispatchEvent(new CustomEvent('theme-saved', {detail: data.theme}));
   } catch (error) {
     announce(error.message, true);
   } finally {
     button.disabled = false;
   }
 });
+
+// Preview is temporary; only a successful server form submission persists it.
+const appearanceForm = document.getElementById('appearance-form');
+if (appearanceForm) {
+  const root = document.documentElement;
+  const saved = {theme: root.dataset.theme, palette: root.dataset.palette};
+  const reset = document.getElementById('appearance-reset');
+  const status = document.getElementById('appearance-status');
+  const preview = () => {
+    root.dataset.theme = appearanceForm.elements.theme.value;
+    root.dataset.palette = appearanceForm.elements.palette.value;
+    const changed = root.dataset.theme !== saved.theme || root.dataset.palette !== saved.palette;
+    reset.hidden = !changed;
+    status.textContent = changed ? 'این یک پیش‌نمایش است؛ برای نگهداری انتخاب، «ذخیرهٔ ظاهر» را بزنید.' : '';
+  };
+  appearanceForm.addEventListener('change', preview);
+  reset.addEventListener('click', () => {
+    appearanceForm.elements.theme.value = saved.theme;
+    appearanceForm.elements.palette.value = saved.palette;
+    preview();
+  });
+  document.addEventListener('theme-saved', event => {
+    saved.theme = event.detail;
+    appearanceForm.elements.theme.value = event.detail;
+    preview();
+  });
+  preview();
+}
+
+// Keep server validation errors discoverable after a full-page form submit.
+const invalidField = document.querySelector('[aria-invalid="true"]');
+if (invalidField) invalidField.focus();

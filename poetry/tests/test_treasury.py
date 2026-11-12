@@ -159,6 +159,34 @@ class TreasuryPageTests(TestCase):
         self.assertContains(response, other.get_absolute_url())
         self.assertContains(response, 'هنوز شعری برای کشف ندارید.')
 
+    def test_discovery_randomizes_only_a_bounded_set_of_ids(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from poetry.treasury_views import discover_work
+        TreasuryEntry.objects.bulk_create([
+            TreasuryEntry(book=self.hafez, key=f'bulk-{n}', title='شعر', kind='work',
+                          position=n + 10, paragraphs=['سطر نخست', 'سطر دوم'])
+            for n in range(100)
+        ])
+        with CaptureQueriesContext(connection) as queries:
+            result = discover_work(None)
+        self.assertIsNotNone(result)
+        random_query = queries[0]['sql']
+        self.assertIn('LIMIT 64', random_query)
+        projection = random_query.split(' FROM ')[0]
+        self.assertNotIn('paragraphs', projection)
+        self.assertNotIn('JOIN', random_query)
+        self.assertLessEqual(len(queries), 4)
+
+    def test_discovery_can_return_the_only_poem_again(self):
+        from poetry.treasury_views import discover_work
+        self.assertEqual(discover_work(str(self.ghazal.pk))['entry'].pk, self.ghazal.pk)
+
+    def test_discovery_returns_none_for_prose_only(self):
+        from poetry.treasury_views import discover_work
+        TreasuryEntry.objects.filter(kind='work').update(paragraphs=['نثر تک‌سطر'])
+        self.assertIsNone(discover_work(None))
+
     def test_header_theme_persists_and_returns_to_work(self):
         target = self.ghazal.get_absolute_url()
         self.assertRedirects(self.client.post('/settings/theme/', {'theme': 'dark', 'next': target}), target)

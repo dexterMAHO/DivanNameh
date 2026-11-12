@@ -127,10 +127,16 @@ def reading_rows(entry, book, parents):
 
 
 def discover_work(exclude_id):
-    readable = (TreasuryEntry.objects.filter(kind='work', paragraphs__isnull=False)
-                .exclude(paragraphs=[]).select_related('book').order_by('?'))
+    # On the pooled production connection server-side cursors are disabled.
+    # An unbounded iterator would buffer the entire corpus (including JSON text).
+    # Randomize only IDs and cap work even when the corpus contains mostly prose.
+    candidate_ids = list(TreasuryEntry.objects.filter(kind='work', paragraphs__isnull=False)
+                         .exclude(paragraphs=[]).order_by('?').values_list('pk', flat=True)[:64])
     previous = None
-    for entry in readable.iterator(chunk_size=32):
+    for pk in candidate_ids:
+        entry = TreasuryEntry.objects.select_related('book').filter(pk=pk).first()
+        if entry is None:  # An import may replace an entry between the two queries.
+            continue
         line_layout, rows = reading_rows(entry, entry.book, entry_sections(entry))
         if not rows:
             continue

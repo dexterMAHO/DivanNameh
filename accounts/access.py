@@ -18,7 +18,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .forms import UsernameAccessForm
-from .models import User
+from .models import BrowserAccessLink, User
 
 BROWSER_COOKIE = 'divannameh_reader_browser'
 BROWSER_AGE = 90 * 24 * 60 * 60
@@ -34,12 +34,16 @@ def readers():
 
 def issue_browser_link(request, user):
     token = secrets.token_urlsafe(32)
-    changed = readers().filter(pk=user.pk).update(
-        access_link_hash=digest(token), access_link_expires_at=timezone.now() + timedelta(minutes=15),
-    )
-    if changed:
-        return request.build_absolute_uri(reverse('confirm-browser')) + '?' + urlencode({'token': token})
-    return None
+    with transaction.atomic():
+        owner = readers().select_for_update().filter(pk=user.pk).first()
+        if owner is None:
+            return None
+        now = timezone.now()
+        owner.browser_access_links.filter(expires_at__lte=now).delete()
+        owner.browser_access_links.create(
+            token_hash=digest(token), expires_at=now + timedelta(minutes=15),
+        )
+    return request.build_absolute_uri(reverse('confirm-browser')) + '?' + urlencode({'token': token})
 
 
 def safe_next(request):
@@ -145,6 +149,19 @@ def confirm_browser(request):
     error = None
     if request.method == 'POST':
         with transaction.atomic():
+            # Lock the account for both new and legacy links before consuming a token.
+            link = BrowserAccessLink.objects.filter(
+                token_hash=digest(token), expires_at__gt=timezone.now(),
+            ).first()
+            if link:
+                user = readers().select_for_update().filter(pk=link.user_id).first()
+                if user:
+                    consumed, _ = user.browser_access_links.filter(
+                        pk=link.pk, expires_at__gt=timezone.now(),
+                    ).delete()
+                    if consumed:
+                        return enroll_browser(request, user)
+            # Previously issued links remain usable until their original expiry.
             user = readers().select_for_update().filter(
                 access_link_hash=digest(token), access_link_expires_at__gt=timezone.now(),
             ).first()

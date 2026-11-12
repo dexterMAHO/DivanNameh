@@ -41,3 +41,9 @@ class TrustedBrowser(models.Model):
 class ProfilePhoto(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile_photo')
     image = models.BinaryField()
+
+
+class BrowserAccessLink(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='browser_access_links')
+    token_hash = models.CharField(max_length=64, unique=True, editable=False)
+    expires_at = models.DateTimeField()

@@ -89,3 +89,47 @@ class AuthTests(TestCase):
                 'username': 'reader', 'cf-turnstile-response': 'example-token',
             }), '/')
             self.assertEqual(call.call_args.args[0].full_url, 'https://challenges.cloudflare.com/turnstile/v0/siteverify')
+
+    def test_many_pending_links_and_sessions_are_independent(self):
+        self.submit('/signup/', 'reader')
+        tokens = []
+        for _ in range(8):
+            response = self.client.post('/settings/', {'section': 'browser-link'})
+            tokens.append(parse_qs(urlsplit(response.context['browser_link']).query)['token'][0])
+        browsers = [self.client]
+        for token in tokens:
+            browser = Client()
+            self.assertRedirects(browser.post('/login/confirm/', {'token': token}), '/')
+            browsers.append(browser)
+            self.assertContains(Client().post('/login/confirm/', {'token': token}), 'پیوند معتبر نیست')
+        self.assertEqual(get_user_model().objects.get(username='reader').trusted_browsers.count(), 9)
+        browsers[1].post('/logout/', {'forget': '1'})
+        for browser in [browsers[0], *browsers[2:]]:
+            self.assertEqual(browser.get('/settings/').status_code, 200)
+            browser.post('/logout/')
+            self.assertRedirects(self.submit('/login/', 'reader', browser), '/')
+
+    def test_expired_link_cannot_enroll_browser(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from accounts.models import BrowserAccessLink
+        self.submit('/signup/', 'reader')
+        response = self.client.post('/settings/', {'section': 'browser-link'})
+        token = parse_qs(urlsplit(response.context['browser_link']).query)['token'][0]
+        BrowserAccessLink.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
+        browser = Client()
+        self.assertContains(browser.post('/login/confirm/', {'token': token}), 'پیوند معتبر نیست')
+        self.assertNotIn('_auth_user_id', browser.session)
+
+    def test_legacy_link_survives_new_link_creation(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from accounts.access import digest
+        self.submit('/signup/', 'reader')
+        get_user_model().objects.filter(username='reader').update(
+            access_link_hash=digest('legacy-token'),
+            access_link_expires_at=timezone.now() + timedelta(minutes=10),
+        )
+        self.client.post('/settings/', {'section': 'browser-link'})
+        self.assertRedirects(Client().post('/login/confirm/', {'token': 'legacy-token'}), '/')
+        self.assertContains(Client().post('/login/confirm/', {'token': 'legacy-token'}), 'پیوند معتبر نیست')

@@ -4,7 +4,7 @@
 <section class="login panel">
   <h1>{% if signup %}ثبت‌نام{% else %}ورود{% endif %}</h1>
   {% if signup %}
-  <p class="muted">برای دسترسی دوباره به دفتر، از همین مرورگر استفاده کنید.</p>
+  <p class="muted">برای دسترسی دوباره از همین مرورگر استفاده کنید؛ مرورگرهای دیگر را می‌توانید از تنظیمات حساب اضافه کنید.</p>
   {% endif %}
   <form method="post">
     {% csrf_token %}

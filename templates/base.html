@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{% block title %}دفتر شخصی شعر{% endblock %} | دیوان نامه</title>
+  {% static 'img/brand/favicon.png' as favicon_light %}
+  {% static 'img/brand/favicon-dark.png' as favicon_dark %}
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="{% if user.theme == 'dark' %}{{ favicon_dark }}{% else %}{{ favicon_light }}{% endif %}"
+        data-light="{{ favicon_light }}" data-dark="{{ favicon_dark }}">
   <link rel="preload" href="{% static 'fonts/Vazirmatn.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
@@ -14,9 +19,8 @@
 <a class="skip" href="#main">رفتن به محتوا</a>
 <div class="app-shell">
   <header class="masthead">
-    <a class="brand" href="{% url 'dashboard' %}">
-      <span class="brand-mark">{% include 'components/icon.html' with name='book' %}</span>
-      <span>دیوان‌نامه</span>
+    <a class="brand" href="{% url 'dashboard' %}" aria-label="دیوان‌نامه">
+      <span class="brand-logo" aria-hidden="true"></span>
     </a>
     {% if user.is_authenticated %}
     <div class="masthead-actions">

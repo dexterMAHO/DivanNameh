@@ -1,4 +1,18 @@
 import {request} from './api.js';
+const favicon = document.querySelector('link[rel="icon"][data-dark]');
+if (favicon) {
+  const root = document.documentElement;
+  const deviceTheme = matchMedia('(prefers-color-scheme: dark)');
+  const updateFavicon = () => {
+    const dark = root.dataset.theme === 'dark' || (root.dataset.theme === 'auto' && deviceTheme.matches);
+    const href = dark ? favicon.dataset.dark : favicon.dataset.light;
+    if (favicon.getAttribute('href') !== href) favicon.setAttribute('href', href);
+  };
+  new MutationObserver(updateFavicon).observe(root, {attributes: true, attributeFilter: ['data-theme']});
+  deviceTheme.addEventListener('change', updateFavicon);
+  updateFavicon();
+}
+
 const digits = new Intl.NumberFormat('fa-IR', {useGrouping: false});
 
 for (const message of document.querySelectorAll('[data-message-tags]')) {

@@ -126,24 +126,26 @@ main:focus { outline: none; }
 }
 
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
-  text-decoration: none;
-  font-family: var(--font-literary);
-  font-size: 1.375rem;
-  font-weight: 700;
-  line-height: 1.4;
+  min-height: 2.75rem;
 }
-.brand-mark {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  border-radius: var(--radius-card);
+
+.brand-logo {
+  display: block;
+  width: 9rem;
+  aspect-ratio: 7 / 2;
+  background: center / contain no-repeat url("../img/brand/wordmark.webp");
+}
+
+[data-theme="dark"] .brand-logo {
+  background-image: url("../img/brand/wordmark-dark.webp");
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] .brand-logo {
+    background-image: url("../img/brand/wordmark-dark.webp");
+  }
 }
 
 .sidebar nav { display: flex; flex-direction: column; gap: 2px; }
@@ -194,8 +196,7 @@ main:focus { outline: none; }
   border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
-  font-weight: 600;
-  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
 }
 
 /* ---------- Header ---------- */
@@ -876,8 +877,7 @@ summary.button::-webkit-details-marker { display: none; }
   }
   .app-shell { grid-template-rows: auto auto 1fr; }
   body.guest .app-shell { grid-template-rows: auto 1fr; }
-  .brand { font-size: 1.125rem; }
-  .brand-mark { width: 2.25rem; height: 2.25rem; }
+  .brand-logo { width: clamp(6.75rem, 35vw, 9rem); }
   .has-js #nav-toggle { display: inline-flex; }
   .has-js .sidebar:not(.mobile-open) { display: none; }
   .workspace { grid-row: 3; }
@@ -916,6 +916,7 @@ summary.button::-webkit-details-marker { display: none; }
 
 @media (max-width: 480px) {
   .masthead { padding-inline: var(--space-3); }
+  .brand-logo { width: clamp(5.5rem, 27vw, 7.5rem); }
   .masthead-actions { gap: var(--space-2); }
   .profile-link > span:not(.avatar), .masthead-add > span { display: none; }
   .masthead-add, .profile-link { min-width: 2.75rem; justify-content: center; padding-inline: var(--space-2); }

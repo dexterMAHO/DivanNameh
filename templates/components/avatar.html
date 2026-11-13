@@ -2,6 +2,6 @@
   {% if has_profile_photo %}
   <img src="{% url 'profile-photo' %}" alt="" width="36" height="36">
   {% else %}
-  {{ user.display_name|first|upper }}
+  {% include 'components/icon.html' with name='user' %}
   {% endif %}
 </span>

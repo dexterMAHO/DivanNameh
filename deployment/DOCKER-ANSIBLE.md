@@ -23,7 +23,7 @@ docker compose --env-file .env.docker exec web python manage.py createsuperuser
 
 ## نصب روی سرور با Ansible
 
-کنترلر به Git و Ansible Core نیاز دارد. مقصد یک Ubuntu Server 24.04 با SSH و کاربر دارای sudo است. رکورد A دامنه را به IP سرور و در صورت استفاده از IPv6 رکورد AAAA را به IP درست وصل کنید. TCP پورت‌های ۸۰ و ۴۴۳ باید آزاد و از اینترنت قابل دسترس باشند. سرور برای نصب بسته‌ها و build به مخازن Ubuntu، Docker Hub و PyPI نیاز دارد.
+کنترلر به Git و Ansible Core نیاز دارد. مقصد یک Ubuntu Server 24.04 با SSH و کاربر دارای sudo است. رکورد A دامنه را به IP سرور و در صورت استفاده از IPv6 رکورد AAAA را به IP درست وصل کنید. TCP پورت‌های ۸۰ و ۴۴۳ باید آزاد و از اینترنت قابل دسترس باشند. Playbook از Docker و Compose موجود روی سرور استفاده می‌کند. اگر Compose موجود نباشد، بسته‌ها را متناسب با خانوادهٔ Docker نصب‌شده انتخاب می‌کند. برای سرور دارای Docker CE، مخزن APT رسمی Docker باید در دسترس باشد. سرور برای نصب بسته‌ها و build به مخازن Ubuntu، Docker Hub و PyPI نیاز دارد.
 
 ```bash
 git clone --branch deploy-demo https://github.com/dexterMAHO/DivanNameh.git

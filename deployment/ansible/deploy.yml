@@ -34,11 +34,35 @@
       register: divan_revision
       changed_when: false
 
-    - name: Install Docker Engine and Compose
+    - name: Check for an existing Docker Compose installation
+      ansible.builtin.command: docker compose version
+      register: divan_existing_compose
+      changed_when: false
+      failed_when: false
+
+    - name: Install Docker and Compose when missing
+      when: divan_existing_compose.rc != 0
+      block:
+        - name: Detect the Docker package family already installed
+          ansible.builtin.package_facts:
+            manager: apt
+
+        - name: Install Docker from the matching package repository
+          ansible.builtin.apt:
+            name: "{{ divan_docker_packages }}"
+            update_cache: true
+            cache_valid_time: 3600
+            fail_on_autoremove: true
+          vars:
+            divan_docker_packages: >-
+              {{ ['docker-ce', 'docker-ce-cli', 'docker-buildx-plugin', 'docker-compose-plugin']
+                 if 'containerd.io' in ansible_facts.packages or 'docker-ce' in ansible_facts.packages
+                 else ['docker.io', 'docker-compose-v2'] }}
+
+    - name: Install OpenSSL for credential generation
       ansible.builtin.apt:
-        name: [docker.io, docker-compose-v2, openssl]
-        update_cache: true
-        cache_valid_time: 3600
+        name: openssl
+        state: present
 
     - name: Enable Docker
       ansible.builtin.service:

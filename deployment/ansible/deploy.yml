@@ -4,6 +4,8 @@
   become: true
   vars:
     divan_root: /opt/divannameh
+    divan_use_existing_nginx: false
+    divan_nginx_http_port: 18080
     divan_source: "{{ playbook_dir }}/../.."
     divan_secrets_file: "{{ lookup('ansible.builtin.env', 'DIVAN_SECRETS_FILE') }}"
     divan_release: "{{ divan_root }}/releases/{{ divan_revision.stdout }}"
@@ -157,6 +159,28 @@
         src: compose.env.j2
         dest: "{{ divan_release }}/compose.env"
         mode: "0640"
+
+    - name: Route HTTP through the existing Nginx instance
+      when: divan_use_existing_nginx | bool
+      block:
+        - name: Write a virtual host for the DivanNameh domain
+          ansible.builtin.template:
+            src: nginx-http.conf.j2
+            dest: "/etc/nginx/sites-enabled/divannameh-{{ divan_domain }}.conf"
+            owner: root
+            group: root
+            mode: "0644"
+          register: divan_nginx_site
+
+        - name: Validate Nginx configuration
+          ansible.builtin.command: nginx -t
+          changed_when: false
+
+        - name: Reload Nginx for the new virtual host
+          ansible.builtin.service:
+            name: nginx
+            state: reloaded
+          when: divan_nginx_site.changed
 
     - name: Build and start the release
       ansible.builtin.command:

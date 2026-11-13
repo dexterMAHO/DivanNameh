@@ -37,7 +37,7 @@ ansible-playbook -i deployment/ansible/inventory.yml deployment/ansible/deploy.y
 
 ## اجرای سریع با SSH کاربر root
 
-از روی دستگاه کنترلر اجرا کنید. سرور باید اتصال SSH کاربر root را بپذیرد.
+از روی دستگاه کنترلر اجرا کنید. سرور باید اتصال SSH کاربر root را روی پورت `9011` بپذیرد.
 
 ```bash
 ./deployment/ansible/deploy-root.sh 203.0.113.10 divan.example.com

@@ -54,6 +54,7 @@ all:
         divan:
           ansible_host: "$server"
           ansible_user: root
+          ansible_port: 9011
           ansible_become: false
           divan_domain: "$domain"
 INVENTORY

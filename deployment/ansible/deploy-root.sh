@@ -25,7 +25,7 @@ for dependency in ansible-playbook openssl; do
 done
 
 ansible_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-inventory=$(mktemp "$ansible_dir/.env.inventory.XXXXXX")
+inventory=$(mktemp "$ansible_dir/.env.inventory.XXXXXX.yml")
 trap 'unlink "$inventory"' EXIT
 secrets_file="$ansible_dir/../../.env.deploy-root"
 

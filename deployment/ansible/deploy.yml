@@ -5,6 +5,7 @@
   vars:
     divan_root: /opt/divannameh
     divan_source: "{{ playbook_dir }}/../.."
+    divan_secrets_file: "{{ lookup('ansible.builtin.env', 'DIVAN_SECRETS_FILE') }}"
     divan_release: "{{ divan_root }}/releases/{{ divan_revision.stdout }}"
     divan_compose:
       - docker
@@ -102,6 +103,17 @@
           changed_when: false
           when: divan_archive.path is defined
 
+    - name: Install controller credentials on first deployment
+      ansible.builtin.copy:
+        src: "{{ divan_secrets_file }}"
+        dest: "{{ divan_root }}/secrets.env"
+        owner: root
+        group: root
+        mode: "0600"
+        force: false
+      when: divan_secrets_file | length > 0
+      no_log: true
+
     - name: Generate persistent credentials on the server
       ansible.builtin.shell:
         cmd: |
@@ -113,6 +125,7 @@
           mv secrets.env.tmp secrets.env
         chdir: "{{ divan_root }}"
         creates: "{{ divan_root }}/secrets.env"
+      when: divan_secrets_file | length == 0
       no_log: true
 
     - name: Write the Compose settings

@@ -35,6 +35,18 @@ ansible-playbook -i deployment/ansible/inventory.yml deployment/ansible/deploy.y
 
 اگر sudo رمز می‌خواهد `-K` و اگر کلید SSH پیش‌فرض کافی نیست `--private-key /path/to/key` را به فرمان اضافه کنید. Playbook فقط فایل‌های commit فعلی را از کنترلر به سرور می‌فرستد. کلید Django و رمز PostgreSQL در اولین نصب روی سرور تولید و در `/opt/divannameh/secrets.env` نگهداری می‌شوند. اجرای دوباره همان رمزها و volumeها را استفاده می‌کند. playbook پس از بررسی HTTPS، پیوند `/opt/divannameh/current` را به نسخهٔ تأییدشده تغییر می‌دهد.
 
+## اجرای سریع با SSH کاربر root
+
+از روی دستگاه کنترلر اجرا کنید. سرور باید اتصال SSH کاربر root را بپذیرد.
+
+```bash
+./deployment/ansible/deploy-root.sh 203.0.113.10 divan.example.com
+# با کلید SSH مشخص
+./deployment/ansible/deploy-root.sh 203.0.113.10 divan.example.com --private-key /path/to/key
+```
+
+اسکریپت یک inventory موقت می‌سازد و پس از پایان آن را پاک می‌کند. اگر `.env.deploy-root` در ریشهٔ پروژه موجود نباشد، رمز PostgreSQL را بدون نمایش می‌پرسد و کلید Django را تولید می‌کند. هر دو در همان فایل با مجوز `0600` ذخیره می‌شوند. فایل در Git و Docker build وارد نمی‌شود. Ansible این فایل را فقط در نصب اول روی سرور کپی می‌کند. پس از نصب می‌توانید کپی محلی را بردارید و فایل را حذف کنید. نصب موجود از اطلاعات ذخیره‌شده در `/opt/divannameh/secrets.env` استفاده می‌کند. تغییر رمز یک دیتابیس موجود نیاز به تغییر رمز نقش PostgreSQL و هماهنگ‌کردن فایل سرور دارد.
+
 ## داده و نگهداری
 
 نصب با دیتابیس خالی شروع می‌شود. برای ساخت ادمین، مشاهدهٔ لاگ یا واردکردن دیتاست، روی سرور از دستورهای زیر استفاده کنید:

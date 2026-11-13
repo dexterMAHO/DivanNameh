@@ -59,5 +59,12 @@ all:
           divan_domain: "$domain"
 INVENTORY
 
+ssh_password_file="$ansible_dir/../../.env.ssh-root"
+ssh_options=()
+if [[ -f $ssh_password_file ]]; then
+    chmod 600 "$ssh_password_file"
+    ssh_options+=(--extra-vars "@$ssh_password_file")
+fi
+
 DIVAN_SECRETS_FILE="$secrets_file" \
-    ansible-playbook -i "$inventory" "$ansible_dir/deploy.yml" "$@"
+    ansible-playbook -i "$inventory" "$ansible_dir/deploy.yml" "${ssh_options[@]}" "$@"

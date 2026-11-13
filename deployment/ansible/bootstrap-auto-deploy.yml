@@ -1,0 +1,106 @@
+---
+- name: Install automatic DivanNameh deployments
+  hosts: divan_servers
+  become: true
+  vars:
+    divan_root: /opt/divannameh
+    divan_repository: https://github.com/dexterMAHO/DivanNameh.git
+    divan_use_existing_nginx: false
+    divan_nginx_http_port: 18080
+    divan_workers: 2
+  tasks:
+    - name: Validate the target and deployment settings
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Ubuntu'
+          - ansible_facts.distribution_version == '24.04'
+          - divan_domain is defined
+          - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
+          - (divan_workers | int) > 0
+          - divan_repository is match('^(https://[^/@]+/|ssh://[^/]+/|[^ @/:]+@[^ /:]+:)')
+
+    - name: Install deploy runner dependencies
+      ansible.builtin.apt:
+        name: [ansible-core, git, openssh-client, ca-certificates, curl, util-linux]
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create private deployment directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+      loop:
+        - "{{ divan_root }}"
+        - "{{ divan_root }}/repository"
+
+    - name: Verify the server can read the deploy branch
+      ansible.builtin.command:
+        argv: [timeout, "60", git, ls-remote, --exit-code, --heads, "{{ divan_repository }}", refs/heads/deploy]
+      environment:
+        GIT_TERMINAL_PROMPT: "0"
+        GIT_SSH_COMMAND: ssh -o BatchMode=yes -o StrictHostKeyChecking=yes
+      changed_when: false
+
+    - name: Initialize the automatic deployment checkout
+      ansible.builtin.command:
+        argv: [git, init, "{{ divan_root }}/repository"]
+        creates: "{{ divan_root }}/repository/.git"
+
+    - name: Set the repository origin
+      ansible.builtin.command:
+        argv: [git, -C, "{{ divan_root }}/repository", config, remote.origin.url, "{{ divan_repository }}"]
+      changed_when: false
+
+    - name: Write the local Ansible inventory
+      ansible.builtin.copy:
+        content: "{{ divan_auto_inventory | to_nice_json }}\n"
+        dest: "{{ divan_root }}/auto-inventory.json"
+        owner: root
+        group: root
+        mode: "0600"
+      vars:
+        divan_auto_inventory:
+          all:
+            children:
+              divan_servers:
+                hosts:
+                  localhost:
+                    ansible_connection: local
+                    ansible_become: false
+                    divan_verify_origin: true
+                    divan_domain: "{{ divan_domain }}"
+                    divan_use_existing_nginx: "{{ divan_use_existing_nginx | bool }}"
+                    divan_nginx_http_port: "{{ divan_nginx_http_port | int }}"
+                    divan_workers: "{{ divan_workers | int }}"
+
+    - name: Install the deployment runner
+      ansible.builtin.copy:
+        src: divannameh-update
+        dest: /usr/local/sbin/divannameh-update
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install the systemd service and timer
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: [divannameh-auto-deploy.service, divannameh-auto-deploy.timer]
+
+    - name: Enable the deployment timer
+      ansible.builtin.systemd_service:
+        name: divannameh-auto-deploy.timer
+        daemon_reload: true
+        enabled: true
+        state: started
+
+    - name: Run the initial deployment
+      ansible.builtin.systemd_service:
+        name: divannameh-auto-deploy.service
+        state: started

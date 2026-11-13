@@ -1,0 +1,10 @@
+[Unit]
+Description=Deploy the latest DivanNameh deploy branch
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/divannameh-update
+TimeoutStartSec=45min
+UMask=0077

@@ -189,6 +189,31 @@
       register: divan_compose_up
       changed_when: divan_compose_up.stderr is search('Created|Recreated|Started|Built')
 
+    - name: Verify the new release directly on the origin
+      ansible.builtin.command:
+        argv:
+          - curl
+          - --fail
+          - --silent
+          - --show-error
+          - --max-time
+          - "10"
+          - --noproxy
+          - "{{ divan_domain }}"
+          - --resolve
+          - "{{ divan_domain }}:443:127.0.0.1"
+          - --output
+          - /dev/null
+          - --write-out
+          - "%{http_code}"
+          - "https://{{ divan_domain }}/login/"
+      register: divan_origin
+      until: divan_origin.rc == 0 and divan_origin.stdout == '200'
+      retries: 18
+      delay: 5
+      changed_when: false
+      when: divan_verify_origin | default(false) | bool
+
     - name: Verify the live HTTPS login from the controller
       ansible.builtin.uri:
         url: "https://{{ divan_domain }}/login/"

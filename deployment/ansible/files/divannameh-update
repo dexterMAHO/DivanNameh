@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+root=${DIVAN_DEPLOY_ROOT:-/opt/divannameh}
+checkout=$root/repository
+inventory=$root/auto-inventory.json
+
+exec 9>"$root/auto-deploy.lock"
+if ! flock -n 9; then
+    exit 0
+fi
+
+export GIT_TERMINAL_PROMPT=0
+export GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=yes'
+timeout 120 git -C "$checkout" fetch --no-tags origin refs/heads/deploy:refs/heads/deploy
+revision=$(git -C "$checkout" rev-parse --verify 'refs/heads/deploy^{commit}')
+release=$root/releases/$revision
+
+if [[ "$(readlink "$root/current" || true)" == "$release" ]]; then
+    printf 'Already deployed %s\n' "$revision"
+    exit 0
+fi
+
+git -C "$checkout" checkout --detach "$revision"
+ansible-playbook -i "$inventory" "$checkout/deployment/ansible/deploy.yml" \
+    --extra-vars "divan_root=$root"
+
+if [[ "$(readlink "$root/current" || true)" != "$release" ]]; then
+    printf 'Release %s was not marked as current\n' "$revision" >&2
+    exit 1
+fi

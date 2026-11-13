@@ -1,0 +1,9 @@
+all:
+  children:
+    divan_servers:
+      hosts:
+        divan:
+          ansible_host: 203.0.113.10
+          ansible_user: ubuntu
+          divan_domain: divan.example.com
+          divan_workers: 2

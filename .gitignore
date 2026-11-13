@@ -27,3 +27,6 @@ media/
 .idea/
 .DS_Store
 .neon
+
+# Target inventory may contain machine-local SSH settings.
+deployment/ansible/inventory.yml

@@ -1,0 +1,87 @@
+x-django: &django
+  image: divannameh:${DIVAN_IMAGE_TAG:-local}
+  build:
+    context: .
+  environment:
+    SECRET_KEY: ${DIVAN_SECRET_KEY:?Set DIVAN_SECRET_KEY}
+    DATABASE_URL: postgresql://divannameh:${DIVAN_DB_PASSWORD:?Set DIVAN_DB_PASSWORD}@db:5432/divannameh?sslmode=require
+    ALLOWED_HOSTS: ${DIVAN_DOMAIN:?Set DIVAN_DOMAIN}
+    CSRF_TRUSTED_ORIGINS: ${DIVAN_ORIGIN:?Set DIVAN_ORIGIN}
+    TRUST_PROXY: "true"
+    WEB_CONCURRENCY: ${DIVAN_WORKERS:-2}
+  logging: &logging
+    driver: local
+
+services:
+  db:
+    image: postgres:17
+    entrypoint: ["/bin/sh", "/opt/divan/postgres-tls.sh"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: divannameh
+      POSTGRES_USER: postgres
+      DIVAN_DB_PASSWORD: ${DIVAN_DB_PASSWORD:?Set DIVAN_DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deployment/docker/postgres-tls.sh:/opt/divan/postgres-tls.sh:ro
+      - ./deployment/docker/init-app-role.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    networks: [database]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U divannameh -d divannameh"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    logging: *logging
+
+  migrate:
+    <<: *django
+    command: ["python", "scripts/migrate_production.py"]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [database]
+
+  web:
+    <<: *django
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks: [frontend, database]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, urllib.request; req = urllib.request.Request('http://127.0.0.1:8000/healthz/', headers={'Host': os.environ['ALLOWED_HOSTS']}); urllib.request.urlopen(req, timeout=2).close()"
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      DIVAN_DOMAIN: ${DIVAN_DOMAIN:?Set DIVAN_DOMAIN}
+    ports:
+      - "${DIVAN_BIND_ADDRESS:-0.0.0.0}:${DIVAN_HTTP_PORT:-80}:80"
+      - "${DIVAN_BIND_ADDRESS:-0.0.0.0}:${DIVAN_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./deployment/docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [frontend]
+    logging: *logging
+
+networks:
+  frontend:
+  database:
+    internal: true
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

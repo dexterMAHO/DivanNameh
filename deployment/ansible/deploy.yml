@@ -1,0 +1,146 @@
+---
+- name: Deploy DivanNameh to Ubuntu 24.04
+  hosts: divan_servers
+  become: true
+  vars:
+    divan_root: /opt/divannameh
+    divan_source: "{{ playbook_dir }}/../.."
+    divan_release: "{{ divan_root }}/releases/{{ divan_revision.stdout }}"
+    divan_compose:
+      - docker
+      - compose
+      - --project-name
+      - divannameh
+      - --env-file
+      - "{{ divan_root }}/secrets.env"
+      - --env-file
+      - "{{ divan_release }}/compose.env"
+  tasks:
+    - name: Validate target and domain
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Ubuntu'
+          - ansible_facts.distribution_version == '24.04'
+          - divan_domain is defined
+          - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
+          - (divan_workers | default(2) | int) > 0
+
+    - name: Read the committed revision from the controller
+      ansible.builtin.command:
+        argv: [git, -C, "{{ divan_source }}", rev-parse, HEAD]
+      delegate_to: localhost
+      become: false
+      register: divan_revision
+      changed_when: false
+
+    - name: Install Docker Engine and Compose
+      ansible.builtin.apt:
+        name: [docker.io, docker-compose-v2, openssl]
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Enable Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Create the deployment and release directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0750"
+      loop:
+        - "{{ divan_root }}"
+        - "{{ divan_release }}"
+
+    - name: Transfer committed source from the controller
+      block:
+        - name: Allocate temporary archive on the controller
+          ansible.builtin.tempfile:
+            state: file
+            suffix: .tar.gz
+          delegate_to: localhost
+          become: false
+          register: divan_archive
+          changed_when: false
+
+        - name: Archive the selected Git revision
+          ansible.builtin.command:
+            argv:
+              - git
+              - -C
+              - "{{ divan_source }}"
+              - archive
+              - --format=tar.gz
+              - "--output={{ divan_archive.path }}"
+              - "{{ divan_revision.stdout }}"
+          delegate_to: localhost
+          become: false
+          changed_when: false
+
+        - name: Unpack release on target
+          ansible.builtin.unarchive:
+            src: "{{ divan_archive.path }}"
+            dest: "{{ divan_release }}"
+            creates: "{{ divan_release }}/.source-ready"
+
+        - name: Mark the source archive as fully extracted
+          ansible.builtin.copy:
+            content: "{{ divan_revision.stdout }}\n"
+            dest: "{{ divan_release }}/.source-ready"
+            mode: "0640"
+      always:
+        - name: Remove temporary controller archive
+          ansible.builtin.file:
+            path: "{{ divan_archive.path }}"
+            state: absent
+          delegate_to: localhost
+          become: false
+          changed_when: false
+          when: divan_archive.path is defined
+
+    - name: Generate persistent credentials on the server
+      ansible.builtin.shell:
+        cmd: |
+          set -eu
+          umask 077
+          secret_key=$(openssl rand -hex 48)
+          db_password=$(openssl rand -hex 32)
+          printf 'DIVAN_SECRET_KEY=%s\nDIVAN_DB_PASSWORD=%s\n' "$secret_key" "$db_password" > secrets.env.tmp
+          mv secrets.env.tmp secrets.env
+        chdir: "{{ divan_root }}"
+        creates: "{{ divan_root }}/secrets.env"
+      no_log: true
+
+    - name: Write the Compose settings
+      ansible.builtin.template:
+        src: compose.env.j2
+        dest: "{{ divan_release }}/compose.env"
+        mode: "0640"
+
+    - name: Build and start the release
+      ansible.builtin.command:
+        argv: "{{ divan_compose + ['up', '--detach', '--build', '--wait', '--wait-timeout', '180'] }}"
+        chdir: "{{ divan_release }}"
+      register: divan_compose_up
+      changed_when: divan_compose_up.stderr is search('Created|Recreated|Started|Built')
+
+    - name: Verify the live HTTPS login from the controller
+      ansible.builtin.uri:
+        url: "https://{{ divan_domain }}/login/"
+        status_code: 200
+      delegate_to: localhost
+      become: false
+      register: divan_login
+      until: divan_login.status == 200
+      retries: 18
+      delay: 5
+
+    - name: Record the verified release
+      ansible.builtin.file:
+        src: "{{ divan_release }}"
+        dest: "{{ divan_root }}/current"
+        state: link

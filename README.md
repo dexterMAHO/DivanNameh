@@ -58,3 +58,7 @@ PYTHON=.venv/bin/python node scripts/check_browser.mjs
 ## استقرار آنلاین
 
 تنظیمات development و production جدا هستند. روی Render از `./build.sh` و `python -m gunicorn config.wsgi:application --config gunicorn.conf.py` استفاده کنید. Secrets و PostgreSQL اجباری‌اند؛ production فایل `.env` را نمی‌خواند. شروع: [deployment/README.md](deployment/README.md).
+
+## استقرار با Docker و Ansible
+
+راهنمای اجرای محلی و نصب از راه دور روی Ubuntu 24.04 در [راهنمای Docker و Ansible](deployment/DOCKER-ANSIBLE.md) آمده است.

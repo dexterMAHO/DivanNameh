@@ -1,7 +1,6 @@
 import hashlib
 import json
 import secrets
-from datetime import timedelta
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -10,19 +9,12 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
-from django.urls import reverse
-from django.utils import timezone
-from django.utils.crypto import constant_time_compare
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .forms import UsernameAccessForm
-from .models import BrowserAccessLink, User
-
-BROWSER_COOKIE = 'divannameh_reader_browser'
-BROWSER_AGE = 90 * 24 * 60 * 60
-BROWSER_SESSION = 'reader_trusted_browser'
+from .models import User
 
 
 def digest(token):
@@ -33,60 +25,11 @@ def readers():
     return User.objects.filter(is_active=True, is_staff=False, is_superuser=False)
 
 
-def issue_browser_link(request, user):
-    token = secrets.token_urlsafe(32)
-    with transaction.atomic():
-        owner = readers().select_for_update().filter(pk=user.pk).first()
-        if owner is None:
-            return None
-        now = timezone.now()
-        owner.browser_access_links.filter(expires_at__lte=now).delete()
-        owner.browser_access_links.create(
-            token_hash=digest(token), expires_at=now + timedelta(minutes=15),
-        )
-    return request.build_absolute_uri(reverse('confirm-browser')) + '?' + urlencode({'token': token})
-
-
 def safe_next(request):
     path = request.POST.get('next', '') if request.method == 'POST' else request.GET.get('next', '')
     if url_has_allowed_host_and_scheme(path, allowed_hosts=set(), require_https=request.is_secure()):
         return path
     return ''
-
-
-def browser_digest(request):
-    token = request.get_signed_cookie(BROWSER_COOKIE, default='', max_age=BROWSER_AGE)
-    return digest(token) if token else ''
-
-
-def trusted_browser(request, user):
-    token_hash = browser_digest(request)
-    if not token_hash:
-        return False
-    # Keep accepting the cookie issued before accounts supported multiple browsers.
-    return (constant_time_compare(token_hash, user.browser_token_hash)
-            or user.trusted_browsers.filter(token_hash=token_hash, expires_at__gt=timezone.now()).exists())
-
-
-def enroll_browser(request, user, target=''):
-    if trusted_browser(request, user):
-        token = request.get_signed_cookie(BROWSER_COOKIE, max_age=BROWSER_AGE)
-    else:
-        token = secrets.token_urlsafe(32)
-    now = timezone.now()
-    user.trusted_browsers.filter(expires_at__lte=now).delete()
-    browser, _ = user.trusted_browsers.update_or_create(
-        token_hash=digest(token),
-        defaults={'expires_at': now + timedelta(seconds=BROWSER_AGE)},
-        create_defaults={'expires_at': now + timedelta(seconds=BROWSER_AGE),
-                         'label': request.POST.get('browser_label', '').strip()[:80]},
-    )
-    login(request, user)
-    request.session[BROWSER_SESSION] = browser.pk
-    response = redirect(target or 'dashboard')
-    response.set_signed_cookie(BROWSER_COOKIE, token, max_age=BROWSER_AGE, httponly=True,
-                        secure=settings.SESSION_COOKIE_SECURE, samesite='Lax')
-    return response
 
 
 def turnstile_site_key():
@@ -132,18 +75,16 @@ def username_access(request, signup=False):
                 try:
                     with transaction.atomic():
                         user = User.objects.create(username=username, password=make_password(None))
-                        return enroll_browser(request, user, target)
+                    login(request, user)
+                    return redirect(target or 'dashboard')
                 except IntegrityError:
                     form.add_error('username', 'این نام کاربری در دسترس نیست.')
             else:
                 user = readers().filter(username=username).first()
-                if user and trusted_browser(request, user):
-                    browser = user.trusted_browsers.filter(token_hash=browser_digest(request)).first()
+                if user is not None:
                     login(request, user)
-                    if browser:
-                        request.session[BROWSER_SESSION] = browser.pk
                     return redirect(target or 'dashboard')
-                form.add_error(None, 'ورود با این مرورگر ممکن نیست. از مرورگر ثبت‌شده استفاده کنید یا پیوند دسترسی بگیرید.')
+                form.add_error(None, 'ورود با این نام کاربری ممکن نیست.')
     challenge = None
     if human_check_enabled and not site_key:
         challenge = (secrets.randbelow(9) + 1, secrets.randbelow(9) + 1)
@@ -151,42 +92,6 @@ def username_access(request, signup=False):
     return render(request, 'accounts/login.html', {
         'human_check_enabled': human_check_enabled, 'form': form, 'signup': signup, 'site_key': site_key, 'challenge': challenge, 'next': target,
     })
-
-
-@never_cache
-@require_http_methods(['GET', 'POST'])
-def confirm_browser(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    token = request.GET.get('token', '') if request.method == 'GET' else request.POST.get('token', '')
-    error = None
-    if request.method == 'POST':
-        with transaction.atomic():
-            # Lock the account for both new and legacy links before consuming a token.
-            link = BrowserAccessLink.objects.filter(
-                token_hash=digest(token), expires_at__gt=timezone.now(),
-            ).first()
-            if link:
-                user = readers().select_for_update().filter(pk=link.user_id).first()
-                if user:
-                    consumed, _ = user.browser_access_links.filter(
-                        pk=link.pk, expires_at__gt=timezone.now(),
-                    ).delete()
-                    if consumed:
-                        return enroll_browser(request, user)
-            # Previously issued links remain usable until their original expiry.
-            user = readers().select_for_update().filter(
-                access_link_hash=digest(token), access_link_expires_at__gt=timezone.now(),
-            ).first()
-            if user:
-                user.access_link_hash = None
-                user.access_link_expires_at = None
-                user.save(update_fields=['access_link_hash', 'access_link_expires_at'])
-                return enroll_browser(request, user)
-        error = 'پیوند معتبر نیست یا زمان استفاده از آن گذشته است.'
-    response = render(request, 'accounts/browser_confirm.html', {'token': token, 'error': error})
-    response['Referrer-Policy'] = 'no-referrer'
-    return response
 
 
 @never_cache
@@ -203,25 +108,13 @@ def recover(request):
                 if user:
                     user.recovery_digest = None
                     user.save(update_fields=['recovery_digest'])
-                    return enroll_browser(request, user)
+                    login(request, user)
+                    return redirect('dashboard')
         error = True
     return render(request, 'accounts/recover.html', {'error': error})
 
 
 @require_POST
 def sign_out(request):
-    user = request.user
-    forget = request.POST.get('forget') == '1'
-    if forget and user.is_authenticated:
-        token = request.get_signed_cookie(BROWSER_COOKIE, default='', max_age=BROWSER_AGE)
-        if token:
-            token_hash = digest(token)
-            with transaction.atomic():
-                User.objects.select_for_update().only('pk').get(pk=user.pk)
-                User.objects.filter(pk=user.pk, browser_token_hash=token_hash).update(browser_token_hash='')
-                user.trusted_browsers.filter(token_hash=token_hash).delete()
     logout(request)
-    response = redirect('login')
-    if forget:
-        response.delete_cookie(BROWSER_COOKIE, samesite='Lax')
-    return response
+    return redirect('login')

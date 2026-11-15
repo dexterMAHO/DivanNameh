@@ -3,9 +3,6 @@
 {% block content %}
 <section class="login panel">
   <h1>{% if signup %}ثبت‌نام{% else %}ورود{% endif %}</h1>
-  {% if signup %}
-  <p class="muted">دسترسی این مرورگر ۹۰ روز اعتبار دارد. پاک‌کردن داده‌های مرورگر می‌تواند دسترسی را قطع کند. پس از ساخت حساب، یک مرورگر دیگر ثبت کنید یا کد بازیابی را از تنظیمات بگیرید.</p>
-  {% endif %}
   <form method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}

@@ -14,7 +14,6 @@ urlpatterns = [
     path('logout/', access.sign_out, name='logout'),
     path('signup/', access.username_access, {'signup': True}, name='signup'),
     path('login/recover/', access.recover, name='recover-account'),
-    path('login/confirm/', access.confirm_browser, name='confirm-browser'),
     path('settings/', a.settings_page, name='settings'),
     path('settings/theme/', a.header_theme, name='header-theme'),
     path('settings/photo/', a.profile_photo, name='profile-photo'),

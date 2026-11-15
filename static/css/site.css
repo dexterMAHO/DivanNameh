@@ -1338,8 +1338,6 @@ input[type=file]::file-selector-button {
   gap: var(--space-1);
 }
 .theme-options [data-current] { border-color: var(--color-primary); background: var(--color-primary-soft); }
-.browser-list { padding-inline-start: var(--space-4); }
-.browser-list li { margin-block: var(--space-2); }
 .ltr-field { direction: ltr; }
 [data-reading-size="large"] { --text-poem: clamp(1.5rem, 2.6vw, 2rem); }
 [data-reading-size="largest"] { --text-poem: clamp(1.75rem, 3.2vw, 2.5rem); }

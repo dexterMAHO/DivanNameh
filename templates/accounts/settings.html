@@ -47,39 +47,6 @@
 
   {% if not user.is_staff and not user.is_superuser %}
   <section class="panel">
-    <h2>مرورگرهای ورود</h2>
-    <p>ثبت مرورگر تا ۹۰ روز معتبر است. برای دستگاه تازه، یک پیوند مستقل بسازید.</p>
-    <ul class="browser-list">
-      {% for browser in browsers %}
-        <li>
-          <span>{% if browser.is_current %}<strong>این مرورگر</strong>{% else %}{{ browser.label|default:'مرورگر ثبت‌شده' }} {{ forloop.counter|persian }}{% endif %}</span>
-          <span class="fine">معتبر تا <time datetime="{{ browser.expires_at|date:'c' }}">{{ browser.expires_at|date:'j F Y'|persian }}</time></span>
-          {% if not browser.is_current %}
-            <form method="post">
-              {% csrf_token %}
-              <input type="hidden" name="browser_id" value="{{ browser.pk }}">
-              <button class="text-button" name="section" value="revoke-browser" aria-label="لغو دسترسی مرورگر {{ forloop.counter|persian }}">لغو دسترسی</button>
-            </form>
-          {% endif %}
-        </li>
-      {% empty %}
-        <li>مرورگر ثبت‌شده‌ای در فهرست نیست.</li>
-      {% endfor %}
-    </ul>
-    <form method="post" class="form-actions">
-      {% csrf_token %}
-      {% if not current_browser_known %}<button name="section" value="browser">ثبت این مرورگر</button>{% endif %}
-      <button name="section" value="browser-link">پیوند برای مرورگر دیگر</button>
-    </form>
-    {% if browser_link %}
-      <p>پیوند را در مرورگر دیگر باز کنید. تا ۱۵ دقیقه و فقط یک بار قابل استفاده است.</p>
-      <label for="browser-link">پیوند ثبت مرورگر</label>
-      <input id="browser-link" type="url" value="{{ browser_link }}" readonly>
-      <button type="button" data-copy-field="browser-link" hidden>کپی پیوند</button>
-      <p class="inline-status" role="status"></p>
-    {% endif %}
-  </section>
-  <section class="panel">
     <h2>بازیابی حساب</h2>
     <p>کد بازیابی را جایی امن، جدا از این مرورگر، نگه دارید. هر کد یک بار قابل استفاده است. ساخت کد تازه، کد قبلی را باطل می‌کند.</p>
     {% if recovery_code %}

@@ -9,9 +9,7 @@
     {% csrf_token %}
     <label for="recovery-code">کد بازیابی</label>
     <input type="password" id="recovery-code" name="code" autocomplete="off" maxlength="80" required {% if error %}aria-invalid="true" aria-describedby="recovery-error"{% endif %}>
-    <label for="recovery-browser-label">نام دستگاه (اختیاری)</label>
-    <input id="recovery-browser-label" name="browser_label" maxlength="80" autocomplete="off">
-    <button class="primary">ثبت مرورگر و ورود</button>
+    <button class="primary">ورود به حساب</button>
   </form>
   <a href="{% url 'login' %}">بازگشت به ورود</a>
 </section>

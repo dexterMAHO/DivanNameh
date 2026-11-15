@@ -5,6 +5,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
+Environment=DIVAN_DEPLOY_ROOT={{ divan_root }}
 ExecStart=/usr/local/sbin/divannameh-update
 TimeoutStartSec=45min
 UMask=0077

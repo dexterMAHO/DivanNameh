@@ -17,6 +17,7 @@
           - divan_domain is defined
           - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
           - (divan_workers | int) > 0
+          - divan_root is match('^(/[A-Za-z0-9_.-]+)+$')
           - divan_repository is match('^(https://[^/@]+/|ssh://[^/]+/|[^ @/:]+@[^ /:]+:)')
 
     - name: Install deploy runner dependencies
@@ -84,14 +85,21 @@
         group: root
         mode: "0755"
 
-    - name: Install the systemd service and timer
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "/etc/systemd/system/{{ item }}"
+    - name: Install the systemd service
+      ansible.builtin.template:
+        src: divannameh-auto-deploy.service.j2
+        dest: /etc/systemd/system/divannameh-auto-deploy.service
         owner: root
         group: root
         mode: "0644"
-      loop: [divannameh-auto-deploy.service, divannameh-auto-deploy.timer]
+
+    - name: Install the systemd timer
+      ansible.builtin.copy:
+        src: divannameh-auto-deploy.timer
+        dest: /etc/systemd/system/divannameh-auto-deploy.timer
+        owner: root
+        group: root
+        mode: "0644"
 
     - name: Enable the deployment timer
       ansible.builtin.systemd_service:

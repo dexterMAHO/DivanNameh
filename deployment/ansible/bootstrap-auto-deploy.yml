@@ -112,14 +112,14 @@
         group: root
         mode: "0644"
 
-    - name: Enable the deployment timer
-      ansible.builtin.systemd_service:
-        name: divannameh-auto-deploy.timer
-        daemon_reload: true
-        enabled: true
-        state: started
-
     - name: Run the initial deployment
       ansible.builtin.systemd_service:
         name: divannameh-auto-deploy.service
+        daemon_reload: true
+        state: started
+
+    - name: Enable the deployment timer
+      ansible.builtin.systemd_service:
+        name: divannameh-auto-deploy.timer
+        enabled: true
         state: started

@@ -1,6 +1,6 @@
 # استقرار خودکار شاخهٔ deploy
 
-Ansible یک بار با SSH روی سرور Ubuntu 24.04 اجرا می‌شود و Git، Ansible، سرویس و تایمر systemd را نصب می‌کند. از آن پس خود سرور هر دو دقیقه شاخهٔ `deploy` را می‌خواند و فقط وقتی کامیت شاخه با نسخهٔ تأییدشده فرق دارد، playbook استقرار را محلی اجرا می‌کند. Playbook Docker و Compose را در صورت نیاز نصب می‌کند، تصویر Django را می‌سازد، مایگریشن و کانتینرها را اجرا می‌کند و HTTPS را مستقیم روی سرور و از طریق دامنه بررسی می‌کند. پروژهٔ Compose و volumeهای دیتابیس و Caddy میان نسخه‌ها مشترک‌اند.
+Ansible یک بار با SSH روی سرور Ubuntu 24.04 یا Debian 12 اجرا می‌شود و Git، Ansible، سرویس و تایمر systemd را نصب می‌کند. از آن پس خود سرور هر دو دقیقه شاخهٔ `deploy` را می‌خواند و فقط وقتی کامیت شاخه با نسخهٔ تأییدشده فرق دارد، playbook استقرار را محلی اجرا می‌کند. Playbook Docker و Compose را در صورت نیاز نصب می‌کند، تصویر Django را می‌سازد، مایگریشن و کانتینرها را اجرا می‌کند و HTTPS را مستقیم روی سرور و از طریق دامنه بررسی می‌کند. پروژهٔ Compose و volumeهای دیتابیس و Caddy میان نسخه‌ها مشترک‌اند.
 
 ## نصب روی سرور
 
@@ -11,6 +11,8 @@ cp deployment/ansible/auto-inventory.example.yml deployment/ansible/inventory.ym
 # IP، پورت و کاربر SSH و دامنه را در inventory.yml تنظیم کنید.
 ansible-playbook -i deployment/ansible/inventory.yml deployment/ansible/bootstrap-auto-deploy.yml
 ```
+
+برای نصب پیش‌نیازها قبل از آماده‌شدن دامنه، گزینهٔ `-e divan_prepare_only=true` را اضافه کنید.
 
 برای کاربر sudo با رمز گزینهٔ `-K` را اضافه کنید. اگر Nginx موجود پورت ۸۰ را گرفته و ۴۴۳ آزاد است، در inventory مقدار `divan_use_existing_nginx: true` را بگذارید. برای مخزن خصوصی، قبل از نصب یک کلید فقط‌خواندنی Git و کلید میزبان تأییدشده را برای کاربر root سرور تنظیم کنید و مقدار `divan_repository` را به نشانی SSH بدهید. دسترسی نوشتن روی شاخهٔ `deploy` معادل اختیار انتشار کد روی سرور است و باید محدود به افراد مجاز باشد.
 

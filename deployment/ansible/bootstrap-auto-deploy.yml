@@ -9,22 +9,33 @@
     divan_nginx_http_port: 18080
     divan_workers: 2
   tasks:
-    - name: Validate the target and deployment settings
+    - name: Verify the operating system
       ansible.builtin.assert:
         that:
-          - ansible_facts.distribution == 'Ubuntu'
-          - ansible_facts.distribution_version == '24.04'
-          - divan_domain is defined
-          - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
-          - (divan_workers | int) > 0
-          - divan_root is match('^(/[A-Za-z0-9_.-]+)+$')
-          - divan_repository is match('^(https://[^/@]+/|ssh://[^/]+/|[^ @/:]+@[^ /:]+:)')
+          - (ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_version == '24.04') or
+            (ansible_facts.distribution == 'Debian' and ansible_facts.distribution_major_version == '12')
 
     - name: Install deploy runner dependencies
       ansible.builtin.apt:
         name: [ansible-core, git, openssh-client, ca-certificates, curl, util-linux]
         update_cache: true
         cache_valid_time: 3600
+
+    - name: Prepare Docker Engine
+      ansible.builtin.import_tasks: docker-tasks.yml
+
+    - name: Stop after installing host dependencies
+      ansible.builtin.meta: end_host
+      when: divan_prepare_only | default(false) | bool
+
+    - name: Validate the deployment settings
+      ansible.builtin.assert:
+        that:
+          - divan_domain is defined
+          - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
+          - (divan_workers | int) > 0
+          - divan_root is match('^(/[A-Za-z0-9_.-]+)+$')
+          - divan_repository is match('^(https://[^/@]+/|ssh://[^/]+/|[^ @/:]+@[^ /:]+:)')
 
     - name: Create private deployment directories
       ansible.builtin.file:

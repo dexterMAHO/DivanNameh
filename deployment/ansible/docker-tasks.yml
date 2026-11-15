@@ -1,0 +1,58 @@
+---
+- name: Check for an existing Docker Compose installation
+  ansible.builtin.command: docker compose version
+  register: divan_existing_compose
+  changed_when: false
+  failed_when: false
+
+- name: Install Docker and Compose when missing
+  when: divan_existing_compose.rc != 0
+  block:
+    - name: Detect the Docker package family already installed
+      ansible.builtin.package_facts:
+        manager: apt
+
+    - name: Create the APT keyring directory on Debian
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+      when: ansible_facts.distribution == 'Debian'
+
+    - name: Install the Docker repository signing key on Debian
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/divan-docker.asc
+        mode: "0644"
+      when: ansible_facts.distribution == 'Debian'
+
+    - name: Configure the official Docker repository on Debian
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/divan-docker.asc] https://download.docker.com/linux/debian {{ ansible_facts.distribution_release }} stable"
+        filename: divan-docker
+        update_cache: false
+      register: divan_docker_repository
+      when: ansible_facts.distribution == 'Debian'
+
+    - name: Install Docker from the matching package repository
+      ansible.builtin.apt:
+        name: "{{ divan_docker_packages }}"
+        update_cache: true
+        cache_valid_time: "{{ 0 if divan_docker_repository.changed | default(false) else 3600 }}"
+        fail_on_autoremove: true
+      vars:
+        divan_docker_packages: >-
+          {{ ['docker-ce', 'docker-ce-cli', 'docker-buildx-plugin', 'docker-compose-plugin']
+             if ansible_facts.distribution == 'Debian' or 'containerd.io' in ansible_facts.packages or 'docker-ce' in ansible_facts.packages
+             else ['docker.io', 'docker-compose-v2'] }}
+
+- name: Install OpenSSL for credential generation
+  ansible.builtin.apt:
+    name: openssl
+    state: present
+
+- name: Enable Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true

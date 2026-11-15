@@ -1,5 +1,5 @@
 ---
-- name: Deploy DivanNameh to Ubuntu 24.04
+- name: Deploy DivanNameh
   hosts: divan_servers
   become: true
   vars:
@@ -22,8 +22,8 @@
     - name: Validate target and domain
       ansible.builtin.assert:
         that:
-          - ansible_facts.distribution == 'Ubuntu'
-          - ansible_facts.distribution_version == '24.04'
+          - (ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_version == '24.04') or
+            (ansible_facts.distribution == 'Debian' and ansible_facts.distribution_major_version == '12')
           - divan_domain is defined
           - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
           - (divan_workers | default(2) | int) > 0
@@ -36,41 +36,8 @@
       register: divan_revision
       changed_when: false
 
-    - name: Check for an existing Docker Compose installation
-      ansible.builtin.command: docker compose version
-      register: divan_existing_compose
-      changed_when: false
-      failed_when: false
-
-    - name: Install Docker and Compose when missing
-      when: divan_existing_compose.rc != 0
-      block:
-        - name: Detect the Docker package family already installed
-          ansible.builtin.package_facts:
-            manager: apt
-
-        - name: Install Docker from the matching package repository
-          ansible.builtin.apt:
-            name: "{{ divan_docker_packages }}"
-            update_cache: true
-            cache_valid_time: 3600
-            fail_on_autoremove: true
-          vars:
-            divan_docker_packages: >-
-              {{ ['docker-ce', 'docker-ce-cli', 'docker-buildx-plugin', 'docker-compose-plugin']
-                 if 'containerd.io' in ansible_facts.packages or 'docker-ce' in ansible_facts.packages
-                 else ['docker.io', 'docker-compose-v2'] }}
-
-    - name: Install OpenSSL for credential generation
-      ansible.builtin.apt:
-        name: openssl
-        state: present
-
-    - name: Enable Docker
-      ansible.builtin.service:
-        name: docker
-        state: started
-        enabled: true
+    - name: Prepare Docker Engine
+      ansible.builtin.import_tasks: docker-tasks.yml
 
     - name: Create the deployment and release directories
       ansible.builtin.file:

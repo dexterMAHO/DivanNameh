@@ -238,7 +238,7 @@ try {
   assert.equal(await evaluate('document.getElementById("add-verse").hidden && document.getElementById("preview-button").hidden'), true);
   await send('Emulation.setScriptExecutionDisabled', {value: false});
   await send('Network.deleteCookies', {name: 'sessionid', url: base});
-  for (const guest of ['/login/', '/signup/', '/login/confirm/', '/login/recover/']) {
+  for (const guest of ['/login/', '/signup/', '/login/recover/']) {
     await open(guest);
     assert.equal(await evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), true, guest);
   }

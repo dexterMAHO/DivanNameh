@@ -7,7 +7,8 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
-from .models import Poem, Verse, Tag, FavoriteVerse, PoemEditRequest
+from .models import (FavoriteVerse, Poem, PoemEditRequest, Tag, TreasuryEntry, TreasuryPick,
+                     TreasurySet, TreasurySetVerse, TreasuryTopic, TreasuryVerseLink, Verse)
 from .services.edit_requests import decide_edit, edit_changes
 
 class ReadOnlySuperuserAdmin(admin.ModelAdmin):
@@ -76,3 +77,50 @@ class PoemEditRequestAdmin(ReadOnlySuperuserAdmin):
             'edits': queryset, 'error': bool(request.POST.get('confirmed')),
             'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
         })
+
+
+@admin.register(TreasuryEntry)
+class TreasuryEntryAdmin(ReadOnlySuperuserAdmin):
+    search_fields = ('title', 'book__author', 'key')
+    list_display = ('title', 'book', 'kind', 'has_text')
+    list_select_related = ('book',)
+    show_full_result_count = False
+
+
+@admin.register(TreasuryPick)
+class TreasuryPickAdmin(admin.ModelAdmin):
+    search_fields = ('entry__title', 'entry__book__author')
+    autocomplete_fields = ('entry',)
+    filter_horizontal = ('topics',)
+    list_display = ('entry', 'published', 'featured', 'sample_position')
+    list_filter = ('published', 'featured')
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if 'entry' in form.base_fields:
+            form.base_fields['entry'].queryset = TreasuryEntry.objects.filter(
+                kind='work', book__publishes_text=True, has_text=True,
+            ).select_related('book')
+        return form
+
+
+class TreasurySetVerseInline(admin.TabularInline):
+    model = TreasurySetVerse
+    autocomplete_fields = ('pick',)
+    extra = 1
+
+
+@admin.register(TreasurySet)
+class TreasurySetAdmin(admin.ModelAdmin):
+    list_display = ('title', 'published')
+    inlines = (TreasurySetVerseInline,)
+
+
+@admin.register(TreasuryVerseLink)
+class TreasuryVerseLinkAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('origin', 'target')
+    list_display = ('origin', 'kind', 'target')
+    list_filter = ('kind',)
+
+
+admin.site.register(TreasuryTopic)

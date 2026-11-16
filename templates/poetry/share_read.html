@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ snapshot.title }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="مسیر خواندن"><a href="{% url 'treasury' %}">گنجینهٔ فارسی</a></nav>
+{% include 'poetry/shared_text.html' %}
+{% if snapshot.mode == 'practice' and not revealed %}
+<section class="panel">
+  <h2>مصرع دوم را به یاد بیاور</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="practice-answer">مصرع دوم</label><input type="text" id="practice-answer" name="answer" maxlength="1000" autocomplete="off">
+    <div class="actions"><button class="primary" name="intent" value="check">بررسی پاسخ</button><button name="intent" value="reveal">آشکار کردن مصرع دوم</button></div>
+  </form>
+</section>
+{% endif %}
+{% if answer_matches is not None %}<p class="notice" role="status">{% if answer_matches %}درست به یاد آوردید.{% else %}پاسخ را در متن بالا ببینید.{% endif %}</p>{% endif %}
+<div class="actions">
+  {% if complete_url %}<a class="button" href="{{ complete_url }}">خواندن شعر کامل</a>{% endif %}
+  {% if snapshot.mode != 'practice' or revealed %}
+    <a class="button" href="{% url 'share-save' share.token %}?action=library">افزودن به دفتر من</a>
+    <a class="button primary" href="{% url 'share-save' share.token %}?action=memorize">افزودن به مرور من</a>
+    {% if snapshot.rows|length <= 2 %}<a class="button" href="{% url 'share-card' share.token %}">دریافت کارت تصویری</a>{% endif %}
+  {% endif %}
+</div>
+{% endblock %}

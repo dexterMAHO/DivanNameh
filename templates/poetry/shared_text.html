@@ -1,0 +1,17 @@
+{% load persian %}
+<article class="reading-sheet share-sheet">
+  <header class="poem-heading"><p class="eyebrow">{{ snapshot.author }}</p><h1>{{ snapshot.title }}</h1></header>
+  {% for position, first, second, gap in shared_rows %}
+    {% if gap %}<p class="share-gap" aria-label="بخشی از شعر در این گزیده نیامده است">…</p>{% endif %}
+    <div class="share-verse" data-shared-position="{{ position }}">
+      <span class="share-position">{{ position|persian }}</span>
+      {% if snapshot.mode == 'practice' and not revealed %}
+        <p class="share-hemistich">{{ first }}</p>
+      {% else %}
+        <div class="share-hemistich">{{ first }}{% if second %}<br>{{ second }}{% endif %}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+  {% if snapshot.note %}<aside class="share-note"><h2>یادداشت همراه</h2><p>{{ snapshot.note|linebreaksbr }}</p></aside>{% endif %}
+  {% if snapshot.source %}<p class="source-note"><a href="{{ snapshot.source }}" rel="nofollow noopener noreferrer">منبع متن</a></p>{% endif %}
+</article>

@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -279,3 +281,108 @@ class LibraryImport(models.Model):
     owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='pending_library_import')
     payload = models.JSONField()
     created_at = models.DateTimeField(auto_now=True)
+
+
+class TreasuryTopic(models.Model):
+    slug = models.SlugField(unique=True, allow_unicode=True)
+    title = models.CharField('عنوان', max_length=100)
+
+    class Meta:
+        ordering = ('title',)
+        verbose_name_plural = 'موضوع‌های گنجینه'
+
+    def __str__(self):
+        return self.title
+
+
+class TreasuryPick(models.Model):
+    entry = models.OneToOneField(TreasuryEntry, on_delete=models.CASCADE, related_name='editorial')
+    topics = models.ManyToManyField(TreasuryTopic, blank=True)
+    published = models.BooleanField('انتشار عمومی', default=False)
+    featured = models.BooleanField('برگزیده', default=False)
+    sample_position = models.PositiveIntegerField('بیت نمونه', default=1)
+
+    class Meta:
+        verbose_name_plural = 'شعرهای عمومی گنجینه'
+
+    def clean(self):
+        if self.entry_id and self.published:
+            rows = self.entry.couplets or []
+            if (self.entry.kind != 'work' or not self.entry.book.publishes_text or not rows
+                    or not self.entry.source_url):
+                raise ValidationError({'entry': 'برای انتشار، اثر باید متن کامل و نشانی منبع داشته باشد.'})
+            if self.sample_position and self.sample_position > len(rows):
+                raise ValidationError({'sample_position': 'شمارهٔ بیت در متن اثر وجود ندارد.'})
+            if self.sample_position == 0:
+                raise ValidationError({'sample_position': 'شمارهٔ بیت باید از یک شروع شود.'})
+
+    def __str__(self):
+        return str(self.entry)
+
+
+class TreasurySet(models.Model):
+    slug = models.SlugField(unique=True, allow_unicode=True)
+    title = models.CharField('عنوان', max_length=120)
+    description = models.TextField('معرفی', blank=True)
+    published = models.BooleanField('انتشار عمومی', default=False)
+
+    class Meta:
+        ordering = ('title',)
+        verbose_name_plural = 'مجموعه‌های ادبی گنجینه'
+
+    def __str__(self):
+        return self.title
+
+
+class TreasurySetVerse(models.Model):
+    collection = models.ForeignKey(TreasurySet, on_delete=models.CASCADE, related_name='quotes')
+    pick = models.ForeignKey(TreasuryPick, on_delete=models.CASCADE, related_name='quotes')
+    verse = models.PositiveIntegerField('شمارهٔ بیت')
+    commentary = models.CharField('توضیح', max_length=320)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ('order', 'pk')
+
+    def clean(self):
+        if self.pick_id and self.verse is not None and not 1 <= self.verse <= len(self.pick.entry.couplets or []):
+            raise ValidationError({'verse': 'شمارهٔ بیت در متن اثر وجود ندارد.'})
+
+
+class TreasuryVerseLink(models.Model):
+    class Kind(models.TextChoices):
+        IMAGE = 'image', 'تصویر مشترک'
+        REFRAIN = 'refrain', 'ردیف مشترک'
+        RESPONSE = 'response', 'استقبال'
+        QUOTATION = 'quotation', 'تضمین'
+
+    origin = models.ForeignKey(TreasuryPick, on_delete=models.CASCADE, related_name='outgoing_links')
+    origin_verse = models.PositiveIntegerField('شمارهٔ بیت مبدأ')
+    target = models.ForeignKey(TreasuryPick, on_delete=models.CASCADE, related_name='incoming_links')
+    target_verse = models.PositiveIntegerField('شمارهٔ بیت مقصد')
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    explanation = models.CharField('دلیل ارتباط', max_length=320)
+    source_url = models.URLField('منبع', max_length=500, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'پیوندهای ادبی گنجینه'
+
+    def clean(self):
+        for field in ('origin', 'target'):
+            position = getattr(self, f'{field}_verse')
+            if getattr(self, f'{field}_id') and position is not None:
+                if not 1 <= position <= len(getattr(self, field).entry.couplets or []):
+                    raise ValidationError({f'{field}_verse': 'شمارهٔ بیت در متن اثر وجود ندارد.'})
+        if self.kind in (self.Kind.RESPONSE, self.Kind.QUOTATION) and not self.source_url:
+            raise ValidationError({'source_url': 'برای استقبال و تضمین، منبع لازم است.'})
+
+
+class PoemShare(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='poem_shares')
+    token = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+    snapshot = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('-created_at', '-pk')

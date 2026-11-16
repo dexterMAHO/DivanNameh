@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}{{ collection.title }}{% endblock %}
+{% block content %}
+<header class="page-heading compact"><div><span class="eyebrow">یک مضمون، چند صدا</span><h1>{{ collection.title }}</h1><p>{{ collection.description }}</p></div><a href="{% url 'treasury' %}">گنجینهٔ فارسی</a></header>
+{% for quote, row, url in rows %}
+<article class="panel">
+  <blockquote class="literary-quote">{{ row.0 }}<br>{{ row.1 }}</blockquote>
+  <p>{{ quote.commentary }}</p>
+  <a href="{{ url }}">{{ quote.pick.entry.book.author }} · بیت {{ quote.verse|persian }}</a>
+</article>
+{% empty %}<p>هنوز بیتی در این مجموعه منتشر نشده است.</p>{% endfor %}
+{% endblock %}

@@ -62,3 +62,5 @@ PYTHON=.venv/bin/python node scripts/check_browser.mjs
 ## استقرار با Docker و Ansible
 
 راهنمای اجرای محلی و نصب از راه دور روی Ubuntu 24.04 در [راهنمای Docker و Ansible](deployment/DOCKER-ANSIBLE.md) آمده است.
+
+برای پرکردن گنجینهٔ عمومی با گزیدهٔ آغازین، پس از مایگریشن `python manage.py seed_public_treasury` را اجرا کنید. آثار عمومی، موضوع‌ها، مجموعه‌ها و پیوندهای ادبی در پنل مدیریت قابل تنظیم‌اند.

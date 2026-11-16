@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}اشتراک‌های من{% endblock %}
+{% block content %}
+<header class="page-heading compact"><h1>اشتراک‌های من</h1><a href="{% url 'poems' %}">دفتر شخصی</a></header>
+{% for share in page %}
+<article class="panel">
+  <h2>{{ share.snapshot.title }}</h2>
+  <p>{{ share.snapshot.author }} · {% if share.snapshot.mode == 'practice' %}تمرین مصرع دوم{% else %}خواندن{% endif %}</p>
+  {% if share.revoked_at %}
+  <p>غیرفعال</p>
+  {% else %}
+  <div class="actions">
+    <a href="{% url 'share-created' share.token %}">دیدن و کپی پیوند</a>
+    <form method="post" action="{% url 'share-revoke' share.token %}">{% csrf_token %}<button>غیرفعال کردن پیوند</button></form>
+  </div>
+  {% endif %}
+</article>
+{% empty %}<p>هنوز پیوندی برای گزیده یا تمرین نساخته‌اید.</p>{% endfor %}
+{% include 'components/pagination.html' %}
+{% endblock %}

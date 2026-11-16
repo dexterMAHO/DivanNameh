@@ -1422,3 +1422,17 @@ input[type=file]::file-selector-button {
 @media (max-width: 360px) {
   #header-theme { display: none; }
 }
+
+.treasury-stanza[id] { scroll-margin-block-start: 5rem; }
+.treasury-stanza:target { background: var(--color-primary-soft); }
+.literary-quote, .share-hemistich { font: 1.3rem/2 var(--font-literary); overflow-wrap: anywhere; }
+.literary-link + .literary-link { border-block-start: 1px solid var(--color-border); }
+.literary-quote mark { padding-inline: 0.1em; background: var(--color-primary-soft); color: var(--color-foreground); text-decoration: underline; }
+.share-choices { max-block-size: 26rem; overflow: auto; margin-block: var(--space-3); }
+.share-choice { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--space-3); padding: var(--space-2); border-block-end: 1px solid var(--color-border); }
+.share-choice-text { display: block; font-family: var(--font-literary); overflow-wrap: anywhere; }
+.share-sheet { padding: var(--space-5); }
+.share-verse { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--space-2); padding-block: var(--space-2); }
+.share-position { color: var(--color-muted-foreground); }
+.share-gap { margin: 0; text-align: center; }
+.share-note { border-block-start: 1px solid var(--color-border); margin-block-start: var(--space-4); }

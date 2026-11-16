@@ -6,11 +6,13 @@
   <div>
     <span class="eyebrow">کتابخانهٔ مشترک</span>
     <h1>گنجینهٔ فارسی</h1>
-    <p>زندگی‌نامهٔ کوتاه، تصویر و فهرست آثار {{ totals.poets|tally }} شاعر و نویسنده، روی هم {{ totals.works|tally }} اثر.</p>
+    {% if user.is_authenticated %}<p>زندگی‌نامهٔ کوتاه، تصویر و فهرست آثار {{ totals.poets|tally }} شاعر و نویسنده، روی هم {{ totals.works|tally }} اثر.</p>{% endif %}
   </div>
-  <a class="button" href="{% url 'treasury-works' %}">جست‌وجوی آثار و ابیات</a>
+  {% if user.is_authenticated %}<a class="button" href="{% url 'treasury-works' %}">جست‌وجوی آرشیو آثار</a>{% endif %}
 </header>
 
+{% include 'poetry/treasury_showcase.html' %}
+{% if user.is_authenticated %}
 <section class="panel treasury-filters" aria-labelledby="treasury-filters-title">
   <h2 class="visually-hidden" id="treasury-filters-title">پالایش گنجینه</h2>
   <form class="treasury-filter-form" method="get" action="{% url 'treasury' %}">
@@ -74,4 +76,5 @@
   {% endfor %}
 </div>
 {% include 'components/pagination.html' %}
+{% endif %}
 {% endblock %}

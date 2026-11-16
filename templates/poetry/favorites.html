@@ -10,6 +10,7 @@
   <article class="panel">
     <h2><a href="{{ favorite.verse.poem.get_absolute_url }}">{{ favorite.verse.poem.display_title }} · {{ favorite.verse.poem.poet_name }}</a></h2>
     {% include 'components/verse.html' with verse=favorite.verse %}
+    <a href="{% url 'share-library' favorite.verse.poem_id %}?verse={{ favorite.verse.position }}">اشتراک این بیت</a>
     <form method="post" action="{% url 'unfavorite' favorite.verse.pk %}">
       {% csrf_token %}
       <input type="hidden" name="return_to_favorites" value="1">

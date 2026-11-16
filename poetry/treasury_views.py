@@ -2,6 +2,7 @@ import hashlib
 import json
 from collections import defaultdict
 
+from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, F, Q, Sum
@@ -17,7 +18,10 @@ from memorization.services.reviews import get_due_items
 
 from .treasury_forms import is_line_poem
 from .http import failure, private, success
-from .models import FavoriteVerse, Poem, TreasuryBook, TreasuryEntry, Verse
+from .models import FavoriteVerse, Poem, TreasuryBook, TreasuryEntry, TreasuryVerseLink, Verse
+from .editorial_views import showcase
+from .services.editorial import public_picks, quote_row, verse_url
+from .services.public_library import save_public_work
 from .services.discovery import numeric_id
 from .services.search import search_field, search_text
 from .services.treasury_metadata import ALPHABET
@@ -52,9 +56,13 @@ def filtered_books(params):
                                           'century': century, 'sort': sort}
 
 
-@private
 @require_GET
 def index(request):
+    editorial = showcase(request)
+    if not isinstance(editorial, dict):
+        return editorial
+    if not request.user.is_authenticated:
+        return render(request, 'poetry/treasury.html', editorial)
     books, filters = filtered_books(request.GET)
     totals = TreasuryBook.objects.aggregate(poets=Count('pk'), works=Sum('work_count'))
     centuries = (TreasuryBook.objects.filter(century__isnull=False)
@@ -67,7 +75,7 @@ def index(request):
         'centuries': list(centuries),
         'alphabet': ALPHABET,
         'filtered': bool(filters['query'] or filters['letter'] or filters['century']),
-        **filters,
+        **filters, **editorial,
     })
 
 
@@ -110,17 +118,19 @@ def skip_single_root(book, depth=3):
     return parent, {entry.pk for entry in skipped}
 
 
-@private
 @require_GET
 def book_detail(request, slug, key=None):
     book = get_object_or_404(TreasuryBook, slug=slug)
     current = get_object_or_404(TreasuryEntry.objects.defer('search_body'), book=book, key=key) if key else None
+    pick = public_picks().filter(entry=current).first() if current else None
+    if not request.user.is_authenticated and not pick:
+        return redirect_to_login(request.get_full_path())
     listing_root, skipped = skip_single_root(book)
     parents = entry_sections(current) if current else []
     ancestors = [parent for parent in parents if parent.pk not in skipped]
     line_layout, rows = reading_rows(current, book, parents) if current and current.kind == 'work' else (False, [])
     saved = set()
-    if rows:
+    if rows and request.user.is_authenticated:
         digests = {
             selection_digest(book.slug, current.key, [position], [row]): position
             for position, row in enumerate(rows, 1)
@@ -130,15 +140,34 @@ def book_detail(request, slug, key=None):
             verse__poem__archived_at__isnull=True, verse__position=1,
         ).values_list('verse__poem__treasury_selection', flat=True)
         saved = {digests[digest] for digest in saved_digests}
+        if pick:
+            saved.update(FavoriteVerse.objects.filter(
+                owner=request.user, verse__poem__treasury_book_slug=slug,
+                verse__poem__treasury_entry_key=current.key, verse__poem__archived_at__isnull=True,
+                verse__treasury_position__isnull=False,
+            ).values_list('verse__treasury_position', flat=True))
     sections, groups, count, page = ([], [], 0, None)
     if not current or current.kind == 'section':
         sections, groups, count, page = work_listing(book, current or listing_root, request.GET)
     merge_targets = []
-    if rows:
+    if rows and request.user.is_authenticated:
         merge_targets = Poem.objects.filter(
             owner=request.user, treasury_book_slug=slug, treasury_entry_key=current.key,
             treasury_edition=book.dataset_digest, line_layout=line_layout,
         ).filter(archived_at__isnull=True).exclude(treasury_positions=[]).only('pk', 'title')[:20]
+    links, collections = [], []
+    if pick:
+        collections = pick.quotes.filter(collection__published=True).select_related('collection')
+        related = TreasuryVerseLink.objects.filter(
+            Q(origin=pick, target__in=public_picks()) | Q(target=pick, origin__in=public_picks()),
+        ).select_related('origin__entry__book', 'target__entry__book')
+        for link in related:
+            if link.origin_id == pick.pk:
+                other, position, here = link.target, link.target_verse, link.origin_verse
+            else:
+                other, position, here = link.origin, link.origin_verse, link.target_verse
+            if 0 < here <= len(rows) and (row := quote_row(other, position)):
+                links.append((link, here, other, row, verse_url(other.entry, position)))
     origin = request.GET.get('from', '')
     treasury_back = origin if origin.startswith(reverse('treasury-works')) and url_has_allowed_host_and_scheme(origin, allowed_hosts=set()) else ''
     return render(request, 'poetry/treasury_book.html', {
@@ -146,6 +175,7 @@ def book_detail(request, slug, key=None):
         'book': book, 'entry': current, 'ancestors': reversed(ancestors),
         'sections': sections, 'groups': groups, 'work_count': count, 'page': page,
         'work_query': request.GET.get('q', '').strip()[:120], 'merge_targets': merge_targets,
+        'pick': pick, 'literary_links': links, 'literary_collections': collections,
         'rows': rows, 'line_layout': line_layout, 'saved_positions': saved,
     })
 
@@ -264,6 +294,18 @@ def save_selection(request, slug, key):
         return failure(request, 'شمارهٔ بیت معتبر نیست.')
     if not positions or positions[0] < 1 or positions[-1] > len(rows):
         return failure(request, 'دست‌کم یک بیت معتبر انتخاب کنید.')
+
+    if public_picks().filter(entry=entry).exists() and action in ('library-all', 'favorite', 'unfavorite', 'memorize'):
+        poem = save_public_work(request.user, entry, rows, positions, action)
+        if action in ('favorite', 'unfavorite'):
+            return success(request, 'نشان شاه‌بیت به‌روز شد.', verse_url(entry, positions[0]),
+                           favorite=action == 'favorite')
+        if action == 'memorize':
+            return success(request, 'بیت‌های انتخابی به فهرست حفظ افزوده شدند.', 'memorize',
+                           target_url=reverse('memorize'), target_label='دیدن فهرست حفظ',
+                           remaining_due_count=get_due_items(request.user).count())
+        return success(request, 'شعر در دفتر شماست.', poem.get_absolute_url(),
+                       target_url=poem.get_absolute_url(), target_label='دیدن شعر در دفتر')
 
     selected = [rows[position - 1] for position in positions]
     digest = selection_digest(slug, key, positions, selected)

@@ -32,6 +32,7 @@
   </div>
   <div class="poem-colophon"><span>{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span><span>ستارهٔ کنار متن، شاه‌بیت را ثبت می‌کند.</span></div>
 </article>
+<p><a class="button" href="{% url 'share-library' poem.pk %}">اشتراک شعر یا گزیده</a></p>
 {% include 'poetry/copy_tools.html' with has_selection=True %}
 {% include 'poetry/memorize_tools.html' %}
 {% if origin_entry %}

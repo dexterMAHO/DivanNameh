@@ -200,9 +200,10 @@ class TreasuryPageTests(TestCase):
     def test_missing_book_is_not_found(self):
         self.assertEqual(self.client.get('/treasury/unknown/').status_code, 404)
 
-    def test_treasury_requires_login(self):
+    def test_public_treasury_keeps_unselected_works_behind_login(self):
         self.client.logout()
-        self.assertEqual(self.client.get('/treasury/').status_code, 302)
+        self.assertEqual(self.client.get('/treasury/').status_code, 200)
+        self.assertEqual(self.client.get('/treasury/hafez/poem-1/').status_code, 302)
 
 
 class TreasuryModelTests(TestCase):

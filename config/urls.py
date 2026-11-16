@@ -4,7 +4,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from accounts import access, views as a
 from .health import health
-from poetry import collection_views, library_views, treasury_views, views as p
+from poetry import share_views, editorial_views, collection_views, library_views, treasury_views, views as p
 from memorization import views as m
 
 urlpatterns = [
@@ -46,6 +46,16 @@ urlpatterns = [
     path('collections/<int:pk>/', collection_views.collection_detail, name='collection-detail'),
     path('poets/', p.poets, name='poets'),
     path('treasury/', treasury_views.index, name='treasury'),
+    path('shares/', share_views.my_shares, name='my-shares'),
+    path('shares/<uuid:token>/created/', share_views.created, name='share-created'),
+    path('shares/<uuid:token>/revoke/', share_views.revoke, name='share-revoke'),
+    path('s/<uuid:token>/', share_views.receive_share, name='shared-poem'),
+    path('s/<uuid:token>/save/', share_views.save_received, name='share-save'),
+    path('s/<uuid:token>/card.png', share_views.share_card, name='share-card'),
+    path('poems/<int:pk>/share/', share_views.compose_share, name='share-library'),
+    path('treasury/<slug:slug>/<slug:key>/share/', share_views.compose_share, name='share-treasury'),
+    path('treasury/trace/', editorial_views.verse_trace, name='treasury-trace'),
+    path('treasury/sets/<str:slug>/', editorial_views.literary_collection, name='literary-collection'),
     path('treasury/works/', treasury_views.works_search, name='treasury-works'),
     path('treasury/<slug:slug>/', treasury_views.book_detail, name='treasury-book'),
     path('treasury/<slug:slug>/<slug:key>/', treasury_views.book_detail, name='treasury-entry'),

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}ذخیرهٔ گزیده{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>{% if action == 'memorize' %}افزودن به مرور من{% else %}افزودن به دفتر من{% endif %}</h1>
+  <p>{{ share.snapshot.title }} · {{ share.snapshot.author }}</p>
+  {% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="{{ action }}">
+    {% if action == 'memorize' %}{% include 'components/action_password.html' %}{% endif %}
+    <button class="primary">تأیید و ذخیره</button>
+  </form>
+</section>
+{% endblock %}

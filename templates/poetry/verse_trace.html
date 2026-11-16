@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}ردّ مصرع{% endblock %}
+{% block content %}
+<header class="page-heading compact"><h1>ردّ مصرع</h1><a href="{% url 'treasury' %}">گنجینهٔ فارسی</a></header>
+<form method="get" class="panel inline-form">
+  <div><label for="trace-query">عنوان، شاعر یا چند واژه از بیت</label><input type="search" id="trace-query" name="q" maxlength="120" value="{{ query }}" required></div>
+  <button class="primary">جست‌وجو</button>
+</form>
+{% if query %}
+<p class="fine">{{ page.paginator.count|persian }} نتیجه</p>
+<div class="card-grid">
+  {% for result in page %}
+  <article class="panel">
+    <h2><a href="{{ result.url }}">{{ result.entry.title }}</a></h2>
+    <p>{{ result.entry.book.author }}{% if result.position %} · بیت {{ result.position|persian }}{% endif %}</p>
+    {% if result.position %}<blockquote class="literary-quote">{{ result.first }}<br>{{ result.second }}</blockquote><a href="{{ result.url }}">رسیدن به بیت در متن کامل</a>{% endif %}
+  </article>
+  {% empty %}<p>نتیجه‌ای پیدا نشد. بخشی کوتاه‌تر از بیت یا نام شاعر را امتحان کنید.</p>{% endfor %}
+</div>
+{% include 'components/pagination.html' %}
+{% endif %}
+{% endblock %}

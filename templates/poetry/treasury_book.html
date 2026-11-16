@@ -53,7 +53,7 @@
 
 {% if entry.kind == 'work' %}
   {% if book.publishes_text and entry.paragraphs %}
-  {% if rows %}
+  {% if rows and user.is_authenticated %}
   <form id="treasury-selection" method="post" action="{% url 'treasury-save' book.slug entry.key %}">
     {% csrf_token %}
   {% endif %}
@@ -61,8 +61,9 @@
   <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem{% endif %}" aria-label="متن اثر" data-reading-key="{{ user.pk }}-treasury-{{ book.slug }}-{{ entry.key }}-{{ book.dataset_digest }}" data-copy-credit="{{ entry.title }} · {{ book.author }}{% if entry.source_url %} · {{ entry.source_url }}{% endif %}">
     {% if rows %}
       {% for first, second in rows %}
-      <div class="treasury-stanza">
+      <div class="treasury-stanza" id="verse-{{ forloop.counter }}">
         {% include 'components/verse_text.html' with position=forloop.counter %}
+        {% if user.is_authenticated %}
         <div class="treasury-verse-actions">
           <label class="treasury-bookmark icon-button" title="انتخاب برای گزیده">
             <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای گزیده">
@@ -75,14 +76,16 @@
             {% include 'components/icon.html' with name='star' %}
           </button>
           <span role="status" class="inline-status treasury-favorite-status"></span>
+          {% if pick %}<a class="text-button" href="{% url 'share-treasury' book.slug entry.key %}?verse={{ forloop.counter }}">اشتراک این بیت</a>{% endif %}
         </div>
+        {% endif %}
       </div>
       {% endfor %}
     {% else %}
       {% for paragraph in entry.paragraphs %}<p data-copy-paragraph>{{ paragraph }}</p>{% endfor %}
     {% endif %}
   </article>
-  {% if rows %}
+  {% if rows and user.is_authenticated %}
     <section class="panel" id="treasury-tools">
       <h2>ذخیره و حفظ اثر</h2>
       <p class="fine">با نشانک کنار متن، گزیدهٔ کپی، ذخیره یا حفظ را انتخاب کنید. ستاره، شاه‌بیت را ثبت می‌کند.</p>
@@ -90,12 +93,12 @@
       <div class="actions">
         <button type="button" id="clear-selection" hidden>پاک‌کردن انتخاب</button>
         <button name="action" value="library-all">ذخیرهٔ کل اثر</button>
-        <button name="action" value="library">ذخیرهٔ گزیده</button>
+        {% if pick %}<a class="button" href="{% url 'share-treasury' book.slug entry.key %}">اشتراک شعر یا گزیده</a>{% else %}<button name="action" value="library">ذخیرهٔ گزیده</button>{% endif %}
       </div>
       {% include 'components/action_password.html' with operation_optional=True %}
       <button name="action" value="memorize">حفظ گزیده یا کل اثر</button>
-      <p class="fine">اگر گزیده‌ای انتخاب نشده باشد، کل اثر به حفظ افزوده می‌شود. ثبت شاه‌بیت یک نسخهٔ تک‌ردیفی در دفتر می‌سازد.</p>
-      {% if merge_targets %}
+      <p class="fine">اگر گزیده‌ای انتخاب نشده باشد، کل اثر به حفظ افزوده می‌شود.</p>
+      {% if merge_targets and not pick %}
         <details>
           <summary>افزودن گزیده به نسخهٔ موجود</summary>
           <label for="merge-poem">شعر مقصد</label>
@@ -109,7 +112,36 @@
     </section>
   </form>
   {% endif %}
-  {% include 'poetry/copy_tools.html' with has_selection=rows %}
+  {% if pick and not user.is_authenticated %}
+    <div class="actions">
+      <a class="button" href="{% url 'login' %}?next={{ request.path|urlencode:'' }}">ورود برای ذخیره، مرور یا ساخت گزیده</a>
+      <a class="button" href="{% url 'share-treasury' book.slug entry.key %}">پیوند شعر کامل</a>
+    </div>
+  {% endif %}
+  {% if user.is_authenticated %}
+    {% include 'poetry/copy_tools.html' with has_selection=rows %}
+  {% else %}
+    {% include 'poetry/copy_tools.html' %}
+  {% endif %}
+  {% if pick and entry.source_url %}<p class="source-note"><a href="{{ entry.source_url }}" rel="nofollow noopener">منبع متن کامل · گنجور</a></p>{% endif %}
+  {% if literary_collections %}
+  <section class="panel"><h2>یک مضمون، چند صدا</h2>
+    <ul>{% for quote in literary_collections %}<li><a href="{% url 'literary-collection' quote.collection.slug %}">{{ quote.collection.title }}</a> · بیت {{ quote.verse|persian }}</li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+  {% if literary_links %}
+  <section class="panel"><h2>از این بیت به آن بیت</h2>
+    {% for link, here, other, row, url in literary_links %}
+    <article class="literary-link">
+      <h3>{{ link.get_kind_display }} · <a href="#verse-{{ here }}">بیت {{ here|persian }}</a></h3>
+      <blockquote class="literary-quote">{{ row.0 }}<br>{{ row.1 }}</blockquote>
+      <p>{{ link.explanation }}</p>
+      <a href="{{ url }}">{{ other.entry.book.author }} · رفتن به بیت</a>
+      {% if link.source_url %} · <a href="{{ link.source_url }}" rel="nofollow noopener">منبع ارتباط</a>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
   {% else %}
   <section class="panel treasury-notice">
     <span class="ornament" aria-hidden="true">{% include 'components/icon.html' with name='lock' %}</span>

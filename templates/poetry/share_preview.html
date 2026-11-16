@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}پیش‌نمایش اشتراک{% endblock %}
+{% block content %}
+<header class="page-heading compact"><div><h1>پیش‌نمایش اشتراک</h1><p>گیرنده این متن و یادداشت را خواهد دید.</p></div></header>
+{% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+{% include 'poetry/shared_text.html' %}
+{% if snapshot.mode == 'practice' %}
+<details class="panel"><summary>پاسخ تمرین در پیش‌نمایش</summary><p>{{ snapshot.rows.0.2 }}</p></details>
+{% endif %}
+{% if complete_url %}<p><a href="{{ complete_url }}">خواندن شعر کامل</a></p>{% endif %}
+<form method="post" class="actions">
+  {% csrf_token %}
+  <input type="hidden" name="preview" value="{{ preview }}">
+  <input type="hidden" name="selection" value="{{ selection }}">
+  <input type="hidden" name="mode" value="{{ snapshot.mode }}">
+  <input type="hidden" name="note" value="{{ snapshot.note }}">
+  {% for position in chosen %}<input type="hidden" name="verse" value="{{ position }}">{% endfor %}
+  <button class="primary" name="intent" value="confirm">{% if canonical_share %}تأیید پیوند شعر کامل{% else %}تأیید و ساخت پیوند{% endif %}</button>
+  <button name="intent" value="edit">بازگشت به انتخاب</button>
+</form>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load persian %}
+<section class="panel" aria-labelledby="showcase">
+  <h2 id="showcase">شعرهای گنجینه</h2>
+  <form method="get" action="{% url 'treasury-trace' %}" class="inline-form">
+    <div><label for="trace-home">ردّ مصرع</label><input type="search" id="trace-home" name="q" maxlength="120" placeholder="چند واژه از بیت، یا نام شاعر"></div>
+    <button class="primary">جست‌وجو</button>
+  </form>
+  <form method="get" class="inline-form">
+    <div><label for="public-poet">شاعر</label><select id="public-poet" name="poet">
+      <option value="">همهٔ شاعران</option>
+      {% for slug, author in public_poets %}<option value="{{ slug }}" {% if slug == public_poet %}selected{% endif %}>{{ author }}</option>{% endfor %}
+    </select></div>
+    <div><label for="public-topic">موضوع</label><select id="public-topic" name="topic">
+      <option value="">همهٔ موضوع‌ها</option>
+      {% for topic in public_topics %}<option value="{{ topic.slug }}" {% if topic.slug == public_topic %}selected{% endif %}>{{ topic.title }}</option>{% endfor %}
+    </select></div>
+    <button>نمایش شعرها</button><button name="turn" value="1">ورق بزن</button>
+  </form>
+</section>
+<div class="card-grid">
+  {% for pick, sample in picks %}
+  <article class="panel">
+    <p class="eyebrow">{{ pick.entry.book.author }}</p>
+    <h2><a href="{{ pick.entry.get_absolute_url }}">{{ pick.entry.title }}</a></h2>
+    {% if sample %}<blockquote class="literary-quote">{{ sample.0 }}<br>{{ sample.1 }}</blockquote>{% endif %}
+  </article>
+  {% empty %}
+  <p>شعری با این پالایه‌ها در گنجینهٔ عمومی پیدا نشد.</p>
+  {% endfor %}
+</div>
+{% if pick_page.has_other_pages %}
+<nav class="pagination" aria-label="صفحه‌های شعر">
+  {% if pick_page.has_previous %}<a href="{% querystring pick_page=pick_page.previous_page_number %}">قبلی</a>{% endif %}
+  <span>صفحهٔ {{ pick_page.number|persian }}</span>
+  {% if pick_page.has_next %}<a href="{% querystring pick_page=pick_page.next_page_number %}">بعدی</a>{% endif %}
+</nav>
+{% endif %}
+{% if public_collections %}
+<section class="panel">
+  <h2>یک مضمون، چند صدا</h2>
+  <ul>{% for collection in public_collections %}<li><a href="{% url 'literary-collection' collection.slug %}">{{ collection.title }}</a>{% if collection.description %} · {{ collection.description }}{% endif %}</li>{% endfor %}</ul>
+</section>
+{% endif %}

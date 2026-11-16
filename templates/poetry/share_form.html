@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}اشتراک شعر{% endblock %}
+{% block content %}
+<header class="page-heading compact"><div><h1>اشتراک شعر</h1><p>{{ data.title }} · {{ data.author }}</p></div><a href="{% url 'my-shares' %}">اشتراک‌های من</a></header>
+{% if canonical %}
+<section class="panel"><label for="canonical-share">پیوند شعر کامل</label><input id="canonical-share" type="url" value="{{ canonical }}" dir="ltr" readonly></section>
+{% endif %}
+{% if user.is_authenticated %}
+<section class="panel">
+  {% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <fieldset>
+      <legend>چه بخشی را می‌فرستید؟</legend>
+      <label><input type="radio" name="selection" value="all" {% if selection == 'all' %}checked{% endif %}> کل شعر</label>
+      <label><input type="radio" name="selection" value="selected" {% if selection == 'selected' %}checked{% endif %}> بیت‌های انتخابی</label>
+      <div class="share-choices">
+        {% for position, first, second in data.rows %}
+        <label class="share-choice">
+          <input type="checkbox" name="verse" value="{{ position }}" {% if selection == 'selected' and position in chosen %}checked{% endif %}>
+          <span><span class="fine">بیت {{ position|persian }}</span><span class="share-choice-text">{{ first }}{% if second %}<br>{{ second }}{% endif %}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <div><label for="share-mode">حالت نمایش</label><select id="share-mode" name="mode">
+      <option value="read" {% if mode == 'read' %}selected{% endif %}>خواندن شعر یا گزیده</option>
+      <option value="practice" {% if mode == 'practice' %}selected{% endif %}>مصرع دوم را به یاد بیاور</option>
+    </select><p class="fine">برای تمرین، فقط یک بیتِ دارای دو مصرع انتخاب کنید.</p></div>
+    <div><label for="share-note">یادداشت همراه (اختیاری)</label><textarea id="share-note" name="note" rows="3" maxlength="280">{{ note }}</textarea></div>
+    <button class="primary" name="intent" value="preview">دیدن پیش‌نمایش</button>
+  </form>
+</section>
+{% else %}
+<p><a href="{% url 'login' %}?next={{ request.get_full_path|urlencode:'' }}">ورود برای ساخت پیوند گزیده یا تمرین</a></p>
+{% endif %}
+{% endblock %}

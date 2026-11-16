@@ -22,6 +22,7 @@
     <a class="brand" href="{% url 'dashboard' %}" aria-label="دیوان‌نامه">
       <span class="brand-logo" aria-hidden="true"></span>
     </a>
+    {% if not user.is_authenticated %}<a href="{% url 'treasury' %}">گنجینه</a>{% endif %}
     {% if user.is_authenticated %}
     <div class="masthead-actions">
       <details id="header-theme">

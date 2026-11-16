@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}پیوند اشتراک{% endblock %}
+{% block content %}
+<section class="panel share-link-panel">
+  <h1>پیوند اشتراک آماده است</h1>
+  <label for="share-url">نشانی برای فرستادن</label>
+  <input id="share-url" type="url" dir="ltr" value="{{ url }}" readonly>
+  <div class="actions">
+    <button type="button" data-copy-field="share-url" hidden>کپی پیوند</button>
+    <span class="inline-status" role="status"></span>
+    <a href="{{ url }}">باز کردن پیوند</a>
+    {% if share and share.snapshot.rows|length <= 2 %}<a href="{% url 'share-card' share.token %}">دریافت کارت تصویری</a>{% endif %}
+    <a href="{% url 'my-shares' %}">اشتراک‌های من</a>
+  </div>
+</section>
+{% endblock %}

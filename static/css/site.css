@@ -140,11 +140,13 @@ main:focus { outline: none; }
 
 [data-theme="dark"] .brand-logo {
   background-image: url("../img/brand/wordmark-dark.webp");
+  filter: brightness(0) invert(1);
 }
 
 @media (prefers-color-scheme: dark) {
   [data-theme="auto"] .brand-logo {
     background-image: url("../img/brand/wordmark-dark.webp");
+    filter: brightness(0) invert(1);
   }
 }
 
@@ -212,6 +214,27 @@ main:focus { outline: none; }
   border-block-end: 1px solid var(--color-border);
 }
 .masthead-actions { display: flex; align-items: center; gap: var(--space-3); }
+.header-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2.75rem;
+  border-radius: var(--radius-control);
+  color: var(--color-foreground);
+  text-decoration: none;
+}
+.header-help { gap: var(--space-1); padding-inline: var(--space-2); }
+.header-help:hover, .header-help[aria-current] { background: var(--color-surface-muted); }
+.header-guest-link { display: inline-grid; place-items: center; min-block-size: 2.75rem; }
+@media (max-width: 480px) {
+  .masthead-actions { max-inline-size: 100%; flex-wrap: wrap; }
+  .header-help { min-inline-size: 2.75rem; padding-inline: 0; }
+  .header-help span { display: none; }
+}
+@media (max-width: 400px) {
+  body:not(.guest) .masthead-actions { flex-basis: 100%; justify-content: space-between; gap: .125rem; }
+  .masthead-actions .profile-link { padding-inline: 0; }
+}
 .profile-link {
   min-height: 2.75rem;
   display: inline-flex;
@@ -1325,7 +1348,13 @@ input[type=file]::file-selector-button {
 
 /* Account controls and reader preferences. */
 #header-theme { position: relative; margin: 0; }
-#header-theme summary { list-style: none; padding: 0; }
+#header-theme > summary {
+  display: grid;
+  place-items: center;
+  list-style: none;
+  padding: 0;
+}
+#header-theme > summary::marker { content: ""; }
 #header-theme summary::-webkit-details-marker { display: none; }
 .theme-options {
   position: absolute;
@@ -1336,6 +1365,9 @@ input[type=file]::file-selector-button {
   padding: var(--space-2);
   display: grid;
   gap: var(--space-1);
+}
+@media (max-width: 480px) {
+  .theme-options { left: 50%; right: auto; transform: translateX(-50%); }
 }
 .theme-options [data-current] { border-color: var(--color-primary); background: var(--color-primary-soft); }
 .ltr-field { direction: ltr; }
@@ -1419,9 +1451,6 @@ input[type=file]::file-selector-button {
 [data-reading-spacing="wide"] .treasury-line-poem .hemistich { line-height: 2.8; }
 [data-reading-numbers="no"] .treasury-text .verse { padding-inline-start: 0; }
 #draft-controls summary { min-block-size: 2.75rem; }
-@media (max-width: 360px) {
-  #header-theme { display: none; }
-}
 
 .treasury-stanza[id] { scroll-margin-block-start: 5rem; }
 .treasury-stanza:target { background: var(--color-primary-soft); }
@@ -1436,3 +1465,13 @@ input[type=file]::file-selector-button {
 .share-position { color: var(--color-muted-foreground); }
 .share-gap { margin: 0; text-align: center; }
 .share-note { border-block-start: 1px solid var(--color-border); margin-block-start: var(--space-4); }
+
+.discovery-strip p { margin: var(--space-1) 0 0; }
+.guide-progress { display: flex; gap: var(--space-4); align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.guide-progress progress { display: block; inline-size: min(100%, 19rem); accent-color: var(--color-primary); }
+.guide-lessons { padding: 0; list-style: none; }
+.guide-lessons > li { min-inline-size: 0; }
+.guide-lessons h2 { margin-block-start: var(--space-3); }
+.guide-instructions ol { padding-inline-start: var(--space-6); }
+.guide-instructions li + li { margin-block-start: var(--space-3); }
+.guide-navigation { margin-block-start: var(--space-4); }

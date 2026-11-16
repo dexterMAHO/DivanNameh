@@ -13,6 +13,7 @@ from accounts.permissions import action_password_error
 from memorization.models import MemorizationItem, ReviewLog
 from memorization.views import study_context
 from .models import Poem, PoemEditRequest, Tag, TreasuryEntry, Verse, FavoriteVerse
+from .editorial_views import showcase
 from .forms import PoemForm, TagForm
 from .http import private, success, failure, wants_json
 from .services.poem_editor import save_poem
@@ -292,19 +293,37 @@ def favorites(request):
 
 @private
 @require_GET
-def discover(request, api=False):
+def discover_api(request):
+    params = request.GET
+    poem = choose_random_poem(
+        request.user, params.get('exclude_id'), poet=params.get('poet', '').strip()[:120],
+        topic=params.get('topic', '')[:90], length=discovery_length(params),
+    )
+    data = None if poem is None else {
+        'id': poem.pk, 'title': poem.display_title, 'poet_name': poem.poet_name,
+        'detail_url': poem.get_absolute_url(), 'line_layout': poem.line_layout,
+        'verses': list(poem.verses.values('id', 'position', 'hemistich_1', 'hemistich_2')),
+        'tags': [{'name': tag.name, 'url': tag.get_absolute_url()} for tag in poem.tags.all()],
+    }
+    return JsonResponse({'ok': True, 'poem': data})
+
+
+def discovery_length(params):
+    length = params.get('length', '')
+    return length if length in ('short', 'long') else ''
+
+
+@require_GET
+def discover(request):
+    editorial = showcase(request, explore=True)
+    if not isinstance(editorial, dict):
+        return editorial
+    if not request.user.is_authenticated:
+        return render(request, 'poetry/discover.html', editorial)
     params = request.GET
     poet = params.get('poet', '').strip()[:120]
     topic = params.get('topic', '')[:90]
-    length = params.get('length', '')
-    if length not in ('short', 'long'):
-        length = ''
-    if api:
-        poem = choose_random_poem(request.user, params.get('exclude_id'), poet=poet, topic=topic, length=length)
-        data = None if poem is None else {'id': poem.pk, 'title': poem.display_title, 'poet_name': poem.poet_name,
-                'detail_url': poem.get_absolute_url(), 'line_layout': poem.line_layout, 'verses': list(poem.verses.values('id', 'position', 'hemistich_1', 'hemistich_2')),
-                'tags': [{'name': tag.name, 'url': tag.get_absolute_url()} for tag in poem.tags.all()]}
-        return JsonResponse({'ok': True, 'poem': data})
+    length = discovery_length(params)
     source = params.get('source', '')
     if source not in ('library', 'treasury'):
         source = 'both'
@@ -322,4 +341,5 @@ def discover(request, api=False):
     return render(request, 'poetry/discover.html', {
         'poem': poem, 'treasury_pick': treasury, 'source': source, 'poet': poet, 'topic': topic, 'length': length,
         'topics': Tag.objects.filter(owner=request.user), 'filtered': bool(poet or topic or length),
+        **editorial,
     })

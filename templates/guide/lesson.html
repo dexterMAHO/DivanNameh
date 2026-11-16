@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}{{ lesson.title }} · آموزش{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="مسیر آموزش"><a href="{% url 'guide' %}">فهرست آموزش</a></nav>
+<header class="page-heading compact">
+  <div><p class="eyebrow">درس {{ number|persian }} از {{ total|persian }}{% if done %} · کامل شده{% endif %}</p><h1>{{ lesson.title }}</h1><p>{{ lesson.objective }}</p></div>
+</header>
+<section class="panel guide-instructions">
+  <h2>مراحل انجام</h2>
+  <ol>
+    {% for step in lesson.steps %}<li>{{ step }}</li>{% endfor %}
+  </ol>
+  <a class="button" href="{% url lesson.route %}">{{ lesson.action }}</a>
+</section>
+<nav class="guide-navigation actions" aria-label="ناوبری درس">
+  {% if previous %}<a class="button" href="{% url 'guide-lesson' previous.slug %}">درس قبلی</a>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <button class="primary">{% if following %}تکمیل و درس بعدی{% else %}تکمیل و بازگشت به فهرست{% endif %}</button>
+  </form>
+  {% if following %}<a class="text-button" href="{% url 'guide-lesson' following.slug %}">رفتن به درس بعدی</a>{% endif %}
+</nav>
+{% endblock %}

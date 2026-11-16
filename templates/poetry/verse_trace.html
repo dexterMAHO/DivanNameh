@@ -2,7 +2,7 @@
 {% load persian %}
 {% block title %}ردّ مصرع{% endblock %}
 {% block content %}
-<header class="page-heading compact"><h1>ردّ مصرع</h1><a href="{% url 'treasury' %}">گنجینهٔ فارسی</a></header>
+<header class="page-heading compact"><h1>ردّ مصرع</h1><div class="actions"><a href="{% url 'treasury' %}">گنجینهٔ فارسی</a>{% if user.is_authenticated %}<a href="{% url 'treasury-works' %}{% if query %}?q={{ query|urlencode:'' }}{% endif %}">جست‌وجوی آرشیو آثار</a>{% endif %}</div></header>
 <form method="get" class="panel inline-form">
   <div><label for="trace-query">عنوان، شاعر یا چند واژه از بیت</label><input type="search" id="trace-query" name="q" maxlength="120" value="{{ query }}" required></div>
   <button class="primary">جست‌وجو</button>

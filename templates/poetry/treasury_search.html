@@ -4,7 +4,7 @@
 {% block content %}
 <header class="page-heading compact">
   <div><h1>جست‌وجوی آثار گنجینه</h1><p>عنوان، شاعر و مصرعِ آثار دارای متن را جست‌وجو کنید.</p></div>
-  <a href="{% url 'treasury' %}">فهرست شاعران</a>
+  <div class="actions"><a href="{% url 'treasury-trace' %}{% if query %}?q={{ query|urlencode:'' }}{% endif %}">ردّ مصرع</a><a href="{% url 'treasury' %}">فهرست شاعران</a></div>
 </header>
 <form method="get" class="panel inline-form">
   {% if book_slug %}<input type="hidden" name="book" value="{{ book_slug }}">{% endif %}

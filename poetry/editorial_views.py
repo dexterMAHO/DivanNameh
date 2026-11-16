@@ -8,31 +8,35 @@ from .models import TreasurySet, TreasuryTopic
 from .services.editorial import highlight, match_rank, public_picks, query_terms, quote_row, verse_url
 
 
-def showcase(request):
+def showcase(request, *, explore=False):
     picks = public_picks()
-    poet = request.GET.get('poet', '')[:120]
-    topic = request.GET.get('topic', '')[:50]
+    prefix = 'public_' if explore else ''
+    poet = request.GET.get(prefix + 'poet', '')[:120]
+    topic = request.GET.get(prefix + 'topic', '')[:50]
     matched = picks
     if poet:
         matched = matched.filter(entry__book__slug=poet)
     if topic:
         matched = matched.filter(topics__slug=topic)
-    if request.GET.get('turn') == '1':
+    if request.GET.get(prefix + 'turn') == '1':
         ids = list(matched.values_list('entry_id', flat=True))
         if ids:
             pick = matched.select_related('entry__book').get(entry_id=secrets.choice(ids))
             return redirect(pick.entry.get_absolute_url())
-    cards = matched if poet or topic else matched.filter(featured=True)
+    cards = matched.filter(featured=True) if explore and not (poet or topic) else matched
     cards = cards.select_related('entry__book').defer('entry__search_body').order_by('entry__book__author', 'pk')
     page = Paginator(cards, 12).get_page(request.GET.get('pick_page'))
     return {
+        'explore_showcase': explore,
+        'poet_parameter': prefix + 'poet',
+        'topic_parameter': prefix + 'topic',
         'picks': [(pick, quote_row(pick, pick.sample_position)) for pick in page],
         'pick_page': page,
         'public_poet': poet,
         'public_topic': topic,
         'public_poets': picks.order_by('entry__book__author').values_list('entry__book__slug', 'entry__book__author').distinct(),
         'public_topics': TreasuryTopic.objects.filter(treasurypick__in=picks).distinct(),
-        'public_collections': TreasurySet.objects.filter(published=True),
+        'public_collections': TreasurySet.objects.filter(published=True) if explore else (),
     }
 
 

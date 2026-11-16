@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
 {% load persian %}
-{% block title %}کشف شعر{% endblock %}
+{% block title %}شعرجویی{% endblock %}
 {% block content %}
-<header class="page-heading compact"><h1>کشف شعر</h1></header>
+<header class="page-heading compact">
+  <div><h1>شعرجویی</h1><p>از میان دفتر و گنجینه شعر تازه‌ای برای خواندن پیدا کنید.</p></div>
+  <a href="{% url 'treasury' %}">فهرست گنجینهٔ فارسی</a>
+</header>
+{% include 'poetry/treasury_showcase.html' %}
+{% if user.is_authenticated %}
+<h2>انتخاب از دفتر یا آرشیو</h2>
 <form class="panel" method="get">
   <div class="form-grid">
     <label>منبع<select name="source">
@@ -60,5 +66,6 @@
     <a href="{% url 'treasury-works' %}">جست‌وجوی آثار گنجینه</a>
   {% endif %}
 </section>
+{% endif %}
 {% endif %}
 {% endblock %}

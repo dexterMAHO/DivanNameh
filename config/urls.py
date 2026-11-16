@@ -3,12 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.urls import path
 from django.views.generic import TemplateView
 from accounts import access, views as a
+from . import guide
 from .health import health
 from poetry import share_views, editorial_views, collection_views, library_views, treasury_views, views as p
 from memorization import views as m
 
 urlpatterns = [
     path("healthz/", health, name="health"),
+    path('guide/', guide.index, name='guide'),
+    path('guide/<slug:slug>/', guide.lesson_detail, name='guide-lesson'),
     path('admin/', admin.site.urls),
     path('login/', access.username_access, name='login'),
     path('logout/', access.sign_out, name='logout'),
@@ -72,6 +75,6 @@ urlpatterns = [
     path('review/', m.review, name='review'),
     path('review/<int:pk>/rate/', m.rate, name='rate'),
     path('discover/', p.discover, name='discover'),
-    path('api/discover/random/', p.discover, {'api': True}, name='random-poem'),
+    path('api/discover/random/', p.discover_api, name='random-poem'),
     path('design-system/', login_required(TemplateView.as_view(template_name='design_system.html')), name='design-system'),
 ]

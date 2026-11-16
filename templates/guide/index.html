@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}آموزش دیوان‌نامه{% endblock %}
+{% block content %}
+<header class="page-heading compact">
+  <div><h1>آموزش دیوان‌نامه</h1><p>مسیری که همین حالا به آن نیاز دارید انتخاب کنید یا درس‌ها را به‌ترتیب پیش ببرید.</p></div>
+</header>
+<section class="panel guide-progress" aria-labelledby="guide-progress-label">
+  <div>
+    <label id="guide-progress-label" for="guide-progress">پیشرفت آموزش</label>
+    <progress id="guide-progress" max="{{ total }}" value="{{ completed|length }}"></progress>
+    <p class="fine">{{ completed|length|persian }} از {{ total|persian }} درس کامل شده در این نشست</p>
+  </div>
+  {% if next_lesson %}
+  <a class="button primary" href="{% url 'guide-lesson' next_lesson.slug %}">{% if completed %}ادامهٔ آموزش{% else %}شروع آموزش{% endif %}</a>
+  {% endif %}
+</section>
+<ol class="guide-lessons card-grid" role="list">
+  {% for lesson in lessons %}
+  <li class="panel">
+    <div class="section-heading">
+      <span class="discovery-icon">{% include 'components/icon.html' with name=lesson.icon %}</span>
+      {% if lesson.slug in completed %}<span class="chip">کامل شده</span>{% endif %}
+    </div>
+    <h2><a href="{% url 'guide-lesson' lesson.slug %}">{{ lesson.title }}</a></h2>
+    <p>{{ lesson.objective }}</p>
+  </li>
+  {% endfor %}
+</ol>
+{% endblock %}

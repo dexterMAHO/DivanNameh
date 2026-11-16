@@ -60,7 +60,12 @@ class PublicTreasuryShareTests(TestCase):
     def test_public_filters_and_whole_poem_reuse(self):
         page = self.client.get(reverse('treasury'), {'poet': 'saadi', 'topic': 'separation'})
         self.assertTrue(all(pick.entry.book.slug == 'saadi' for pick, _ in page.context['picks']))
-        chosen = self.client.get(reverse('treasury'), {'poet': 'saadi', 'topic': 'separation', 'turn': '1'})
+        self.assertNotContains(page, 'name="public_turn"')
+        explore = self.client.get(reverse('discover'))
+        self.assertContains(explore, 'name="public_turn"')
+        chosen = self.client.get(reverse('discover'), {
+            'public_poet': 'saadi', 'public_topic': 'separation', 'public_turn': '1',
+        })
         entry = TreasuryPick.objects.get(entry__key='poem-9590').entry
         self.assertRedirects(chosen, entry.get_absolute_url())
         self.assertContains(self.client.get(entry.get_absolute_url()), 'از این بیت به آن بیت')

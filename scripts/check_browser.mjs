@@ -105,7 +105,7 @@ try {
 
   const paths = ['/', '/poems/', '/poems/?archived=1', fixture.poem, '/poems/new/', '/topics/', '/favorites/',
     '/collections/', '/poems/transfer/', '/poems/edits/', '/treasury/', encodeURI('/treasury/works/?q=آزمایش'),
-    '/review/', '/memorize/', '/memorize/stats/', '/discover/', '/settings/', '/design-system/'];
+    '/review/', '/memorize/', '/memorize/stats/', '/discover/', '/guide/', '/guide/treasury/', '/settings/', '/design-system/'];
   for (const width of [320, 390, 768, 1024, 1101, 1280]) {
     await viewport(width);
     for (const path of paths) {
@@ -113,6 +113,39 @@ try {
       assert.equal(await evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), true, path + ' at ' + width);
     }
   }
+
+  await viewport(320);
+  await open('/');
+  assert.equal(await evaluate("document.querySelector('.discovery-strip a').pathname"), '/discover/');
+  assert.equal(await evaluate("document.querySelector('.header-tool[title]').pathname"), '/treasury/works/');
+  assert.equal(await evaluate("document.querySelector('.header-help').pathname"), '/guide/');
+  for (const theme of ['light', 'dark']) {
+    await evaluate('document.documentElement.dataset.theme = ' + JSON.stringify(theme));
+    const header = await evaluate(`(() => {
+      const summary = document.querySelector('#header-theme summary').getBoundingClientRect();
+      const visible = [...document.querySelectorAll('#header-theme summary svg')].filter(icon => icon.getClientRects().length);
+      const icon = visible[0].getBoundingClientRect();
+      return {
+        count: visible.length,
+        centered: Math.abs(summary.x + summary.width / 2 - icon.x - icon.width / 2) < 1 &&
+                  Math.abs(summary.y + summary.height / 2 - icon.y - icon.height / 2) < 1,
+        logoFilter: getComputedStyle(document.querySelector('.brand-logo')).filter,
+      };
+    })()`);
+    assert.equal(header.count, 1);
+    assert.equal(header.centered, true);
+    assert.equal(header.logoFilter, theme === 'dark' ? 'brightness(0) invert(1)' : 'none');
+  }
+  await evaluate("document.querySelector('#header-theme summary').click()");
+  assert.equal(await evaluate(`(() => {
+    const popup = document.querySelector('.theme-options').getBoundingClientRect();
+    return popup.left >= 0 && popup.right <= document.documentElement.clientWidth;
+  })()`), true);
+  await open('/guide/dashboard/');
+  await evaluate("document.querySelector('.guide-navigation button').click()");
+  await until(() => evaluate("location.pathname === '/guide/library/'"), 'next guide lesson');
+  await open('/guide/');
+  assert.equal(await evaluate("document.getElementById('guide-progress').value"), 1);
 
   const screenshots = process.env.DIVAN_BROWSER_ARTIFACTS;
   const screenshot = async name => {
@@ -238,7 +271,7 @@ try {
   assert.equal(await evaluate('document.getElementById("add-verse").hidden && document.getElementById("preview-button").hidden'), true);
   await send('Emulation.setScriptExecutionDisabled', {value: false});
   await send('Network.deleteCookies', {name: 'sessionid', url: base});
-  for (const guest of ['/login/', '/signup/', '/login/recover/']) {
+  for (const guest of ['/login/', '/signup/', '/login/recover/', '/discover/', '/guide/']) {
     await open(guest);
     assert.equal(await evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), true, guest);
   }

@@ -16,8 +16,13 @@
   </div>
   <div class="book-art" aria-hidden="true"><div class="book-orbit"></div><div class="book-cover"><span class="book-rule"></span><span>دیوان<br>نامه</span><small>یک بیت بیشتر<br>در خاطر بماند</small><span class="book-rule"></span></div><div class="book-caption">بخوان · به یاد آور · مرور کن</div></div>
 </section>
+<section class="discovery-strip" aria-labelledby="dashboard-explore">
+  <span class="discovery-icon">{% include 'components/icon.html' with name='compass' %}</span>
+  <div><h2 id="dashboard-explore">شعرجویی</h2><p>با «ورق بزن» شعری پیدا کنید یا بر اساس شاعر و موضوع سراغ انتخابی تازه بروید.</p></div>
+  <a class="button primary" href="{% url 'discover' %}">رفتن به شعرجویی {% include 'components/icon.html' with name='arrow' %}</a>
+</section>
 <section class="stats" aria-label="آمار دفتر"><a href="{% url 'poems' %}"><span class="stat-icon">{% include 'components/icon.html' with name='book' %}</span><span><strong>{{ poem_count|persian }}</strong><span>شعر در کتابخانه</span></span>{% include 'components/icon.html' with name='arrow' %}</a><a href="{% url 'memorize' %}"><span class="stat-icon">{% include 'components/icon.html' with name='repeat' %}</span><span><strong>{{ item_count|persian }}</strong><span>کارت در فهرست حفظ</span></span>{% include 'components/icon.html' with name='arrow' %}</a><a href="{% url 'favorites' %}"><span class="stat-icon">{% include 'components/icon.html' with name='star' %}</span><span><strong>{{ favorite_count|persian }}</strong><span>شاه‌بیت برگزیده</span></span>{% include 'components/icon.html' with name='arrow' %}</a></section>
 <div class="section-heading"><div><span class="eyebrow">آخرین برگ‌های نوشته‌شده</span><h2>تازه‌های دفتر</h2></div><a class="inline-link" href="{% url 'poems' %}">تمام کتابخانه{% include 'components/icon.html' with name='arrow' %}</a></div>
 <div class="card-grid">{% for poem in recent_poems %}{% include 'components/poem_card.html' with card_heading='h3' %}{% empty %}<section class="empty"><span class="empty-icon">{% include 'components/icon.html' with name='pen' %}</span><h2>نخستین برگ دفتر هنوز سفید است.</h2><p>یک شعر که دوستش دارید بنویسید. دفتر شما از همین‌جا آغاز می‌شود.</p><a class="button" href="{% url 'poem-new' %}">ثبت نخستین شعر{% include 'components/icon.html' with name='arrow' %}</a></section>{% endfor %}</div>
-<section class="discovery-strip"><span class="discovery-icon">{% include 'components/icon.html' with name='compass' %}</span><div><span class="eyebrow">کمی اتفاق، کمی شعر</span><h2>بگذارید دفتر برایتان انتخاب کند.</h2></div><a class="button quiet" href="{% url 'discover' %}">کشف یک شعر{% include 'components/icon.html' with name='arrow' %}</a></section>
+
 {% endblock %}

@@ -1,20 +1,16 @@
 {% load persian %}
 <section class="panel" aria-labelledby="showcase">
-  <h2 id="showcase">شعرهای گنجینه</h2>
-  <form method="get" action="{% url 'treasury-trace' %}" class="inline-form">
-    <div><label for="trace-home">ردّ مصرع</label><input type="search" id="trace-home" name="q" maxlength="120" placeholder="چند واژه از بیت، یا نام شاعر"></div>
-    <button class="primary">جست‌وجو</button>
-  </form>
+  <h2 id="showcase">{% if explore_showcase %}ورق بزن{% else %}شعرهای گنجینه{% endif %}</h2>
   <form method="get" class="inline-form">
-    <div><label for="public-poet">شاعر</label><select id="public-poet" name="poet">
+    <div><label for="public-poet">شاعر</label><select id="public-poet" name="{{ poet_parameter }}">
       <option value="">همهٔ شاعران</option>
       {% for slug, author in public_poets %}<option value="{{ slug }}" {% if slug == public_poet %}selected{% endif %}>{{ author }}</option>{% endfor %}
     </select></div>
-    <div><label for="public-topic">موضوع</label><select id="public-topic" name="topic">
+    <div><label for="public-topic">موضوع</label><select id="public-topic" name="{{ topic_parameter }}">
       <option value="">همهٔ موضوع‌ها</option>
       {% for topic in public_topics %}<option value="{{ topic.slug }}" {% if topic.slug == public_topic %}selected{% endif %}>{{ topic.title }}</option>{% endfor %}
     </select></div>
-    <button>نمایش شعرها</button><button name="turn" value="1">ورق بزن</button>
+    <button>نمایش شعرها</button>{% if explore_showcase %}<button class="primary" name="public_turn" value="1">ورق بزن</button>{% endif %}
   </form>
 </section>
 <div class="card-grid">

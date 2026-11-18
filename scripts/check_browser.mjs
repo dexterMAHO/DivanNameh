@@ -105,7 +105,7 @@ try {
 
   const paths = ['/', '/poems/', '/poems/?archived=1', fixture.poem, '/poems/new/', '/topics/', '/favorites/',
     '/collections/', '/poems/transfer/', '/poems/edits/', '/treasury/', encodeURI('/treasury/works/?q=آزمایش'),
-    '/review/', '/memorize/', '/memorize/stats/', '/discover/', '/guide/', '/guide/treasury/', '/settings/', '/design-system/'];
+    '/review/', '/memorize/', '/memorize/stats/', '/discover/', '/explore/', '/guide/', '/guide/treasury/', '/settings/', '/design-system/'];
   for (const width of [320, 390, 768, 1024, 1101, 1280]) {
     await viewport(width);
     for (const path of paths) {
@@ -116,7 +116,7 @@ try {
 
   await viewport(320);
   await open('/');
-  assert.equal(await evaluate("document.querySelector('.discovery-strip a').pathname"), '/discover/');
+  assert.equal(await evaluate("document.querySelector('.discovery-strip a').pathname"), '/explore/');
   assert.equal(await evaluate("document.querySelector('.header-tool[title]').pathname"), '/treasury/works/');
   assert.equal(await evaluate("document.querySelector('.header-help').pathname"), '/guide/');
   for (const theme of ['light', 'dark']) {
@@ -271,7 +271,7 @@ try {
   assert.equal(await evaluate('document.getElementById("add-verse").hidden && document.getElementById("preview-button").hidden'), true);
   await send('Emulation.setScriptExecutionDisabled', {value: false});
   await send('Network.deleteCookies', {name: 'sessionid', url: base});
-  for (const guest of ['/login/', '/signup/', '/login/recover/', '/discover/', '/guide/']) {
+  for (const guest of ['/login/', '/signup/', '/login/recover/', '/discover/', '/explore/', '/guide/']) {
     await open(guest);
     assert.equal(await evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), true, guest);
   }

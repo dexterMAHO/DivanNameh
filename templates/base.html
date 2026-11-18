@@ -64,7 +64,8 @@
       <nav class="mobile-shortcuts" aria-label="میانبرهای اصلی">
         <a href="{% url 'poems' %}" {% if route == 'poems' %}aria-current="page"{% endif %}>کتابخانهٔ شخصی</a>
         <a href="{% url 'treasury' %}" {% if route == 'treasury' %}aria-current="page"{% endif %}>گنجینه</a>
-        <a href="{% url 'discover' %}" {% if route == 'discover' %}aria-current="page"{% endif %}>شعرجویی</a>
+        <a href="{% url 'explore' %}" {% if route == 'explore' %}aria-current="page"{% endif %}>شعرجویی</a>
+        <a href="{% url 'discover' %}" {% if route == 'discover' %}aria-current="page"{% endif %}>کشف شعر</a>
         <a href="{% url 'review' %}" {% if route == 'review' %}aria-current="page"{% endif %}>مرور{% if due_count %} · <span class="count">{{ due_count|persian }}</span>{% endif %}</a>
       </nav>
     {% endwith %}

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}شعرجویی{% endblock %}
+{% block content %}
+<header class="page-heading compact">
+  <div><h1>شعرجویی</h1><p>شعرهای منتخب را بخوانید و بر اساس شاعر، موضوع و مجموعه‌های مضمونی بگردید.</p></div>
+  <a href="{% url 'discover' %}">کشف شعر تصادفی</a>
+</header>
+{% include 'poetry/treasury_showcase.html' %}
+{% endblock %}

@@ -74,6 +74,7 @@ urlpatterns = [
     path('memorize/items/<int:pk>/delete/', m.item_action, {'action': 'delete'}, name='item-delete'),
     path('review/', m.review, name='review'),
     path('review/<int:pk>/rate/', m.rate, name='rate'),
+    path('explore/', p.explore, name='explore'),
     path('discover/', p.discover, name='discover'),
     path('api/discover/random/', p.discover_api, name='random-poem'),
     path('design-system/', login_required(TemplateView.as_view(template_name='design_system.html')), name='design-system'),

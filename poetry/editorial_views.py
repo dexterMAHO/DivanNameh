@@ -18,7 +18,7 @@ def showcase(request, *, explore=False):
         matched = matched.filter(entry__book__slug=poet)
     if topic:
         matched = matched.filter(topics__slug=topic)
-    if request.GET.get(prefix + 'turn') == '1':
+    if not explore and request.GET.get(prefix + 'turn') == '1':
         ids = list(matched.values_list('entry_id', flat=True))
         if ids:
             pick = matched.select_related('entry__book').get(entry_id=secrets.choice(ids))

@@ -1,6 +1,6 @@
 {% load persian %}
 <section class="panel" aria-labelledby="showcase">
-  <h2 id="showcase">{% if explore_showcase %}ورق بزن{% else %}شعرهای گنجینه{% endif %}</h2>
+  <h2 id="showcase">{% if explore_showcase %}انتخاب شاعر و موضوع{% else %}شعرهای گنجینه{% endif %}</h2>
   <form method="get" class="inline-form">
     <div><label for="public-poet">شاعر</label><select id="public-poet" name="{{ poet_parameter }}">
       <option value="">همهٔ شاعران</option>
@@ -10,7 +10,7 @@
       <option value="">همهٔ موضوع‌ها</option>
       {% for topic in public_topics %}<option value="{{ topic.slug }}" {% if topic.slug == public_topic %}selected{% endif %}>{{ topic.title }}</option>{% endfor %}
     </select></div>
-    <button>نمایش شعرها</button>{% if explore_showcase %}<button class="primary" name="public_turn" value="1">ورق بزن</button>{% endif %}
+    <button>نمایش شعرها</button>
   </form>
 </section>
 <div class="card-grid">

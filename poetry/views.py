@@ -314,18 +314,20 @@ def discovery_length(params):
 
 
 @require_GET
+def explore(request):
+    return render(request, 'poetry/explore.html', showcase(request, explore=True))
+
+
+@require_GET
 def discover(request):
-    editorial = showcase(request, explore=True)
-    if not isinstance(editorial, dict):
-        return editorial
-    if not request.user.is_authenticated:
-        return render(request, 'poetry/discover.html', editorial)
     params = request.GET
     poet = params.get('poet', '').strip()[:120]
     topic = params.get('topic', '')[:90]
     length = discovery_length(params)
     source = params.get('source', '')
-    if source not in ('library', 'treasury'):
+    if not request.user.is_authenticated:
+        source = 'treasury'
+    elif source not in ('library', 'treasury'):
         source = 'both'
     personal_history = request.session.get('discover_library', [])
     treasury_history = request.session.get('discover_treasury', [])
@@ -340,6 +342,6 @@ def discover(request):
         request.session['discover_treasury'] = [pick_id, *[pk for pk in treasury_history if pk != pick_id]][:8]
     return render(request, 'poetry/discover.html', {
         'poem': poem, 'treasury_pick': treasury, 'source': source, 'poet': poet, 'topic': topic, 'length': length,
-        'topics': Tag.objects.filter(owner=request.user), 'filtered': bool(poet or topic or length),
-        **editorial,
+        'topics': Tag.objects.filter(owner=request.user) if request.user.is_authenticated else Tag.objects.none(),
+        'filtered': bool(poet or topic or length),
     })

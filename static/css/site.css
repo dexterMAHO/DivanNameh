@@ -649,21 +649,47 @@ section.poetry-panel, #preview.poetry-panel, #discovery.poetry-panel {
 .verse-row:last-child { border-bottom: 0; }
 .verse-row .verse { flex: 1; }
 
+/* One bayt is one unit. Two hemistichs share a row with a tight gap between
+   them and a wide gap to the next bayt, so the pair reads as a single thought
+   rather than as two loose lines. The old treatment underlined and staggered
+   each hemistich separately, which broke that reading. */
+/* One bayt is one unit. Stacked by default: the second hemistich sits directly
+   under the first with a tight gap inside the bayt and a wide gap to the next,
+   so the pair reads as one thought. Two columns are an upgrade that only
+   engages when the SHEET — not the window — is wide enough to hold a whole
+   hemistich per column; below that, two columns wrap into ragged quarters. */
 .verse {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2) var(--space-8);
-  padding: var(--space-6) var(--space-8);
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0;
+  padding: var(--space-3) var(--space-8) var(--space-3) var(--space-2);
   font-family: var(--font-literary);
   font-size: var(--text-poem);
-  line-height: 2.2;
+  line-height: var(--leading-poem);
   min-width: 0;
   transition: background var(--duration-surface) var(--ease-out);
 }
-.hemistich { white-space: pre-wrap; overflow-wrap: anywhere; text-align: start; }
-.hemistich + .hemistich { text-align: end; }
-.hemistich:only-of-type { grid-column: 1 / -1; text-align: center; }
+.hemistich {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: start;
+  min-inline-size: 0;
+}
+.verse:not(.verse-line) .hemistich + .hemistich { padding-inline-start: var(--space-6); }
+
+@container reading (min-width: 62rem) {
+  .verse:not(.verse-line) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-6);
+    padding-block: var(--space-4);
+  }
+  .verse:not(.verse-line) .hemistich { text-align: center; }
+  .verse:not(.verse-line) .hemistich + .hemistich { padding-inline-start: var(--space-6); }
+  /* The caesura stands in for the manuscript's centre rule. */
+  .verse:not(.verse-line) .hemistich + .hemistich { border-inline-start: 1px solid var(--color-ornament-soft); }
+  .verse:not(.verse-line) .hemistich:only-of-type { grid-column: 1 / -1; border-inline-start: 0; padding-inline-start: 0; }
+}
 .verse-number {
   position: absolute;
   inset-inline-start: var(--space-2);
@@ -831,8 +857,7 @@ summary.button::-webkit-details-marker { display: none; }
   .card-grid, .stats, .form-grid, .range-form { grid-template-columns: minmax(0, 1fr); }
   .review-feature { padding: var(--space-6); }
   .reading-sheet { padding: var(--space-6) var(--space-4); }
-  .verse { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--space-4); padding-inline-start: var(--space-8); }
-  .hemistich + .hemistich { text-align: end; padding-inline-start: var(--space-6); }
+  .verse { padding-inline-start: var(--space-8); }
   .verse-number { top: var(--space-4); translate: none; }
   .study-item { flex-direction: column; align-items: stretch; }
   .study-item .actions { flex-direction: row; }
@@ -1010,8 +1035,9 @@ summary.button::-webkit-details-marker { display: none; }
 
 /* The work heading, controls, text and source share one reading column. */
 .treasury-work {
+  position: relative;
   inline-size: 100%;
-  max-inline-size: var(--width-reading);
+  max-inline-size: var(--width-reading-wide);
   min-inline-size: 0;
   margin-inline: auto;
   overflow-wrap: anywhere;
@@ -1030,15 +1056,11 @@ summary.button::-webkit-details-marker { display: none; }
   padding: clamp(.75rem, 3vw, 2.5rem);
 }
 .treasury-text .verse {
-  grid-template-columns: minmax(0, 1fr);
   padding: 0;
   padding-inline-start: 2.75rem;
-  row-gap: var(--space-3);
 }
 .treasury-text .hemistich {
-  justify-self: start;
   max-inline-size: 100%;
-  border-block-end: 1px solid var(--color-border);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -1048,19 +1070,14 @@ summary.button::-webkit-details-marker { display: none; }
   translate: none;
   font-size: var(--text-base);
 }
-.treasury-text .hemistich + .hemistich {
-  justify-self: end;
-  padding-inline-start: 0;
-}
+
 .treasury-line-poem .treasury-stanza {
   padding-block: var(--space-1);
 }
-.treasury-line-poem .hemistich {
-  border-block-end: 0;
-  justify-self: start;
-  line-height: 1.8;
-}
+.treasury-line-poem .hemistich { text-align: start; line-height: 1.9; }
+.treasury-line-poem .verse { grid-template-columns: minmax(0, 1fr); }
 .treasury-stanza { padding-block: var(--space-4); }
+.treasury-text:not(.treasury-line-poem) .treasury-stanza { padding-block: var(--space-5); }
 .treasury-text:not(.treasury-line-poem) .treasury-stanza + .treasury-stanza {
   border-block-start: 1px solid var(--color-border);
 }
@@ -1086,14 +1103,7 @@ summary.button::-webkit-details-marker { display: none; }
   max-inline-size: var(--width-reading);
   margin-inline: auto;
 }
-.treasury-bookmark {
-  display: inline-grid;
-  place-items: center;
-  min-block-size: 2.75rem;
-  margin: 0;
-  border-radius: var(--radius-control);
-  cursor: pointer;
-}
+.treasury-bookmark { margin: 0; }
 .treasury-bookmark:focus-within { outline: 2px solid var(--color-focus); }
 .treasury-bookmark:has(input:checked) .icon,
 .treasury-favorite[aria-pressed=true] .icon {
@@ -1191,8 +1201,7 @@ input[type=file]::file-selector-button {
   .reading-sheet { padding-inline: var(--space-3); }
   .verse-row { gap: 0; }
   .verse-row > form { flex: none; }
-  .verse { padding-inline-end: var(--space-2); }
-  .hemistich + .hemistich { padding-inline-start: var(--space-2); }
+  .verse { padding-inline-end: var(--space-1); }
   .review-feature { padding: var(--space-6) var(--space-4); }
   .palette-option { padding: var(--space-3); }
   .form-actions > button { flex: 1 1 auto; }
@@ -1211,6 +1220,8 @@ input[type=file]::file-selector-button {
 .inline-status:not(:empty) { margin-block: var(--space-2); }
 .inline-status[data-error] { color: var(--color-danger); }
 .reading-sheet .hemistich { min-inline-size: 0; }
+/* Both reading surfaces size the bayt from their own width. */
+.reading-sheet, .treasury-text { container-type: inline-size; container-name: reading; }
 #treasury-tools { margin-block-end: var(--space-4); }
 .filter-summary { margin-block: var(--space-3); }
 .poem-card h3 a { text-decoration: none; }

@@ -10,7 +10,15 @@
 {% endif %}{% endblock %}
 {% block title %}{% if entry %}{{ entry.title }}{% else %}{{ book.author }}{% endif %} · گنجینهٔ فارسی{% endblock %}
 {% block content %}
-{% if entry.kind == "work" %}<div class="treasury-work">{% endif %}
+{% if entry.kind == "work" %}<div class="treasury-work">
+  {% comment %}
+  Margin entries: a cloud band and a branch cross into the reading field from
+  outside it, the way a miniature lets a motif break its own frame. Purely
+  decorative, behind the text, and dropped where there is no room for them.
+  {% endcomment %}
+  <span class="scene-margin scene-margin-abr" aria-hidden="true">{% include 'components/illumination.html' with piece='abr' %}</span>
+  <span class="scene-margin scene-margin-branch" aria-hidden="true">{% include 'components/illumination.html' with piece='branch' %}</span>
+{% endif %}
 <nav class="breadcrumb treasury-breadcrumb" aria-label="مسیر گنجینه">
   <a href="{% url 'treasury' %}">گنجینهٔ فارسی</a>
   {% if treasury_back %}<span aria-hidden="true">/</span><a href="{{ treasury_back }}">بازگشت به نتایج</a>{% endif %}
@@ -67,24 +75,25 @@
   {% include 'components/reading_toolbar.html' %}
   {% if rows %}<button type="button" class="button quiet resume-reading" hidden>ادامه از آخرین جای خواندن</button>{% endif %}
   <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem{% endif %}" aria-label="متن اثر" data-reading-key="{{ user.pk }}-treasury-{{ book.slug }}-{{ entry.key }}-{{ book.dataset_digest }}" data-copy-credit="{{ entry.title }} · {{ book.author }}{% if entry.source_url %} · {{ entry.source_url }}{% endif %}">
+    {% include 'components/illumination.html' with piece='sarlowh' %}
     {% if rows %}
       {% for first, second in rows %}
       <div class="treasury-stanza" id="verse-{{ forloop.counter }}">
         {% include 'components/verse_text.html' with position=forloop.counter %}
         {% if user.is_authenticated %}
-        <div class="treasury-verse-actions">
-          <label class="treasury-bookmark icon-button" title="انتخاب برای گزیده">
-            <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای گزیده">
-            {% include 'components/icon.html' with name='bookmark' %}
-          </label>
-          <button type="submit" formnovalidate class="icon-button treasury-favorite" name="action"
+        <div class="treasury-verse-actions verse-actions">
+          <button type="submit" formnovalidate class="verse-action treasury-favorite" name="action"
             value="{% if forloop.counter in saved_positions %}unfavorite{% else %}favorite{% endif %}:{{ forloop.counter }}"
             aria-pressed="{% if forloop.counter in saved_positions %}true{% else %}false{% endif %}"
-            aria-label="شاه‌بیت {{ forloop.counter|persian }}" title="شاه‌بیت">
-            {% include 'components/icon.html' with name='star' %}
+            aria-label="شاه‌بیت کردن بیت {{ forloop.counter|persian }}">
+            {% include 'components/icon.html' with name='toranj' %}<span>شاه‌بیت</span>
           </button>
+          <label class="verse-action treasury-bookmark">
+            <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای گزیده">
+            {% include 'components/icon.html' with name='bookmark' %}<span>انتخاب</span>
+          </label>
+          {% if pick %}<a class="verse-action" href="{% url 'share-treasury' book.slug entry.key %}?verse={{ forloop.counter }}">{% include 'components/icon.html' with name='sprig' %}<span>اشتراک</span></a>{% endif %}
           <span role="status" class="inline-status treasury-favorite-status"></span>
-          {% if pick %}<a class="text-button" href="{% url 'share-treasury' book.slug entry.key %}?verse={{ forloop.counter }}">اشتراک این بیت</a>{% endif %}
         </div>
         {% endif %}
       </div>

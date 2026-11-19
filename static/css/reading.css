@@ -320,3 +320,37 @@ body.focus-mode main { padding-block-start: var(--space-6); }
   .reading-sheet :is(.hemistich, .verse-number, .paper-poet) { color: #000; }
   .verse-row, .treasury-stanza { break-inside: avoid; }
 }
+
+/* ---------- Illuminated opening ---------- */
+/* The sarlowh opens the sheet. It is sized against the sheet, not the window,
+   so it keeps its proportion when the column narrows. */
+.reading-sheet .illum-sarlowh { margin-block-end: var(--space-4); }
+@container reading (max-width: 30rem) {
+  .reading-sheet .illum-sarlowh { max-width: 16rem; }
+}
+
+/* ---------- Verse actions, treasury and library alike ---------- */
+/* Three peers with three silhouettes. The pressed state is carried by colour
+   AND by a filled mark, so it does not rely on hue alone. */
+.treasury-verse-actions {
+  /* The shared .verse-actions base pushes to the end; beside a bayt the actions
+     belong on the same side the verse starts on. */
+  justify-content: flex-start;
+  gap: var(--space-1);
+  margin-block-start: var(--space-2);
+  padding-inline-start: 2.75rem;
+}
+.verse-action .icon { width: 1.125rem; height: 1.125rem; }
+.verse-action[aria-pressed=true] .icon, .treasury-favorite[aria-pressed=true] .icon { fill: currentColor; }
+.verse-action:has(:checked) { background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary); }
+.treasury-stanza:hover .verse-action, .treasury-stanza:focus-within .verse-action { opacity: 1; }
+.treasury-verse-actions .inline-status { flex-basis: 100%; margin: 0; }
+
+/* The reading field carries the margin entries behind its sheet. */
+.treasury-work > .reading-sheet, .treasury-work > section, .treasury-work > nav,
+.treasury-work > header, .treasury-work > div, .treasury-work > p, .treasury-work > form { position: relative; z-index: 1; }
+/* Clear of the heading: a margin entry must never sit behind running text. */
+.treasury-work .scene-margin-abr { inset-block-start: 11rem; inset-inline-start: -15rem; width: 19rem; opacity: .34; }
+.treasury-work .scene-margin-branch { inset-block-start: 9rem; inset-inline-end: -8rem; width: 7.5rem; opacity: .34; }
+@media (max-width: 1400px) { .treasury-work .scene-margin-branch { display: none; } }
+@media (max-width: 1180px) { .treasury-work .scene-margin { display: none; } }

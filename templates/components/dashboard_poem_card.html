@@ -1,0 +1,21 @@
+{% load persian %}
+<article class="poem-card dashboard-poem-card">
+  <div class="dashboard-poem-top">
+    <span class="dashboard-poem-emblem" aria-hidden="true">{% include 'components/icon.html' with name='book' %}</span>
+    <div><span class="eyebrow">{{ poem.poet_name }}</span><span class="dashboard-poem-origin">{% if poem.treasury_book_slug %}از گنجینهٔ شعر فارسی{% else %}از دفتر شخصی شما{% endif %}</span></div>
+    <span class="chip">{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span>
+  </div>
+  <h3><a href="{{ poem.get_absolute_url }}">{{ poem.display_title }}</a></h3>
+  <div class="dashboard-poem-excerpt">
+    <span class="dashboard-poem-quote" aria-hidden="true">«</span>
+    {% with first=poem.excerpt_verse %}
+      {% if first %}<p class="excerpt">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>{% else %}<p class="muted">هنوز بیتی ثبت نشده است.</p>{% endif %}
+    {% endwith %}
+  </div>
+  {% if poem.tags.all %}<div class="tags">{% for tag in poem.tags.all|slice:':3' %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}
+  {% if poem.notes %}<p class="dashboard-poem-note">{% include 'components/icon.html' with name='pen' %}{{ poem.notes|truncatechars:85 }}</p>{% endif %}
+  <div class="dashboard-poem-footer">
+    <span>آخرین ویرایش <time datetime="{{ poem.updated_at|date:'c' }}">{{ poem.updated_at|date:'Y/m/d'|persian }}</time></span>
+    <a class="inline-link" href="{{ poem.get_absolute_url }}">خواندن شعر {% include 'components/icon.html' with name='arrow' %}</a>
+  </div>
+</article>

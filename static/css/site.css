@@ -589,9 +589,11 @@ a.chip:hover { border-color: var(--color-primary); color: var(--color-primary); 
   margin-top: var(--space-6);
 }
 .stats > a {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-4);
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -600,15 +602,35 @@ a.chip:hover { border-color: var(--color-primary); color: var(--color-primary); 
   transition: border-color var(--duration-surface) var(--ease-out), box-shadow var(--duration-surface) var(--ease-out);
 }
 .stats > a:hover { border-color: var(--color-control-border); box-shadow: var(--shadow-card); color: inherit; }
-.stats > a > .icon:last-child { margin-inline-start: auto; color: var(--color-muted-foreground); }
+.stats > a > .icon:last-child {
+  grid-column: 3;
+  grid-row: 2;
+  color: var(--color-muted-foreground);
+  transition: transform var(--duration-surface) var(--ease-out);
+}
+.stats > a:is(:hover, :focus-visible) > .icon:last-child { transform: translateX(-6px); }
+.stats .stat-label {
+  grid-column: 2 / 4;
+  grid-row: 1;
+  align-self: start;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-foreground);
+}
 .stats strong {
   display: block;
   font-family: var(--font-literary);
-  font-size: 1.75rem;
-  line-height: 1.3;
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  font-size: 2.75rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
-.stats strong + span { font-size: var(--text-sm); color: var(--color-muted-foreground); }
 .stat-icon {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: start;
   flex: none;
   display: grid;
   place-items: center;
@@ -678,6 +700,52 @@ a.chip:hover { border-color: var(--color-primary); color: var(--color-primary); 
   color: var(--color-muted-foreground);
   margin: var(--space-2) 0;
   overflow-wrap: break-word;
+}
+
+/* Recent poems on the dashboard. */
+.dashboard-poem-card {
+  border-block-start: 3px solid var(--color-primary);
+  background: linear-gradient(145deg, var(--color-primary-soft), transparent 45%), var(--color-surface);
+}
+.dashboard-poem-top { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.dashboard-poem-top > div { flex: 1; min-inline-size: 0; }
+.dashboard-poem-top .eyebrow { overflow-wrap: anywhere; }
+.dashboard-poem-emblem {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+.dashboard-poem-origin { display: block; font-size: var(--text-xs); color: var(--color-muted-foreground); }
+.dashboard-poem-card h3 { font-size: 1.375rem; margin-block: var(--space-4) var(--space-2); overflow-wrap: anywhere; }
+.dashboard-poem-excerpt {
+  position: relative;
+  padding: var(--space-4);
+  padding-inline-start: var(--space-6);
+  margin-block-end: var(--space-4);
+  border-inline-start: 2px solid var(--color-primary);
+  border-radius: var(--radius-card);
+  background: var(--color-background);
+}
+.dashboard-poem-quote { position: absolute; inset-block-start: 0; inset-inline-start: var(--space-2); font: 2rem var(--font-literary); color: var(--color-primary); }
+.dashboard-poem-excerpt .excerpt { color: var(--color-foreground); }
+.dashboard-poem-note { display: flex; align-items: start; gap: var(--space-2); font-size: var(--text-sm); color: var(--color-muted-foreground); overflow-wrap: anywhere; }
+.dashboard-poem-note .icon { flex: none; }
+.dashboard-poem-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: auto;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-muted-foreground);
 }
 
 /* ---------- Reading & verses ---------- */
@@ -1312,7 +1380,6 @@ input[type=file]::file-selector-button {
 @media (min-width: 1025px) and (max-width: 1279px) {
   .card-grid:not(.poet-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stats > a { padding-inline: var(--space-3); gap: var(--space-2); }
-  .stats > a > .icon:last-child { display: none; }
 }
 @media (max-width: 768px) {
   .palette-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }

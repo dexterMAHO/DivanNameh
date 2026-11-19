@@ -3,7 +3,7 @@ set -euo pipefail
 umask 077
 
 if (( $# < 2 )); then
-    printf 'Usage: %s SERVER DOMAIN [ANSIBLE_OPTIONS...]\n' "$0" >&2
+    printf 'Usage: %s SERVER DOMAIN [--demo DEMO_DOMAIN] [ANSIBLE_OPTIONS...]\n' "$0" >&2
     exit 2
 fi
 
@@ -11,10 +11,24 @@ server=$1
 domain=$2
 shift 2
 
+# Optional demo site on the same host; see deployment/DEMO.md.
+demo_domain=""
+if [[ ${1-} == --demo ]]; then
+    demo_domain=${2-}
+    shift 2
+fi
+
 if [[ ! $server =~ ^[a-zA-Z0-9:][a-zA-Z0-9.:-]*$ ||
       ! $domain =~ ^[a-zA-Z0-9][a-zA-Z0-9-]*(\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$ ]]; then
     printf 'Provide a server IP or SSH hostname and a separate DNS domain.\n' >&2
     exit 2
+fi
+
+if [[ -n $demo_domain ]]; then
+    if [[ ! $demo_domain =~ ^[a-zA-Z0-9][a-zA-Z0-9-]*(\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$ || $demo_domain == "$domain" ]]; then
+        printf 'The demo domain must be a separate DNS name from the live one.\n' >&2
+        exit 2
+    fi
 fi
 
 for dependency in ansible-playbook openssl; do
@@ -57,6 +71,7 @@ all:
           ansible_port: 9011
           ansible_become: false
           divan_domain: "$domain"
+${demo_domain:+          divan_demo_domain: \"$demo_domain\"}
 INVENTORY
 
 ssh_password_file="$ansible_dir/../../.env.ssh-root"

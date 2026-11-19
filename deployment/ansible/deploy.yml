@@ -6,6 +6,12 @@
     divan_root: /opt/divannameh
     divan_use_existing_nginx: false
     divan_nginx_http_port: 18080
+    # Set divan_demo_domain to also serve the demo site from this host. Left
+    # empty, every task below is skipped and the deployment is unchanged.
+    divan_demo_domain: ""
+    divan_demo_enabled: "{{ divan_demo_domain | length > 0 }}"
+    divan_demo_clone: true
+    divan_compose_files: "{{ ['-f', 'compose.yaml', '-f', 'compose.demo.yaml'] if divan_demo_domain | length > 0 else [] }}"
     divan_source: "{{ playbook_dir }}/../.."
     divan_secrets_file: "{{ lookup('ansible.builtin.env', 'DIVAN_SECRETS_FILE') }}"
     divan_release: "{{ divan_root }}/releases/{{ divan_revision.stdout }}"
@@ -27,6 +33,9 @@
           - divan_domain is defined
           - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
           - (divan_workers | default(2) | int) > 0
+          - not (divan_demo_enabled | bool) or
+            divan_demo_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
+          - not (divan_demo_enabled | bool) or divan_demo_domain != divan_domain
 
     - name: Read the committed revision from the controller
       ansible.builtin.command:
@@ -121,6 +130,29 @@
       when: divan_secrets_file | length == 0
       no_log: true
 
+    - name: Add demo credentials to the server secrets
+      # The demo signs its own cookies and owns its own database. Appended once;
+      # existing values are never rewritten.
+      ansible.builtin.shell:
+        cmd: |
+          set -eu
+          umask 077
+          added=""
+          if ! grep -q '^DIVAN_DEMO_SECRET_KEY=' secrets.env; then
+              printf 'DIVAN_DEMO_SECRET_KEY=%s\n' "$(openssl rand -hex 48)" >> secrets.env
+              added="yes"
+          fi
+          if ! grep -q '^DIVAN_DEMO_DB_PASSWORD=' secrets.env; then
+              printf 'DIVAN_DEMO_DB_PASSWORD=%s\n' "$(openssl rand -hex 32)" >> secrets.env
+              added="yes"
+          fi
+          printf '%s' "$added"
+        chdir: "{{ divan_root }}"
+      register: divan_demo_secrets
+      changed_when: divan_demo_secrets.stdout == 'yes'
+      when: divan_demo_enabled | bool
+      no_log: true
+
     - name: Write the Compose settings
       ansible.builtin.template:
         src: compose.env.j2
@@ -149,9 +181,17 @@
             state: reloaded
           when: divan_nginx_site.changed
 
+    - name: Check the two-site proxy configuration before restarting the proxy
+      # The proxy serves the live site too, so a bad config here would stop both.
+      ansible.builtin.command:
+        argv: "{{ divan_compose + divan_compose_files + ['run', '--rm', '--no-deps', '--entrypoint', '', 'proxy', 'caddy', 'validate', '--config', '/etc/caddy/Caddyfile.with-demo', '--adapter', 'caddyfile'] }}"
+        chdir: "{{ divan_release }}"
+      when: divan_demo_enabled | bool
+      changed_when: false
+
     - name: Build and start the release
       ansible.builtin.command:
-        argv: "{{ divan_compose + ['up', '--detach', '--build', '--wait', '--wait-timeout', '180'] }}"
+        argv: "{{ divan_compose + divan_compose_files + ['up', '--detach', '--build', '--wait', '--wait-timeout', '180'] }}"
         chdir: "{{ divan_release }}"
       register: divan_compose_up
       changed_when: divan_compose_up.stderr is search('Created|Recreated|Started|Built')
@@ -191,6 +231,28 @@
       until: divan_login.status == 200
       retries: 18
       delay: 5
+
+    - name: Copy the poetry corpus into the demo database
+      # Reads the live database and writes only the treasury tables. Reader
+      # accounts and personal notebooks are never copied; see deployment/DEMO.md.
+      ansible.builtin.command:
+        argv: "{{ divan_compose + divan_compose_files + ['run', '--rm', 'demo-clone', '--replace'] }}"
+        chdir: "{{ divan_release }}"
+      register: divan_demo_corpus
+      changed_when: divan_demo_corpus.stdout is search('Corpus copied')
+      when: divan_demo_enabled | bool and (divan_demo_clone | bool)
+
+    - name: Verify the demo site over HTTPS from the controller
+      ansible.builtin.uri:
+        url: "https://{{ divan_demo_domain }}/login/"
+        status_code: 200
+      delegate_to: localhost
+      become: false
+      register: divan_demo_login
+      until: divan_demo_login.status == 200
+      retries: 18
+      delay: 5
+      when: divan_demo_enabled | bool
 
     - name: Record the verified release
       ansible.builtin.file:

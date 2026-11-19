@@ -70,6 +70,7 @@ try {
   const source = await readFile(new URL('./browser_fixture.py', import.meta.url));
   const output = execFileSync(python, ['manage.py', 'shell', '-i', 'python'], {env, input: source}).toString();
   const fixture = JSON.parse(output.trim().split('\n').at(-1));
+  execFileSync(python, ['manage.py', 'seed_public_treasury'], {env, stdio: 'pipe'});
   const port = await localPort();
   const base = 'http://127.0.0.1:' + port;
   server = spawn(python, ['manage.py', 'runserver', '127.0.0.1:' + port, '--noreload'], {env, stdio: 'ignore'});
@@ -103,10 +104,10 @@ try {
   await send('Network.enable');
   await send('Network.setCookie', {name: 'sessionid', value: fixture.session, url: base, httpOnly: true});
 
-  const paths = ['/', '/poems/', '/poems/?archived=1', fixture.poem, '/poems/new/', '/topics/', '/favorites/',
+  const paths = ['/', '/poems/', '/poems/?archived=1', fixture.poem, fixture.free, fixture.long, '/poems/new/', '/topics/', '/favorites/',
     '/collections/', '/poems/transfer/', '/poems/edits/', '/treasury/', encodeURI('/treasury/works/?q=آزمایش'),
     '/review/', '/memorize/', '/memorize/stats/', '/discover/', '/explore/', '/guide/', '/guide/treasury/', '/settings/', '/design-system/'];
-  for (const width of [320, 390, 768, 1024, 1101, 1280]) {
+  for (const width of [320, 360, 390, 768, 1024, 1101, 1280, 1440]) {
     await viewport(width);
     for (const path of paths) {
       await open(path);
@@ -155,6 +156,15 @@ try {
     await writeFile(join(screenshots, name + '.png'), Buffer.from(capture.data, 'base64'));
   };
 
+  for (const width of [360, 768, 1440]) {
+    await viewport(width, 1000);
+    for (const [name, path] of [['home', '/'], ['treasury', '/treasury/'], ['poem', fixture.poem], ['free', fixture.free], ['favorites', '/favorites/'], ['review', '/review/']]) {
+      await open(path);
+      await evaluate('document.fonts.ready');
+      await screenshot(name + '-' + width);
+    }
+  }
+
   await viewport(390);
   await open('/settings/');
   const colors = await evaluate(`(() => {
@@ -195,6 +205,14 @@ try {
   await evaluate('document.querySelector("#header-theme button[value=light]").click()');
   await until(() => evaluate('document.documentElement.dataset.theme === "light"'), 'light theme applied');
   await screenshot('settings-light-390');
+  await viewport(1440, 1000);
+  await open('/treasury/');
+  await screenshot('treasury-light-1440');
+  await open(fixture.long);
+  await screenshot('poem-light-1440');
+  await viewport(360, 1000);
+  await open('/treasury/');
+  await screenshot('treasury-light-360');
   await open('/');
   await evaluate('document.getElementById("nav-toggle").click()');
   assert.equal(await evaluate('document.activeElement.closest("#navigation-panel") !== null'), true);
@@ -246,6 +264,59 @@ try {
   await until(() => evaluate('document.querySelectorAll("#poem-study-cards li").length === 2'), 'second card saved');
   assert.equal(await evaluate('Boolean(document.querySelector(".range-form"))'), true);
 
+  await open(fixture.poem);
+  await evaluate('document.querySelector("[data-favorite] button").click()');
+  await until(() => evaluate('document.querySelector("[data-favorite] button").getAttribute("aria-pressed") === "true"'), 'personal favorite saved');
+  await open('/favorites/');
+  assert.equal(await evaluate(`Boolean(document.querySelector('a[href="${fixture.poem}#verse-1"]'))`), true, 'favorite deep link');
+  await evaluate(`document.querySelector('a[href="${fixture.poem}#verse-1"]').click()`);
+  await until(() => evaluate('location.hash === "#verse-1" && Boolean(document.getElementById("verse-1"))'), 'return to precise verse');
+  // Reach the star using Tab, then activate it with Enter.
+  for (let i = 0; i < 80 && !await evaluate('document.activeElement === document.querySelector("[data-favorite] button")'); i++) {
+    await send('Input.dispatchKeyEvent', {type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9});
+    await send('Input.dispatchKeyEvent', {type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9});
+  }
+  assert.equal(await evaluate('document.activeElement === document.querySelector("[data-favorite] button")'), true, 'keyboard reaches star');
+  assert.notEqual(await evaluate('getComputedStyle(document.activeElement).outlineStyle'), 'none');
+  await send('Input.dispatchKeyEvent', {type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r', unmodifiedText: '\r'});
+  await send('Input.dispatchKeyEvent', {type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13});
+  await until(() => evaluate('document.querySelector("[data-favorite] button").getAttribute("aria-pressed") === "false"'), 'keyboard removes saved star');
+  await evaluate('document.querySelector("[data-poem-size]").value = "largest"; document.querySelector("[data-poem-size]").dispatchEvent(new Event("change"))');
+  await open(fixture.poem + '?size-check=1');
+  assert.equal(await evaluate('document.documentElement.dataset.readingSize'), 'largest');
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), true);
+  await open('/settings/');
+  await evaluate(`document.querySelector('[name=palette][value=ocean]').click(); document.querySelector('#appearance-form .primary').click()`);
+  await until(() => evaluate('document.documentElement.dataset.palette === "ocean" && document.readyState === "complete"'), 'palette saved');
+  await open('/settings/?palette-check=1');
+  assert.equal(await evaluate('document.documentElement.dataset.palette'), 'ocean');
+  await evaluate('document.getElementById("accent-color").value = "#ffffee"; document.getElementById("accent-color").dispatchEvent(new Event("input"))');
+  assert.equal(await evaluate('!document.getElementById("accent-suggestion").hidden'), true);
+  await evaluate('document.getElementById("accent-save").click()');
+  const accent = await evaluate('getComputedStyle(document.documentElement).getPropertyValue("--color-primary").trim()');
+  await open('/settings/?accent-check=1');
+  assert.equal(await evaluate('getComputedStyle(document.documentElement).getPropertyValue("--color-primary").trim()'), accent);
+  await screenshot('custom-accent-320');
+  const customContrast = await evaluate(`(async () => {
+    const root = document.documentElement, original = {...root.dataset};
+    const lum = hex => hex.slice(1).match(/../g).map(x => parseInt(x, 16) / 255).map(x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
+    const ratio = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05);
+    const checks = [];
+    for (const palette of ['paper', 'ocean', 'forest', 'plum']) for (const theme of ['light', 'dark']) {
+      Object.assign(root.dataset, {palette, theme});
+      await new Promise(requestAnimationFrame);
+      const styles = getComputedStyle(root), c = name => styles.getPropertyValue('--color-' + name).trim();
+      checks.push({palette, theme, text: ratio(c('primary'), c('surface')), selected: ratio(c('primary'), c('primary-soft')), button: ratio(c('on-primary'), c('primary')), hover: ratio(c('on-primary'), c('primary-hover'))});
+    }
+    Object.assign(root.dataset, original);
+    await new Promise(requestAnimationFrame);
+    return checks;
+  })()`);
+  for (const check of customContrast) assert.ok(Math.min(check.text, check.selected, check.button, check.hover) >= 4.5, JSON.stringify(check));
+  await evaluate('document.getElementById("accent-reset").click()');
+  await open('/settings/?reset-check=1');
+  assert.equal(await evaluate('document.documentElement.style.getPropertyValue("--color-primary")'), '');
+
   await open('/poems/new/');
   await screenshot('editor-320');
   await evaluate(`(() => {
@@ -266,6 +337,11 @@ try {
   await evaluate('document.querySelector("#review-answer summary").click()');
   await until(() => evaluate('!document.querySelector("#rating-form button").disabled'), 'rating revealed');
 
+  await send('Emulation.setEmulatedMedia', {features: [{name: 'prefers-reduced-motion', value: 'reduce'}]});
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".review-verses")).animationName'), 'none');
+  const oldRequest = await evaluate('document.querySelector("#rating-form [name=request_id]").value');
+  await evaluate('document.querySelector("#rating-form button").click()');
+  await until(() => evaluate('document.readyState === "complete" && (!document.querySelector("#rating-form") || document.querySelector("#rating-form [name=request_id]").value !== ' + JSON.stringify(oldRequest) + ')'), 'review rating submitted');
   await send('Emulation.setScriptExecutionDisabled', {value: true});
   await open('/poems/new/?mode=base');
   assert.equal(await evaluate('document.getElementById("add-verse").hidden && document.getElementById("preview-button").hidden'), true);

@@ -1,0 +1,19 @@
+# Both sites behind one proxy. Used only by compose.demo.yaml; the live site on
+# its own keeps using Caddyfile.
+#
+# This file is loaded by the proxy that also serves the live site, so a syntax
+# error here would stop both. Validate before restarting the proxy:
+#
+#   docker compose exec proxy caddy validate \
+#       --config /etc/caddy/Caddyfile.with-demo --adapter caddyfile
+#
+# Each name is issued its own certificate, so demo.<domain> needs a DNS record
+# pointing at this host before the proxy starts.
+{$DIVAN_DOMAIN} {
+	reverse_proxy web:8000
+}
+
+{$DIVAN_DEMO_DOMAIN} {
+	header X-Robots-Tag "noindex, nofollow"
+	reverse_proxy demo-web:8000
+}

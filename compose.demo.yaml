@@ -1,0 +1,118 @@
+# Demo site overlay: serves demo.<domain> beside the live site on one host.
+#
+#   docker compose -f compose.yaml -f compose.demo.yaml up -d
+#
+# The demo runs the same image and the same code as the live site, so what it
+# shows is what the next release looks like. It keeps its own database and its
+# own secret key. The poetry corpus is copied into it with
+# `manage.py clone_treasury`; reader accounts are never copied.
+#
+# Why a separate database rather than pointing the demo at the live one:
+# signing in takes a username and no password (accounts/access.py), so a demo
+# sharing the live database would let any visitor open any reader's notebook by
+# typing their username.
+
+x-demo-django: &demo-django
+  image: divannameh:${DIVAN_IMAGE_TAG:-local}
+  build:
+    context: .
+  environment:
+    SECRET_KEY: ${DIVAN_DEMO_SECRET_KEY:?Set DIVAN_DEMO_SECRET_KEY}
+    DATABASE_URL: postgresql://divannameh:${DIVAN_DEMO_DB_PASSWORD:?Set DIVAN_DEMO_DB_PASSWORD}@demo-db:5432/divannameh?sslmode=require
+    ALLOWED_HOSTS: ${DIVAN_DEMO_DOMAIN:?Set DIVAN_DEMO_DOMAIN}
+    CSRF_TRUSTED_ORIGINS: ${DIVAN_DEMO_ORIGIN:?Set DIVAN_DEMO_ORIGIN}
+    TRUST_PROXY: "true"
+    WEB_CONCURRENCY: ${DIVAN_DEMO_WORKERS:-1}
+  logging: &demo-logging
+    driver: local
+
+services:
+  demo-db:
+    image: postgres:17
+    entrypoint: ["/bin/sh", "/opt/divan/postgres-tls.sh"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: divannameh
+      POSTGRES_USER: postgres
+      DIVAN_DB_PASSWORD: ${DIVAN_DEMO_DB_PASSWORD:?Set DIVAN_DEMO_DB_PASSWORD}
+    volumes:
+      - demo_postgres_data:/var/lib/postgresql/data
+      - ./deployment/docker/postgres-tls.sh:/opt/divan/postgres-tls.sh:ro
+      - ./deployment/docker/init-app-role.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    networks: [demo_database]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U divannameh -d divannameh"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    logging: *demo-logging
+
+  demo-migrate:
+    <<: *demo-django
+    command: ["python", "scripts/migrate_production.py"]
+    depends_on:
+      demo-db:
+        condition: service_healthy
+    networks: [demo_database]
+
+  demo-web:
+    <<: *demo-django
+    restart: unless-stopped
+    depends_on:
+      demo-migrate:
+        condition: service_completed_successfully
+    networks: [frontend, demo_database]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, urllib.request; req = urllib.request.Request('http://127.0.0.1:8000/healthz/', headers={'Host': os.environ['ALLOWED_HOSTS']}); urllib.request.urlopen(req, timeout=2).close()"
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # One-off job that copies the poetry corpus from the live database into the
+  # demo one. It is the only container attached to both database networks, and
+  # it never starts with `up` because of the profile.
+  #
+  #   docker compose -f compose.yaml -f compose.demo.yaml \
+  #     run --rm demo-clone --replace
+  demo-clone:
+    <<: *demo-django
+    profiles: [clone]
+    entrypoint:
+      - python
+      - manage.py
+      - clone_treasury
+      - --from
+      - postgresql://divannameh:${DIVAN_DB_PASSWORD:?Set DIVAN_DB_PASSWORD}@db:5432/divannameh?sslmode=require
+    command: []
+    depends_on:
+      demo-db:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks: [database, demo_database]
+
+  # One proxy serves both names. The demo config is mounted at its own path and
+  # selected by command, so neither mount nor file collides with the live one.
+  proxy:
+    depends_on:
+      web:
+        condition: service_healthy
+      demo-web:
+        condition: service_healthy
+    environment:
+      DIVAN_DOMAIN: ${DIVAN_DOMAIN:?Set DIVAN_DOMAIN}
+      DIVAN_DEMO_DOMAIN: ${DIVAN_DEMO_DOMAIN:?Set DIVAN_DEMO_DOMAIN}
+    volumes:
+      - ./deployment/docker/Caddyfile.with-demo:/etc/caddy/Caddyfile.with-demo:ro
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile.with-demo", "--adapter", "caddyfile"]
+
+networks:
+  demo_database:
+    internal: true
+
+volumes:
+  demo_postgres_data:

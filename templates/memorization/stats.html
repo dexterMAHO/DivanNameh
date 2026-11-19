@@ -1,24 +1,11 @@
 {% extends 'base.html' %}
-{% load persian static %}
-{% block title %}آمار حفظ{% endblock %}
-{% block styles %}<link rel="stylesheet" href="{% static 'css/study.css' %}">{% endblock %}
+{% load persian %}
+{% block title %}آمار مرور{% endblock %}
 {% block content %}
-<section class="page-intro">
-  <p class="eyebrow centred">آنچه در هفتهٔ گذشته گذشت</p>
-  <h1>آمار حفظ</h1>
-  <p class="page-lead">این ارقام از مرورهای ثبت‌شدهٔ خودت ساخته می‌شوند. موعد هر کارت با پاسخ تو تغییر می‌کند، پس نمودار پیشِ رو هم با هر مرور تازه جابه‌جا می‌شود.</p>
-  <p class="intro-metrics">
-    <span><b>{{ due_now|persian }}</b> کارت آمادهٔ مرور</span>
-    <i aria-hidden="true"></i>
-    {% if due_now %}<a class="text-link" href="{% url 'review' %}">شروع مرور {% include 'components/icon.html' with name='arrow' %}</a>
-    {% else %}<a class="text-link" href="{% url 'memorize' %}">فهرست حفظ {% include 'components/icon.html' with name='arrow' %}</a>{% endif %}
-  </p>
-</section>
-<nav class="notebook-tabs" aria-label="بخش‌های حفظ">
-  <a href="{% url 'review' %}">مرور امروز</a>
+<header class="page-heading compact">
+  <div><h1>آمار مرور</h1><p>{{ due_now|persian }} کارت آمادهٔ مرور</p></div>
   <a href="{% url 'memorize' %}">فهرست حفظ</a>
-  <a href="{% url 'study-stats' %}" aria-current="page">آمار حفظ</a>
-</nav>
+</header>
 <div class="settings-grid">
   <section class="panel">
     <h2>هفت روز اخیر</h2>

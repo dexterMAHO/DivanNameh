@@ -1,35 +1,20 @@
 {% extends 'base.html' %}
-{% load persian static %}
-{% block title %}شاعران گنجینه{% endblock %}
-{% block description %}آرشیو شاعران فارسی در دیوان‌نامه؛ زندگی‌نامهٔ کوتاه، تصویر و فهرست آثار.{% endblock %}
-{% block styles %}<link rel="stylesheet" href="{% static 'css/discovery.css' %}">{% endblock %}
+{% load persian %}
+{% block title %}گنجینهٔ فارسی{% endblock %}
 {% block content %}
-<section class="page-intro">
-  <p class="eyebrow centred">صاحبانِ صدا و جهان</p>
-  <h1>{% if user.is_authenticated %}شاعران گنجینه{% else %}گنجینهٔ شعر فارسی{% endif %}</h1>
-  <p class="page-lead">{% if user.is_authenticated %}هر شاعر دریچه‌ای به یک جهان است. اینجا از نام فراتر می‌رویم: زندگی‌نامهٔ کوتاه، سدهٔ زندگی و فهرست آثار هر شاعر، و از همان‌جا راهی به خواندن.{% else %}گزیده‌هایی از شعر فارسی با متن کامل و نشانی منبع. برای نگه‌داشتن شعر در دفتر شخصی و مرور آن، وارد شوید.{% endif %}</p>
-  {% if user.is_authenticated %}
-  <p class="intro-metrics">
-    <span><b>{{ totals.poets|tally }}</b> شاعر و نویسنده</span>
-    <i aria-hidden="true"></i>
-    <span><b>{{ totals.works|tally }}</b> اثر</span>
-    <i aria-hidden="true"></i>
-    <a class="text-link" href="{% url 'treasury-works' %}">جست‌وجوی آثار {% include 'components/icon.html' with name='arrow' %}</a>
-  </p>
-  {% endif %}
-</section>
+<header class="page-heading treasury-heading">
+  <div>
+    <span class="eyebrow">کتابخانهٔ مشترک</span>
+    <h1>گنجینهٔ فارسی</h1>
+    {% if user.is_authenticated %}<p>زندگی‌نامهٔ کوتاه، تصویر و فهرست آثار {{ totals.poets|tally }} شاعر و نویسنده، روی هم {{ totals.works|tally }} اثر.</p>{% endif %}
+  </div>
+</header>
 
-{% if not user.is_authenticated %}
-  {% include 'poetry/treasury_showcase.html' %}
-  <section class="poet-feature-band feature-panel">
-    <p class="feature-band-mark rosette" aria-hidden="true">✿</p>
-    <p>شعری که نگه داشته شود، دوباره خوانده می‌شود؛ و شعری که دوباره خوانده شود، می‌ماند.</p>
-    <p><a class="button feature-button" href="{% url 'signup' %}">ساختن دفتر شخصی</a></p>
-  </section>
-{% else %}
-
+{% include 'poetry/treasury_showcase.html' %}
+<p><a href="{% url 'explore' %}">رفتن به شعرجویی</a></p>
+{% if user.is_authenticated %}
 <section class="panel treasury-filters" aria-labelledby="treasury-filters-title">
-  <h2 class="visually-hidden" id="treasury-filters-title">پالایش آرشیو شاعران</h2>
+  <h2 class="visually-hidden" id="treasury-filters-title">پالایش گنجینه</h2>
   <form class="treasury-filter-form" method="get" action="{% url 'treasury' %}">
     <div class="treasury-filter-query">
       <label for="treasury-search">نام شاعر، زادگاه یا زندگی‌نامه</label>
@@ -57,44 +42,36 @@
         <option value="era" {% if sort == 'era' %}selected{% endif %}>کهن‌ترین</option>
       </select>
     </div>
-    <button class="primary" type="submit">جست‌وجو و پالایش</button>
+    <button type="submit">جست‌وجو و پالایش</button>
   </form>
   <p class="fine">
     {{ matches|tally }} شاعر یافت شد{% if filtered or sort != 'name' %} · <a class="inline-link" href="{% url 'treasury' %}">برداشتن پالایه‌ها</a>{% endif %}
   </p>
 </section>
 
-<div class="poets-grid">
+<div class="card-grid poet-grid">
   {% for book in page %}
-  <article class="poet-profile-card">
-    <div class="poet-card-top">
-      <span class="poet-card-index" aria-hidden="true">{{ forloop.counter|persian }}</span>
-      <span class="poet-card-rosette rosette" aria-hidden="true">✦</span>
-    </div>
-    {# A real portrait inside a medallion halo; the monogram stands in when there is none. #}
-    <a class="poet-portrait-link" href="{{ book.get_absolute_url }}">
-      <span class="poet-portrait">
-        <span class="portrait-halo" aria-hidden="true"></span>
-        {% include 'components/poet_portrait.html' with book=book decorative=True %}
+  <article class="poet-card">
+    <a class="poet-card-head" href="{{ book.get_absolute_url }}">
+      {% include 'components/poet_portrait.html' with book=book decorative=True %}
+      <span class="poet-identity">
+        <span class="poet-name">{{ book.author }}</span>
+        {% if book.life_span %}<span class="poet-dates">{{ book.life_span|persian }}</span>{% endif %}
+        {% if book.birth_place %}<span class="poet-place">{{ book.birth_place }}</span>{% endif %}
       </span>
-      <h2>{{ book.author }}</h2>
     </a>
-    {% if book.life_span %}<p class="poet-subtitle">{{ book.life_span|persian }}</p>{% endif %}
-    {% if book.birth_place %}<p class="poet-place">{{ book.birth_place }}</p>{% endif %}
     {% if book.biography %}<p class="poet-bio">{{ book.biography }}</p>{% endif %}
     <p class="poet-card-foot">
       {% if book.work_count %}<span>{{ book.work_count|tally }} اثر</span>{% else %}<span>فهرست نیامده</span>{% endif %}
       {% if book.century %}<span>سدهٔ {{ book.century|persian }} ق</span>{% endif %}
     </p>
-    <a class="button quiet" href="{{ book.get_absolute_url }}">ورود به آثار {{ book.author }} {% include 'components/icon.html' with name='arrow' %}</a>
   </article>
   {% empty %}
   <section class="empty">
-    {% include 'components/medallion.html' with name='poet' %}
-    <h2>{% if filtered %}با این پالایه‌ها شاعری پیدا نشد{% else %}آرشیو شاعران هنوز وارد نشده است{% endif %}</h2>
-    {% if filtered %}<p>نام دیگری را بیازما، حرف نخست را بردار یا سدهٔ دیگری را انتخاب کن.</p>
-    <a class="button primary" href="{% url 'treasury' %}">نمایش همهٔ شاعران</a>
-    {% else %}<p>پس از وارد کردن داده‌های گنجینه، زندگی‌نامه و فهرست آثار شاعران همین‌جا نمایش داده می‌شود.</p>{% endif %}
+    <span class="empty-icon">{% include 'components/icon.html' with name='book' %}</span>
+    <h2>{% if filtered %}با این پالایه‌ها شاعری پیدا نشد.{% else %}فهرست گنجینه هنوز وارد نشده است.{% endif %}</h2>
+    {% if filtered %}<p>نام دیگری را بیازمایید یا پالایه‌ها را بردارید.</p>
+    <a class="button" href="{% url 'treasury' %}">نمایش همهٔ شاعران</a>{% endif %}
   </section>
   {% endfor %}
 </div>

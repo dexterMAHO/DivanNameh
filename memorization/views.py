@@ -138,17 +138,10 @@ def review(request):
     cue = verses[0].hemistich_1 if verses else ''
     words = cue.split()
     blanks = [(word, index % 3 == 1 or len(words) == 1) for index, word in enumerate(words)] if mode == 'blanks' else []
-    remaining = queue.count()
-    done_today = ReviewLog.objects.filter(item__owner=request.user, reviewed_at__date=timezone.localdate()).count()
     return render(request, 'memorization/review.html', {
         **study_context(request.user), 'item': item, 'verses': verses, 'cue': cue, 'blanks': blanks,
-        'remaining': remaining, 'request_id': uuid.uuid4(), 'ratings': ReviewLog.RATINGS,
+        'remaining': queue.count(), 'request_id': uuid.uuid4(), 'ratings': ReviewLog.RATINGS,
         'mode': mode, 'modes': PRACTICE_MODES.items(),
-        'done_today': done_today,
-        # The round is what is left plus what has already been recorded today.
-        'round_total': remaining + done_today,
-        'round_percent': round(done_today / (remaining + done_today) * 100) if remaining + done_today else 0,
-        'card_count': MemorizationItem.objects.filter(owner=request.user).count(),
     })
 
 

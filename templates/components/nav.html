@@ -1,24 +1,15 @@
 {% load persian %}
 {% with route=request.resolver_match.url_name %}
 <p class="nav-label">دفتر شما</p>
-<a href="{% url 'dashboard' %}" {% if route == 'dashboard' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='grid' %}<span>خانه</span></a>
-<a href="{% url 'poems' %}" {% if route == 'poems' or route == 'poem-detail' or route == 'poem-edit' or route == 'poem-new' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>شعرهای دفتر</span></a>
+<a href="{% url 'dashboard' %}" {% if route == 'dashboard' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='grid' %}<span>پیشخوان</span></a>
+<a href="{% url 'poems' %}" {% if route == 'poems' or route == 'poem-detail' or route == 'poem-edit' or route == 'poem-new' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>کتابخانهٔ اشعار</span></a>
 <a href="{% url 'favorites' %}" {% if route == 'favorites' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='star' %}<span>شاه‌بیت‌ها</span></a>
 <a href="{% url 'tags' %}" {% if route == 'tags' or route == 'tag-detail' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='tag' %}<span>موضوع‌های دفتر</span></a>
-<a href="{% url 'collections' %}" {% if route == 'collections' or route == 'collection-detail' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='list' %}<span>مجموعه‌های شخصی</span></a>
-<a href="{% url 'poets' %}" {% if route == 'poets' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='pen' %}<span>شاعران دفتر</span></a>
-<p class="nav-label">حفظ و مرور</p>
+<a href="{% url 'poets' %}" {% if route == 'poets' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='pen' %}<span>شاعران کتابخانه</span></a>
+<a href="{% url 'treasury' %}" {% if route == 'treasury' or route == 'treasury-book' or route == 'treasury-entry' or route == 'treasury-works' or route == 'treasury-trace' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>گنجینهٔ فارسی</span></a>
+<p class="nav-label">همراه با شعر</p>
 <a href="{% url 'review' %}" {% if route == 'review' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='repeat' %}<span>مرور امروز</span><span class="count">{{ due_count|persian }}</span></a>
-<a href="{% url 'memorize' %}" {% if route == 'memorize' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='list' %}<span>فهرست حفظ</span></a>
-<a href="{% url 'study-stats' %}" {% if route == 'study-stats' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='grid' %}<span>آمار حفظ</span></a>
-<p class="nav-label">کشف شعر</p>
-<a href="{% url 'explore' %}" {% if route == 'explore' or route == 'literary-collection' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='compass' %}<span>گنجینهٔ شعر</span></a>
-<a href="{% url 'treasury' %}" {% if route == 'treasury' or route == 'treasury-book' or route == 'treasury-entry' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='pen' %}<span>شاعران گنجینه</span></a>
-<a href="{% url 'treasury-works' %}" {% if route == 'treasury-works' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='search' %}<span>جست‌وجوی آثار</span></a>
-<a href="{% url 'treasury-trace' %}" {% if route == 'treasury-trace' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='search' %}<span>ردّ مصرع</span></a>
+<a href="{% url 'memorize' %}" {% if route == 'memorize' or route == 'study-stats' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='list' %}<span>فهرست حفظ</span></a>
+<a href="{% url 'explore' %}" {% if route == 'explore' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='compass' %}<span>شعرجویی</span></a>
 <a href="{% url 'discover' %}" {% if route == 'discover' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='compass' %}<span>کشف شعر</span></a>
-<p class="nav-label">نگهداری</p>
-<a href="{% url 'my-shares' %}" {% if route == 'my-shares' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='eye' %}<span>اشتراک‌های من</span></a>
-<a href="{% url 'library-transfer' %}" {% if route == 'library-transfer' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='archive' %}<span>پشتیبان دفتر</span></a>
-<a href="{% url 'edit-history' %}" {% if route == 'edit-history' or route == 'edit-history-detail' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='check' %}<span>درخواست‌های ویرایش</span></a>
 {% endwith %}

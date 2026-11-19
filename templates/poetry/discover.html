@@ -1,17 +1,13 @@
 {% extends 'base.html' %}
-{% load persian static %}
+{% load persian %}
 {% block title %}کشف شعر{% endblock %}
-{% block description %}یک شعر تازه از دفتر شخصی یا گنجینهٔ دیوان‌نامه، به انتخاب بخت.{% endblock %}
-{% block styles %}<link rel="stylesheet" href="{% static 'css/discovery.css' %}">{% endblock %}
 {% block content %}
-<section class="page-intro">
-  <p class="eyebrow centred">وقتی نمی‌دانی چه بخوانی</p>
-  <h1>کشف شعر</h1>
-  <p class="page-lead">یک شعر تازه، بی‌آنکه دنبالش رفته باشی. می‌توانی منبع، شاعر، موضوع و طول شعر را محدود کنی و تا رسیدن به شعری که می‌خواهی، دوباره بزنی.</p>
-</section>
-
-<form class="panel discover-panel" method="get" aria-labelledby="discover-filters">
-  <h2 id="discover-filters">محدود کردن انتخاب</h2>
+<header class="page-heading compact">
+  <div><h1>کشف شعر</h1><p>از میان دفتر و گنجینه شعر تازه‌ای برای خواندن پیدا کنید.</p></div>
+  <a href="{% url 'explore' %}">شعرجویی</a>
+</header>
+<h2>انتخاب از دفتر یا آرشیو</h2>
+<form class="panel" method="get">
   <div class="form-grid">
   {% if user.is_authenticated %}
     <label>منبع<select name="source">
@@ -31,45 +27,43 @@
       <option value="long" {% if length == 'long' %}selected{% endif %}>بلند، بیش از ۸ ردیف</option>
     </select></label>
   </div>
-  <p class="discover-actions"><button class="primary" type="submit">انتخاب شعر</button></p>
+  <button class="primary">انتخاب شعر</button>
 </form>
-
 {% if source != 'treasury' %}
-<section id="discovery" class="panel discover-panel poetry-panel" tabindex="-1" aria-labelledby="discover-library">
-  <div class="section-heading"><div><span class="section-kicker discover-source">از دفتر شخصی تو</span><h2 id="discover-library">{% if poem %}{{ poem.display_title }}{% else %}دفتر شخصی{% endif %}</h2></div></div>
+<section id="discovery" class="poetry-panel" tabindex="-1">
+  <h2>از دفتر شخصی</h2>
   {% if poem %}
-    <p class="trace-meta">{{ poem.poet_name }}</p>
-    <div class="discover-verses">{% for verse in poem.verses.all|slice:':4' %}{% include 'components/verse.html' %}{% endfor %}</div>
-    <p class="fine">{% if filtered %}از میان شعرهای مطابق پالایه‌های تو{% else %}از میان شعرهای فعال دفتر تو{% endif %}</p>
-    <p class="discover-actions">
-      <a class="button primary" href="{{ poem.get_absolute_url }}">خواندن کامل شعر</a>
-      <a class="button quiet" href="{% querystring source=source exclude_id=poem.pk keep_work=treasury_pick.entry.pk keep_poem=None treasury_exclude=None %}#discovery">شعر دیگری از دفتر</a>
-    </p>
+    <p class="eyebrow">{{ poem.poet_name }}</p>
+    <h3>{{ poem.display_title }}</h3>
+    {% for verse in poem.verses.all|slice:':4' %}{% include 'components/verse.html' %}{% endfor %}
+    <p class="fine">{% if filtered %}از میان شعرهای مطابق پالایه‌های شما{% else %}از میان شعرهای فعال دفتر شما{% endif %}</p>
+    <div class="actions">
+      <a class="button" href="{{ poem.get_absolute_url }}">خواندن کامل شعر</a>
+      <a class="button" href="{% querystring source=source exclude_id=poem.pk keep_work=treasury_pick.entry.pk keep_poem=None treasury_exclude=None %}#discovery">شعر دیگری از دفتر</a>
+    </div>
   {% else %}
-    <p>{% if filtered %}شعری با این پالایه‌ها در دفتر تو نیست. پالایه‌ها را بردار یا موضوع دیگری را انتخاب کن.{% else %}دفتر تو هنوز شعری ندارد که به بخت انتخاب شود.{% endif %}</p>
-    <p class="discover-actions"><a class="button primary" href="{% url 'explore' %}">انتخاب شعر از گنجینه</a><a class="button quiet" href="{% url 'poems' %}">دیدن دفتر</a></p>
+    <p>{% if filtered %}شعری با این پالایه‌ها در دفتر پیدا نشد.{% else %}هنوز شعری برای کشف ندارید.{% endif %}</p>
+    <a href="{% url 'poems' %}">دیدن دفتر شخصی</a>
   {% endif %}
 </section>
 {% endif %}
-
 {% if source != 'library' %}
-<section id="treasury-discovery" class="panel discover-panel poetry-panel" tabindex="-1" aria-labelledby="discover-treasury">
-  <div class="section-heading"><div><span class="section-kicker discover-source">از گنجینهٔ فارسی</span><h2 id="discover-treasury">{% if treasury_pick %}{{ treasury_pick.entry.title }}{% else %}گنجینهٔ فارسی{% endif %}</h2></div></div>
+<section id="treasury-discovery" class="poetry-panel" tabindex="-1">
+  <h2>از گنجینهٔ فارسی</h2>
   {% if treasury_pick %}
-    <p class="trace-meta">{{ treasury_pick.entry.book.author }}</p>
-    <div class="discover-verses">
-      {% for first, second in treasury_pick.rows %}
-        {% include 'components/verse_text.html' with position=forloop.counter first=first second=second line_layout=treasury_pick.line_layout %}
-      {% endfor %}
-    </div>
+    <p class="eyebrow">{{ treasury_pick.entry.book.author }}</p>
+    <h3>{{ treasury_pick.entry.title }}</h3>
+    {% for first, second in treasury_pick.rows %}
+      {% include 'components/verse_text.html' with position=forloop.counter line_layout=treasury_pick.line_layout %}
+    {% endfor %}
     <p class="fine">{% if poet or length %}از میان آثار قابل خواندن مطابق پالایه‌ها{% else %}از میان آثار قابل خواندن گنجینه{% endif %}</p>
-    <p class="discover-actions">
-      <a class="button primary" href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل اثر</a>
-      <a class="button quiet" href="{% querystring source=source treasury_exclude=treasury_pick.entry.pk keep_poem=poem.pk keep_work=None exclude_id=None %}#treasury-discovery">اثر دیگری از گنجینه</a>
-    </p>
+    <div class="actions">
+      <a class="button" href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل اثر</a>
+      <a class="button" href="{% querystring source=source treasury_exclude=treasury_pick.entry.pk keep_poem=poem.pk keep_work=None exclude_id=None %}#treasury-discovery">شعر دیگری از گنجینه</a>
+    </div>
   {% else %}
-    <p>اثر قابل خواندنی با این انتخاب پیدا نشد. نام شاعر یا طول شعر را تغییر بده.</p>
-    <p class="discover-actions"><a class="button primary" href="{% url 'treasury-trace' %}">گرفتن ردّ یک مصرع</a>{% if user.is_authenticated %}<a class="button quiet" href="{% url 'treasury-works' %}">جست‌وجوی آثار</a>{% endif %}</p>
+    <p>شعر قابل خواندنی با این انتخاب پیدا نشد.</p>
+    <a href="{% url 'treasury-works' %}">جست‌وجوی آثار گنجینه</a>
   {% endif %}
 </section>
 {% endif %}

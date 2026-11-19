@@ -1,11 +1,1 @@
-{% extends 'base.html' %}
-{% block title %}درخواست انجام نشد{% endblock %}
-{% block content %}
-<section class="empty">
-  {% include 'components/medallion.html' with name='lamp' %}
-  <h1>درخواست انجام نشد</h1>
-  <p role="alert" class="error-detail">{{ message }}</p>
-  <p>به صفحهٔ قبل برگرد و ورودی را اصلاح کن؛ چیزی ذخیره نشده است.</p>
-  <p class="empty-actions"><a class="button primary" href="{% url 'dashboard' %}">بازگشت به خانه</a></p>
-</section>
-{% endblock %}
+{% extends 'base.html' %}{% block title %}خطای درخواست{% endblock %}{% block content %}<section class="empty"><h1>درخواست انجام نشد</h1><p role="alert">{{ message }}</p><p>به صفحهٔ قبل برگردید و ورودی را اصلاح کنید.</p><a href="{% url 'dashboard' %}">بازگشت به پیشخوان</a></section>{% endblock %}

@@ -1,58 +1,31 @@
 {% extends 'base.html' %}
-{% load persian static %}
+{% load persian %}
 {% block title %}جست‌وجوی آثار گنجینه{% endblock %}
-{% block description %}جست‌وجو در عنوان، نام شاعر و متن آثار گنجینهٔ دیوان‌نامه.{% endblock %}
-{% block styles %}<link rel="stylesheet" href="{% static 'css/discovery.css' %}">{% endblock %}
 {% block content %}
-<section class="page-intro">
-  <p class="eyebrow centred">آرشیو کامل آثار</p>
-  <h1>جست‌وجوی آثار</h1>
-  <p class="page-lead">عنوان اثر، نام شاعر و متن آثارِ دارای نسخهٔ قابل نمایش را جست‌وجو می‌کند. اگر فقط چند واژه از یک بیت در ذهن داری، «ردّ مصرع» نتیجهٔ دقیق‌تری می‌دهد.</p>
-</section>
-
-<form method="get" class="panel trace-form" role="search">
+<header class="page-heading compact">
+  <div><h1>جست‌وجوی آثار گنجینه</h1><p>عنوان، شاعر و مصرعِ آثار دارای متن را جست‌وجو کنید.</p></div>
+  <div class="actions"><a href="{% url 'treasury-trace' %}{% if query %}?q={{ query|urlencode:'' }}{% endif %}">ردّ مصرع</a><a href="{% url 'treasury' %}">فهرست شاعران</a></div>
+</header>
+<form method="get" class="panel inline-form">
   {% if book_slug %}<input type="hidden" name="book" value="{{ book_slug }}">{% endif %}
-  <div>
-    <label for="work-search">عنوان، نام شاعر یا بخشی از مصرع</label>
-    <input id="work-search" name="q" type="search" value="{{ query }}" maxlength="120" placeholder="جست‌وجو در آثار گنجینه…">
-  </div>
-  <button class="primary" type="submit">{% include 'components/icon.html' with name='search' %}جست‌وجو</button>
+  <div><label for="work-search">عنوان، شاعر یا مصرع</label><input id="work-search" name="q" type="search" value="{{ query }}" maxlength="120"></div>
+  <button>جست‌وجو</button>
+  {% if book_slug %}<a href="{% querystring book=None page=None %}">جست‌وجو در همهٔ گنجینه</a>{% endif %}
 </form>
-<p class="filter-summary">
-  <a class="text-link" href="{% url 'treasury-trace' %}{% if query %}?q={{ query|urlencode:'' }}{% endif %}">گرفتن ردّ مصرع</a>
-  <a class="text-link" href="{% url 'treasury' %}">آرشیو شاعران</a>
-  {% if book_slug %}<a class="text-link" href="{% querystring book=None page=None %}">جست‌وجو در همهٔ گنجینه</a>{% endif %}
-</p>
-
 {% if query or book_slug %}
-  <div class="results-toolbar">
-    <div><span class="section-kicker">{% if query %}نتیجه برای «{{ query }}»{% else %}آثار این دیوان{% endif %}</span><h2>آثار یافت‌شده</h2></div>
-    <span class="results-count">{{ page.paginator.count|persian }} اثر</span>
-  </div>
-  <div class="trace-results">
+  <p class="filter-summary">{{ page.paginator.count|persian }} اثر پیدا شد.</p>
+  <div class="card-grid">
     {% for entry in page %}
-      <article class="panel trace-card">
+      <article class="panel">
         <h2><a href="{{ entry.get_absolute_url }}?from={{ request.get_full_path|urlencode:'' }}">{{ entry.title }}</a></h2>
-        <p class="trace-meta"><span>{{ entry.book.author }}</span><i class="meta-dot" aria-hidden="true"></i><span>{% if entry.has_text and entry.book.publishes_text %}متن کامل در گنجینه{% else %}فقط نمایه؛ متن در گنجور{% endif %}</span></p>
-        {% if entry.snippet %}<blockquote class="trace-quote">{{ entry.snippet|truncatechars:220 }}</blockquote>{% endif %}
-        <a class="text-link" href="{{ entry.get_absolute_url }}?from={{ request.get_full_path|urlencode:'' }}">باز کردن این اثر {% include 'components/icon.html' with name='arrow' %}</a>
+        <p>{{ entry.book.author }} · {% if entry.has_text and entry.book.publishes_text %}متن در گنجینه{% else %}فقط نمایه{% endif %}</p>
+        {% if entry.snippet %}<blockquote>{{ entry.snippet|truncatechars:220 }}</blockquote>{% endif %}
+        {% if entry.source_url %}<a href="{{ entry.source_url }}" rel="nofollow">منبع اثر</a>{% endif %}
       </article>
     {% empty %}
-      <section class="empty">
-        {% include 'components/medallion.html' with name='trace' %}
-        <h2>اثری با این جست‌وجو پیدا نشد</h2>
-        <p>بخش کوتاه‌تری از عنوان را امتحان کن، یا اگر دنبال یک بیت مشخصی هستی از «ردّ مصرع» استفاده کن.</p>
-        <p class="empty-actions"><a class="button primary" href="{% url 'treasury-trace' %}?q={{ query|urlencode:'' }}">گرفتن ردّ مصرع</a><a class="button quiet" href="{% url 'treasury' %}">آرشیو شاعران</a></p>
-      </section>
+      <section class="empty"><h2>اثری با این جست‌وجو پیدا نشد.</h2><p>بخشی کوتاه‌تر از عنوان یا مصرع را وارد کنید.</p></section>
     {% endfor %}
   </div>
   {% include 'components/pagination.html' %}
-{% else %}
-<section class="empty">
-  {% include 'components/medallion.html' with name='book' %}
-  <h2>جست‌وجو را با یک نام یا عنوان شروع کن</h2>
-  <p>می‌توانی نام شاعر را بنویسی و از فهرست آثارش پیش بروی، یا بخشی از عنوان یک اثر را وارد کنی.</p>
-  <a class="button primary" href="{% url 'treasury' %}">دیدن آرشیو شاعران</a>
-</section>
 {% endif %}
 {% endblock %}

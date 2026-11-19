@@ -1,5 +1,5 @@
 {% load persian %}
-<div class="verse{% if line_layout %} verse-line{% endif %}" data-position="{{ position }}"{% if verse_anchor %} id="verse-{{ position }}" tabindex="-1"{% endif %}>
+<div class="verse{% if line_layout %} verse-line{% endif %}" data-position="{{ position }}">
   <span class="verse-number">{{ position|persian }}</span>
   <div class="hemistich">{{ first }}</div>
   {% if second %}<div class="hemistich">{{ second }}</div>{% endif %}

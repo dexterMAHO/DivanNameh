@@ -1,16 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}{{ label }}{% endblock %}
+{% block title %}تأیید حذف{% endblock %}
 {% block content %}
-<section class="panel confirm-panel">
-  <p class="eyebrow">تأیید لازم است</p>
+<section class="panel">
   <h1>{{ label }}</h1>
   <p>{{ explanation }}</p>
   <form method="post" class="form-actions">
     {% csrf_token %}
     <input type="hidden" name="confirm" value="yes">
     {% if return_query %}<input type="hidden" name="return_query" value="{{ return_query }}">{% endif %}
-    <button class="primary">بله، انجام بده</button>
-    <a class="button quiet" href="{{ cancel_url }}">انصراف</a>
+    <button class="primary">تأیید حذف</button>
+    <a href="{{ cancel_url }}">انصراف</a>
   </form>
 </section>
 {% endblock %}

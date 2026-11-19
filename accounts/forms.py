@@ -27,8 +27,7 @@ class AppearanceForm(ThemeForm):
     class Meta(ThemeForm.Meta):
         fields = ['theme', 'palette']
         labels = {'theme': 'حالت نمایش', 'palette': 'پالت رنگی'}
-        # Both are presented as picture cards on the settings page.
-        widgets = {'palette': forms.RadioSelect, 'theme': forms.RadioSelect}
+        widgets = {'palette': forms.RadioSelect}
 
 
 class ActionPasswordForm(forms.Form):
@@ -79,8 +78,6 @@ class ProfilePhotoForm(forms.Form):
 class ReadingForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['reading_size', 'reading_spacing', 'reading_layout', 'reading_numbers', 'reduce_motion']
+        fields = ['reading_size', 'reading_spacing', 'reading_layout', 'reading_numbers']
         labels = {'reading_size': 'اندازهٔ قلم شعر', 'reading_spacing': 'فاصلهٔ سطرها',
-                  'reading_layout': 'چیدمان', 'reading_numbers': 'نمایش شمارهٔ ردیف',
-                  'reduce_motion': 'کاهش حرکت‌های تزئینی'}
-        help_texts = {'reduce_motion': 'انیمیشن‌ها و جابه‌جایی‌های تزئینی در همهٔ صفحه‌ها محدود می‌شوند.'}
+                  'reading_layout': 'چیدمان', 'reading_numbers': 'نمایش شمارهٔ ردیف'}

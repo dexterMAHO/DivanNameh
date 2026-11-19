@@ -153,7 +153,7 @@ class AppTests(TestCase):
         self.user.save(update_fields=['action_password'])
         self.client.post(reverse('poem-archive', args=[self.poem.pk]), {'action_password': 'action-test-password-271'})
         self.assertEqual(self.client.get('/api/discover/random/').json()['poem'], None)
-        self.assertContains(self.client.get('/review/'), 'کارتی برای همین حالا آماده نیست')
+        self.assertContains(self.client.get('/review/'), 'مروری برای الان باقی نمانده')
         self.assertEqual(self.client.get('/favorites/').context['page'].paginator.count, 0)
         self.client.post(reverse('poem-restore', args=[self.poem.pk]))
         self.assertEqual(self.client.get('/favorites/').context['page'].paginator.count, 1)

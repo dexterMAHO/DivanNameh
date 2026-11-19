@@ -1,103 +1,39 @@
 {% load persian %}
-{% comment %}
-The published treasury as an editorial catalogue: filters beside, poems ahead.
-Shared by گنجینهٔ شعر and by the guest view of the poet archive.
-{% endcomment %}
-<div class="treasury-layout">
-  <aside class="filter-panel panel" aria-labelledby="showcase">
-    <div class="filter-panel-head">
-      <div><span class="section-kicker">راه باریک‌تر به شعر</span><h2 id="showcase">پالایش گنجینه</h2></div>
-      <span class="filter-icon rosette" aria-hidden="true">✥</span>
-    </div>
-    <form method="get">
-      <label class="field-label" for="public-poet">شاعر</label>
-      <select class="field-control" id="public-poet" name="{{ poet_parameter }}">
-        <option value="">همهٔ شاعران</option>
-        {% for slug, author in public_poets %}<option value="{{ slug }}" {% if slug == public_poet %}selected{% endif %}>{{ author }}</option>{% endfor %}
-      </select>
-      <label class="field-label" for="public-topic">موضوع</label>
-      <select class="field-control" id="public-topic" name="{{ topic_parameter }}">
-        <option value="">همهٔ موضوع‌ها</option>
-        {% for topic in public_topics %}<option value="{{ topic.slug }}" {% if topic.slug == public_topic %}selected{% endif %}>{{ topic.title }}</option>{% endfor %}
-      </select>
-      <button class="button primary wide" type="submit">نمایش شعرها</button>
-    </form>
-    {% if public_poet or public_topic %}
-      <p><a class="text-link" href="{{ request.path }}">برداشتن پالایه‌ها</a></p>
-    {% endif %}
-    <div class="filter-note">
-      <span class="rosette" aria-hidden="true">✿</span>
-      <p>این گزیده‌ها متن کامل و نشانی منبع دارند، پس می‌توانی هر بیتی را که خواستی به دفترت بسپاری.</p>
-    </div>
-    {% if not explore_showcase %}
-      <p><a class="text-link" href="{% url 'explore' %}">رفتن به شعرجویی {% include 'components/icon.html' with name='arrow' %}</a></p>
-    {% endif %}
-    <p><a class="text-link" href="{% url 'treasury-trace' %}">ردّ مصرع؛ یافتن بیت از چند واژه {% include 'components/icon.html' with name='arrow' %}</a></p>
-  </aside>
-
-  <section class="treasury-results" aria-labelledby="showcase-results">
-    <div class="results-toolbar">
-      <div><span class="section-kicker">برگزیدهٔ دیوان‌نامه</span><h2 id="showcase-results">شعرهایی برای مکث</h2></div>
-      <span class="results-count">{{ pick_page.paginator.count|persian }} شعر</span>
-    </div>
-    {% if picks %}
-    <div class="poem-catalog">
-      {% for pick, sample in picks %}
-      <article class="catalog-card">
-        <div class="catalog-card-top">
-          <span class="catalog-index" aria-hidden="true">{{ forloop.counter|persian }}</span>
-          {% if pick.topics.all %}<span class="catalog-tag">{% for topic in pick.topics.all %}{{ topic.title }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>{% endif %}
-          {% if user.is_authenticated %}
-          <form method="post" action="{% url 'treasury-save' pick.entry.book.slug pick.entry.key %}" data-ajax>
-            {% csrf_token %}
-            <input type="hidden" name="action" value="library-all">
-            <button class="tiny-bookmark" aria-label="سپردن «{{ pick.entry.title }}» به دفتر">{% include 'components/icon.html' with name='bookmark' %}</button>
-            <span class="inline-status" role="status"></span>
-          </form>
-          {% endif %}
-        </div>
-        <h3><a href="{{ pick.entry.get_absolute_url }}">{{ pick.entry.title }}</a></h3>
-        <p class="catalog-poet">{{ pick.entry.book.author }}</p>
-        {% if sample %}<blockquote class="catalog-quote">{{ sample.0 }}{% if sample.1 %}<br>{{ sample.1 }}{% endif %}</blockquote>{% endif %}
-        <div class="catalog-card-bottom">
-          <span>{{ pick.entry.reading_count|persian }} بیت</span>
-          <a class="text-link" href="{{ pick.entry.get_absolute_url }}">خواندن شعر {% include 'components/icon.html' with name='arrow' %}</a>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-    {% if pick_page.has_other_pages %}
-    <nav class="pagination" aria-label="صفحه‌های شعر">
-      {% if pick_page.has_previous %}<a href="{% querystring pick_page=pick_page.previous_page_number %}">صفحهٔ قبل</a>{% endif %}
-      <span>{{ pick_page.number|persian }} از {{ pick_page.paginator.num_pages|persian }}</span>
-      {% if pick_page.has_next %}<a href="{% querystring pick_page=pick_page.next_page_number %}">صفحهٔ بعد</a>{% endif %}
-    </nav>
-    {% endif %}
-    {% else %}
-    <section class="empty">
-      {% include 'components/medallion.html' with name='book' %}
-      <h2>{% if public_poet or public_topic %}در این گوشه از گنجینه شعری پیدا نشد{% else %}گنجینهٔ عمومی هنوز شعری منتشر نکرده است{% endif %}</h2>
-      <p>{% if public_poet or public_topic %}شاعر یا موضوع دیگری را انتخاب کن، یا پالایه‌ها را بردار تا همهٔ گزیده‌ها را ببینی.{% else %}تا انتشار گزیده‌های تحریریه، آرشیو شاعران و جست‌وجوی آثار در دسترس است.{% endif %}</p>
-      {% if public_poet or public_topic %}<a class="button primary" href="{{ request.path }}">نمایش همهٔ شعرها</a>
-      {% else %}<a class="button primary" href="{% url 'treasury' %}">رفتن به آرشیو شاعران</a>{% endif %}
-    </section>
-    {% endif %}
-
-    {% if public_collections %}
-    <section class="literary-sets" aria-labelledby="literary-sets">
-      <div class="section-heading">
-        <div><span class="section-kicker">یک مضمون، چند صدا</span><h2 id="literary-sets">مجموعه‌های ادبی</h2></div>
-      </div>
-      <ul class="set-list">
-        {% for collection in public_collections %}
-        <li><a class="set-card" href="{% url 'literary-collection' collection.slug %}">
-          <b>{{ collection.title }}</b>
-          {% if collection.description %}<small>{{ collection.description }}</small>{% endif %}
-          {% include 'components/icon.html' with name='arrow' %}
-        </a></li>
-        {% endfor %}
-      </ul>
-    </section>
-    {% endif %}
-  </section>
+<section class="panel" aria-labelledby="showcase">
+  <h2 id="showcase">{% if explore_showcase %}انتخاب شاعر و موضوع{% else %}شعرهای گنجینه{% endif %}</h2>
+  <form method="get" class="inline-form">
+    <div><label for="public-poet">شاعر</label><select id="public-poet" name="{{ poet_parameter }}">
+      <option value="">همهٔ شاعران</option>
+      {% for slug, author in public_poets %}<option value="{{ slug }}" {% if slug == public_poet %}selected{% endif %}>{{ author }}</option>{% endfor %}
+    </select></div>
+    <div><label for="public-topic">موضوع</label><select id="public-topic" name="{{ topic_parameter }}">
+      <option value="">همهٔ موضوع‌ها</option>
+      {% for topic in public_topics %}<option value="{{ topic.slug }}" {% if topic.slug == public_topic %}selected{% endif %}>{{ topic.title }}</option>{% endfor %}
+    </select></div>
+    <button>نمایش شعرها</button>
+  </form>
+</section>
+<div class="card-grid">
+  {% for pick, sample in picks %}
+  <article class="panel">
+    <p class="eyebrow">{{ pick.entry.book.author }}</p>
+    <h2><a href="{{ pick.entry.get_absolute_url }}">{{ pick.entry.title }}</a></h2>
+    {% if sample %}<blockquote class="literary-quote">{{ sample.0 }}<br>{{ sample.1 }}</blockquote>{% endif %}
+  </article>
+  {% empty %}
+  <p>شعری با این پالایه‌ها در گنجینهٔ عمومی پیدا نشد.</p>
+  {% endfor %}
 </div>
+{% if pick_page.has_other_pages %}
+<nav class="pagination" aria-label="صفحه‌های شعر">
+  {% if pick_page.has_previous %}<a href="{% querystring pick_page=pick_page.previous_page_number %}">قبلی</a>{% endif %}
+  <span>صفحهٔ {{ pick_page.number|persian }}</span>
+  {% if pick_page.has_next %}<a href="{% querystring pick_page=pick_page.next_page_number %}">بعدی</a>{% endif %}
+</nav>
+{% endif %}
+{% if public_collections %}
+<section class="panel">
+  <h2>یک مضمون، چند صدا</h2>
+  <ul>{% for collection in public_collections %}<li><a href="{% url 'literary-collection' collection.slug %}">{{ collection.title }}</a>{% if collection.description %} · {{ collection.description }}{% endif %}</li>{% endfor %}</ul>
+</section>
+{% endif %}

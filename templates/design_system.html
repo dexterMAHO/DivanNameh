@@ -1,61 +1,31 @@
 {% extends 'base.html' %}
-{% load static %}
 {% block title %}راهنمای طراحی{% endblock %}
-{% block styles %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
-<link rel="stylesheet" href="{% static 'css/reading.css' %}">
-<link rel="stylesheet" href="{% static 'css/discovery.css' %}">
-<link rel="stylesheet" href="{% static 'css/study.css' %}">
-<link rel="stylesheet" href="{% static 'css/settings.css' %}">
-{% endblock %}
 {% block content %}
-<section class="page-intro">
-  <p class="eyebrow centred">مرجع اجزای رابط</p>
-  <h1>راهنمای طراحی دیوان‌نامه</h1>
-  <p class="page-lead">نمونهٔ همهٔ اجزای مشترک، با پالت و حالت نمایشِ حسابِ خودت. اگر جزئی اینجا درست دیده نشود، در صفحه‌های واقعی هم درست نیست. <a class="text-link" href="{% url 'settings' %}">تغییر ظاهر دفتر</a></p>
-</section>
+<header class="page-heading"><div><span class="eyebrow">دفتر ادبی معاصر</span><h1>راهنمای طراحی دیوان نامه</h1><p class="muted">نمونهٔ فرم، دکمه، حالت خالی و کارت در پالت انتخابی</p></div></header>
 
-<div class="section-heading"><div><span class="section-kicker">لایهٔ یکم</span><h2>توکن‌های رنگ</h2></div></div>
-<p class="muted">هر پالت در حالت روشن و تاریک آزموده شده است: متن‌ها دست‌کم ۴٫۵:۱ و خط کنترل و حلقهٔ فوکوس دست‌کم ۳:۱ کنتراست دارند.</p>
+<p class="muted">نمونه‌ها با پالت و حالت نمایش حساب شما هماهنگ‌اند. <a href="{% url 'settings' %}">انتخاب ظاهر دفتر</a></p>
+<div class="section-heading"><div><span class="eyebrow">توکن‌های پایه</span><h2>رنگ‌ها</h2></div></div>
 <div class="card-grid">
   <article class="panel"><h3>زمینه و سطح</h3><div class="tags"><span class="chip">background</span><span class="chip">surface</span><span class="chip">surface-muted</span><span class="chip">border</span></div></article>
-  <article class="panel"><h3>متن و کنش</h3><div class="tags"><span class="chip">foreground</span><span class="chip">muted-foreground</span><span class="chip">display</span><span class="chip">primary</span><span class="chip">focus</span></div></article>
-  <article class="panel"><h3>نقش‌های تزئینی</h3><p class="muted">این‌ها هرگز تنها حاملِ متن بدنه نیستند.</p><div class="tags"><span class="chip">gold</span><span class="chip">vermillion</span><span class="chip">jade</span><span class="chip">ornament</span></div></article>
+  <article class="panel"><h3>متن و اقدام</h3><div class="tags"><span class="chip">foreground</span><span class="chip">muted</span><span class="chip">primary</span><span class="chip">focus</span></div></article>
+  <article class="panel"><h3>وضعیت</h3><p class="notice">نمونهٔ پیام موفق</p><p class="notice error">نمونهٔ پیام خطا</p></article>
 </div>
 
-<div class="section-heading"><div><span class="section-kicker">لایهٔ دوم</span><h2>نقش‌مایه‌ها</h2></div></div>
-<section class="panel">
-  <p class="muted">مدالیون‌ها به‌صورت SVG درون‌خطی رسم می‌شوند تا هر مسیر رنگِ توکنیِ خودش را بگیرد؛ آیکون‌ها از sprite مشترک می‌آیند.</p>
-  <div class="path-grid">
-    <span class="path-card">{% include 'components/medallion.html' with name='book' %}<span class="path-title">book</span><span class="path-desc">گنجینه و فهرست</span></span>
-    <span class="path-card">{% include 'components/medallion.html' with name='poet' %}<span class="path-title">poet</span><span class="path-desc">شاعران</span></span>
-    <span class="path-card">{% include 'components/medallion.html' with name='flower' %}<span class="path-title">flower</span><span class="path-desc">دفتر و موضوع</span></span>
-    <span class="path-card">{% include 'components/medallion.html' with name='lamp' %}<span class="path-title">lamp</span><span class="path-desc">حفظ و مرور</span></span>
-  </div>
-</section>
-
-<div class="section-heading"><div><span class="section-kicker">کنش‌ها</span><h2>دکمه‌ها و پیوندها</h2></div></div>
+<div class="section-heading"><div><span class="eyebrow">کنترل‌ها</span><h2>دکمه‌ها</h2></div></div>
 <section class="panel">
   <div class="actions">
-    <button class="primary" type="button">کنش اصلی</button>
-    <button type="button">کنش ثانویه</button>
+    <button class="primary" type="button">اقدام اصلی</button>
+    <button type="button">اقدام ثانویه</button>
     <button class="quiet" type="button">کم‌رنگ</button>
     <button class="text-button" type="button">دکمهٔ متنی</button>
     <button class="primary" type="button" disabled>غیرفعال</button>
     <span class="stamp">نشان</span>
     <a class="chip" href="#">موضوع نمونه</a>
-    <a class="text-link" href="#">پیوند تحریریه‌ای {% include 'components/icon.html' with name='arrow' %}</a>
-  </div>
-  <p class="muted">ابزارهای گرد، در نوار خواندن و تنظیمات:</p>
-  <div class="actions">
-    <button class="round-tool" type="button" aria-label="نمونهٔ کوچک‌تر">−</button>
-    <button class="round-tool" type="button" aria-label="نمونهٔ بزرگ‌تر">+</button>
-    <button class="round-tool" type="button" aria-pressed="true" aria-label="نمونهٔ فعال">↔</button>
-    <button class="tiny-bookmark" type="button" aria-label="نمونهٔ نشانک">{% include 'components/icon.html' with name='bookmark' %}</button>
+    <a class="inline-link" href="#">لینک درون‌متنی{% include 'components/icon.html' with name='arrow' %}</a>
   </div>
 </section>
 
-<div class="section-heading"><div><span class="section-kicker">ورودی</span><h2>فرم‌ها و حالت خطا</h2></div></div>
+<div class="section-heading"><div><span class="eyebrow">فرم</span><h2>ورودی‌ها</h2></div></div>
 <section class="panel">
   <div class="form-grid">
     <div><label for="ds-input">فیلد متنی</label><input id="ds-input" placeholder=""></div>
@@ -67,81 +37,20 @@
   </div>
   <label for="ds-textarea">چندخطی</label><textarea id="ds-textarea" rows="3"></textarea>
   <label><input type="checkbox" checked> گزینهٔ قابل انتخاب</label>
-  <p class="notice">نمونهٔ پیام خنثی</p>
-  <p class="notice success">نمونهٔ پیام موفق</p>
-  <p class="notice error">نمونهٔ پیام خطا</p>
 </section>
 
-<div class="section-heading"><div><span class="section-kicker">خواندن</span><h2>واحد بیت و کنش‌های آن</h2></div></div>
-<section class="reading-sheet">
-  <p class="paper-ornament" aria-hidden="true"><span>❀</span><i></i><span>✦</span><i></i><span>❀</span></p>
-  <div class="poetry-panel">
-    <div class="verse-row">
-      <div class="verse" data-position="1"><span class="verse-number">۱</span><div class="hemistich">الا یا ایها الساقی ادر کاساً و ناولها</div><div class="hemistich">که عشق آسان نمود اول ولی افتاد مشکل‌ها</div></div>
-      <div class="verse-actions">
-        <button class="verse-action" type="button" aria-pressed="false">{% include 'components/icon.html' with name='star' %}<span>شاه‌بیت</span></button>
-        <button class="verse-action" type="button" aria-pressed="true">{% include 'components/icon.html' with name='repeat' %}<span>در فهرست حفظ</span></button>
-        <button class="verse-action" type="button">{% include 'components/icon.html' with name='check' %}<span>رونوشت</span></button>
-      </div>
-    </div>
-    <div class="verse-row">
-      <div class="verse selected" data-position="2"><span class="verse-number">۲</span><div class="hemistich">نمونهٔ بیت انتخاب‌شده در حالت گزینش بازه</div></div>
-    </div>
-  </div>
-  <p class="paper-end-mark" aria-hidden="true">❧ پایانِ این برگ ❧</p>
+<div class="section-heading"><div><span class="eyebrow">محتوا</span><h2>بیت و کارت</h2></div></div>
+<section class="poetry-panel">
+  <div class="verse" data-position="1"><span class="verse-number">۱</span><div class="hemistich">الا یا ایها الساقی ادر کاسا و ناولها</div><div class="hemistich">که عشق آسان نمود اول ولی افتاد مشکل‌ها</div></div>
+  <div class="verse selected" data-position="2"><span class="verse-number">۲</span><div class="hemistich">نمونهٔ بیت انتخاب‌شده در حالت گزینش بازه</div></div>
 </section>
-<section class="reading-tools-bar" aria-label="نمونهٔ نوار خواندن">
-  <div class="reading-progress">
-    <p class="progress-copy"><span>پیشرفت خواندن</span><strong>۴۵٪</strong></p>
-    <div class="progress-track"><span style="inline-size: 45%"></span></div>
-  </div>
-</section>
-
-<div class="section-heading"><div><span class="section-kicker">فهرست‌ها</span><h2>کارت‌ها</h2></div></div>
 <div class="card-grid">
   <article class="poem-card">
-    <div class="card-meta"><span class="card-poet">نام شاعر</span><span>۲ بیت</span></div>
+    <div class="card-meta"><span>نام شاعر</span><span>۲ بیت</span></div>
     <h2><a href="#">عنوان نمونهٔ شعر</a></h2>
-    <blockquote class="excerpt">مصرعی برای نمایش برش شعر<br>در کارت دفتر</blockquote>
+    <p class="excerpt">مصرعی برای نمایش برش شعر در کارت کتابخانه</p>
     <div class="tags"><span class="chip">عاشقانه</span></div>
   </article>
-  <article class="catalog-card">
-    <div class="catalog-card-top"><span class="catalog-index">۱</span><span class="catalog-tag">موضوع نمونه</span></div>
-    <h3><a href="#">کارت گنجینه</a></h3>
-    <p class="catalog-poet">نام شاعر</p>
-    <blockquote class="catalog-quote">مصرع نخستِ نمونه<br>مصرع دومِ نمونه</blockquote>
-    <div class="catalog-card-bottom"><span>۷ بیت</span><a class="text-link" href="#">خواندن شعر {% include 'components/icon.html' with name='arrow' %}</a></div>
-  </article>
-</div>
-
-<div class="section-heading"><div><span class="section-kicker">مرور</span><h2>کارت یادسپاری</h2></div></div>
-<article class="flashcard">
-  <span class="flashcard-ornament rosette" aria-hidden="true">✥</span>
-  <div class="flashcard-content">
-    <p class="flashcard-label">نام شاعر <i class="meta-dot" aria-hidden="true"></i> تمام شعر</p>
-    <h3>عنوان نمونه</h3>
-    <p class="flashcard-hint">از این مصرع شروع کن و ادامه را از حفظ بخوان.</p>
-    <p class="flashcard-prompt cue">الا یا ایها الساقی ادر کاساً و ناولها</p>
-    <div class="rating-actions">
-      <button class="rating-btn rating-again" type="button">دوباره؛ یادم نبود</button>
-      <button class="rating-btn rating-good" type="button">خوب؛ درست یادم آمد</button>
-    </div>
-  </div>
-</article>
-
-<div class="section-heading"><div><span class="section-kicker">حالت‌ها</span><h2>خالی و خطا</h2></div></div>
-<div class="card-grid">
-  <section class="empty">
-    {% include 'components/medallion.html' with name='flower' %}
-    <h2>حالت خالی</h2>
-    <p>هر حالت خالی می‌گوید چه چیزی خالی است و کاربر با چه کنشی آن را پر می‌کند.</p>
-    <p class="empty-actions"><button class="button primary" type="button">کنش اصلی</button><button class="button quiet" type="button">راه دوم</button></p>
-  </section>
-  <section class="empty">
-    {% include 'components/medallion.html' with name='trace' %}
-    <h2>نتیجه‌ای پیدا نشد</h2>
-    <p class="error-detail">نمونهٔ پیام خطای عملیات</p>
-    <p>متن خطا می‌گوید چه شد و قدم بعدی چیست.</p>
-  </section>
+  <section class="empty"><span class="empty-icon">{% include 'components/icon.html' with name='pen' %}</span><h2>حالت خالی</h2><p>عنوان، علت و یک اقدام مرتبط.</p><button class="button" type="button">اقدام نمونه</button></section>
 </div>
 {% endblock %}

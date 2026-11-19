@@ -1,10 +1,1 @@
-{% extends 'base.html' %}
-{% block title %}دریافت صفحه با مشکل روبه‌رو شد{% endblock %}
-{% block content %}
-<section class="empty">
-  {% include 'components/medallion.html' with name='lamp' %}
-  <h1>دریافت این صفحه با مشکل روبه‌رو شد</h1>
-  <p>خطا از سمت ماست، نه از کار تو. چیزی از دفترت از دست نرفته است. کمی بعد دوباره تلاش کن.</p>
-  <p class="empty-actions"><a class="button primary" href="/">بازگشت به خانه</a></p>
-</section>
-{% endblock %}
+{% extends 'base.html' %}{% block title %}دریافت صفحه با مشکل روبه‌رو شد{% endblock %}{% block content %}<section class="empty"><span class="eyebrow">500</span><h1>دریافت صفحه با مشکل روبه‌رو شد</h1><p>لطفاً کمی بعد دوباره تلاش کنید.</p><a class="button" href="/">بازگشت به پیشخوان</a></section>{% endblock %}

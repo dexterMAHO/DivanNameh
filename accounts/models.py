@@ -29,7 +29,6 @@ class User(AbstractUser):
         ('original', 'چیدمان اثر'), ('stacked', 'مصرع‌ها زیر هم'), ('columns', 'مصرع‌ها کنار هم در عرض کافی'),
     ], default='original')
     reading_numbers = models.BooleanField(default=True)
-    reduce_motion = models.BooleanField('کاهش حرکت‌های تزئینی', default=False)
 
     def verify_action_password(self, password):
         return check_password(password, self.action_password)

@@ -1,41 +1,29 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block title %}{% if signup %}ساختن دفتر{% else %}ورود{% endif %}{% endblock %}
-{% block description %}{% if signup %}ساختن دفتر شخصی شعر در دیوان‌نامه.{% else %}ورود به دفتر شخصی شعر در دیوان‌نامه.{% endif %}{% endblock %}
+{% block title %}{% if signup %}ثبت‌نام{% else %}ورود{% endif %}{% endblock %}
 {% block content %}
-<section class="entry-layout">
-  <div class="panel entry-card">
-    {% include 'components/seal.html' %}
-    <p class="eyebrow centred">{% if signup %}آغاز یک دفتر{% else %}بازگشت به دفتر{% endif %}</p>
-    <h1>{% if signup %}دفتر شعرت را بساز{% else %}به دفترت خوش آمدی{% endif %}</h1>
-    <p class="entry-lead">{% if signup %}تنها یک نام کاربری لازم است. شعرهایی که نگه می‌داری، شاه‌بیت‌ها و کارت‌های حفظ در همین حساب می‌مانند.{% else %}نام کاربری‌ات را وارد کن تا شعرها، شاه‌بیت‌ها و کارت‌های مرورت را ببینی.{% endif %}</p>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.non_field_errors }}
-      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-      <div>{{ form.username.as_field_group }}</div>
-      {% if human_check_enabled %}
-      {% if site_key %}
-      <div class="cf-turnstile" data-sitekey="{{ site_key }}" data-action="reader-access"></div>
-      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-      {% else %}
-      <label for="{{ form.human_answer.id_for_label }}">تأیید انسان بودن: {{ challenge.0 }} + {{ challenge.1 }} چند می‌شود؟</label>
-      {{ form.human_answer.errors }}
-      <input id="{{ form.human_answer.id_for_label }}" name="human_answer" type="number" inputmode="numeric" min="2" max="18" required>
-      {% endif %}
-      {% endif %}
-      <button class="primary wide">{% if signup %}ساختن دفتر{% else %}ورود به دفتر{% endif %}</button>
-    </form>
-    <p class="entry-links">
-      {% if signup %}<a class="text-link" href="{% url 'login' %}">قبلاً دفتر دارم</a>
-      {% else %}<a class="text-link" href="{% url 'signup' %}">دفتر تازه می‌خواهم</a>
-      <a class="text-link" href="{% url 'recover-account' %}">ورود با کد بازیابی</a>{% endif %}
-    </p>
-    <p class="fine">بدون ورود هم می‌توانی گنجینهٔ شعر را بخوانی؛ نگه‌داشتن و حفظ کردن به یک دفتر نیاز دارد.</p>
-    <p class="entry-links"><a class="text-link" href="{% url 'treasury' %}">خواندن گنجینه بدون ورود {% include 'components/icon.html' with name='arrow' %}</a></p>
-  </div>
-  <aside class="entry-art" aria-hidden="true">
-    <img src="{% static 'img/miniature/hero-garden.webp' %}" width="1270" height="863" alt="" fetchpriority="high">
-  </aside>
+<section class="login panel">
+  <h1>{% if signup %}ثبت‌نام{% else %}ورود{% endif %}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <div>{{ form.username.as_field_group }}</div>
+    {% if human_check_enabled %}
+    {% if site_key %}
+    <div class="cf-turnstile" data-sitekey="{{ site_key }}" data-action="reader-access"></div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    {% else %}
+    <label for="{{ form.human_answer.id_for_label }}">تأیید انسان بودن: {{ challenge.0 }} + {{ challenge.1 }} چند می‌شود؟</label>
+    {{ form.human_answer.errors }}
+    <input id="{{ form.human_answer.id_for_label }}" name="human_answer" type="number" inputmode="numeric" min="2" max="18" required>
+    {% endif %}
+    {% endif %}
+    <button class="primary wide">{% if signup %}ساخت حساب{% else %}ورود به دفتر{% endif %}</button>
+  </form>
+  {% if signup %}
+  <p><a href="{% url 'login' %}">ورود به حساب</a></p>
+  {% else %}
+  <p><a href="{% url 'signup' %}">ساخت حساب</a> · <a href="{% url 'recover-account' %}">ورود با کد بازیابی</a></p>
+  {% endif %}
 </section>
 {% endblock %}

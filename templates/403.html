@@ -1,10 +1,1 @@
-{% extends 'base.html' %}
-{% block title %}اجازهٔ دسترسی ندارید{% endblock %}
-{% block content %}
-<section class="empty">
-  {% include 'components/medallion.html' with name='lamp' %}
-  <h1>این بخش برای حساب شما باز نیست</h1>
-  <p>دسترسی به این صفحه محدود است. اگر فکر می‌کنید اشتباهی رخ داده، از خانه دوباره مسیر را دنبال کنید.</p>
-  <p class="empty-actions"><a class="button primary" href="{% url 'dashboard' %}">بازگشت به خانه</a><a class="button quiet" href="{% url 'guide' %}">آموزش دیوان‌نامه</a></p>
-</section>
-{% endblock %}
+{% extends 'base.html' %}{% block title %}اجازهٔ دسترسی ندارید{% endblock %}{% block content %}<section class="empty"><span class="eyebrow">403</span><h1>اجازهٔ دسترسی ندارید</h1><p>این بخش برای حساب شما در دسترس نیست.</p><a class="button" href="/">بازگشت به پیشخوان</a></section>{% endblock %}

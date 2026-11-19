@@ -5,10 +5,32 @@
 {% block styles %}<link rel="stylesheet" href="{% static 'css/home.css' %}">{% endblock %}
 {% block content %}
 
-<section class="home-hero reveal">
-  <div class="hero-copy">
+<section class="home-scene reveal" aria-labelledby="home-title">
+  {% comment %}
+  A layered composition rather than a picture in a box: the painted plate is
+  one level, the cloud band and branch cross its edge from outside, and the
+  heading sits inside the scene on its own cartouche. The cartouche carries a
+  real surface so the text contrast never depends on the painting underneath.
+  {% endcomment %}
+  <div class="scene-plate">
+    <img src="{% static 'img/miniature/hero-garden.webp' %}" width="1270" height="863"
+         alt="نگاره‌ای به شیوهٔ مینیاتور ایرانی: خواننده‌ای زیر درخت شکوفه، آهویی کنار او و ایوانی در دوردست"
+         fetchpriority="high">
+  </div>
+  <span class="scene-layer scene-cloud" aria-hidden="true">{% include 'components/illumination.html' with piece='abr' %}</span>
+  <span class="scene-layer scene-branch" aria-hidden="true">{% include 'components/illumination.html' with piece='branch' %}</span>
+  {% comment %}
+  Continuous decorative motion needs a way to stop it on the spot, beside the
+  account-wide setting and the device preference.
+  {% endcomment %}
+  <button class="scene-motion-toggle" type="button" id="scene-motion" hidden aria-pressed="false">
+    <span class="motion-on">توقف حرکت نگاره</span><span class="motion-off">اجرای حرکت نگاره</span>
+  </button>
+
+  <div class="scene-cartouche">
+    {% include 'components/illumination.html' with piece='corner' %}
     <p class="eyebrow">از واژه تا خاطره</p>
-    <h1>شعر را فقط نخوان؛<br><em>در خودت نگه دار.</em></h1>
+    <h1 id="home-title">شعر را فقط نخوان؛<br><em>در خودت نگه دار.</em></h1>
     <p class="hero-lead">دیوان‌نامه جایی است برای یافتن شعرهایی که به دل می‌نشینند: خواندنشان، نگه‌داشتن بیت‌های عزیز و بازگشتن به آن‌ها تا در حافظه بمانند.</p>
     <form class="hero-search" role="search" method="get" action="{% url 'treasury-works' %}">
       <label class="visually-hidden" for="home-search">جست‌وجوی شعر، شاعر یا بخشی از یک بیت</label>
@@ -23,18 +45,6 @@
       <a href="{% url 'poems' %}">جست‌وجو در دفتر خودت</a>
       <a href="{% url 'discover' %}">کشف شعر تصادفی</a>
     </p>
-    <p class="hero-note"><span class="rosette" aria-hidden="true">✿</span> هر بار که به شعری برمی‌گردی، چیزی از آن در تو می‌ماند.</p>
-  </div>
-  <div class="hero-visual">
-    <div class="hero-art-frame">
-      <figure class="hero-art">
-        <img src="{% static 'img/miniature/hero-garden.webp' %}" width="1270" height="863"
-             alt="نگاره‌ای به شیوهٔ مینیاتور ایرانی: خواننده‌ای زیر درخت شکوفه، آهویی کنار او و ایوانی در دوردست" fetchpriority="high">
-        <figcaption><i aria-hidden="true"></i> باغِ خیال</figcaption>
-      </figure>
-      <span class="floating-rosette rosette rosette-a" aria-hidden="true">✿</span>
-      <span class="floating-rosette rosette rosette-b" aria-hidden="true">✥</span>
-    </div>
   </div>
 </section>
 

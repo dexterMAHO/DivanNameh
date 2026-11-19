@@ -20,6 +20,7 @@
   const applyScale = percent => root.style.setProperty('--reading-scale', String(percent / 100));
   if (Number.isFinite(Number(saved.scale))) applyScale(clampScale(saved.scale));
   if (saved.wide === true) root.dataset.readingWidth = 'wide';
+  if (saved.sceneStopped === true) root.dataset.sceneMotion = 'off';
   const props = ['primary', 'primary-hover', 'primary-soft', 'on-primary', 'focus'];
   const rgb = hex => hex.slice(1).match(/../g).map(x => parseInt(x, 16));
   const hex = channels => '#' + channels.map(x => Math.round(x).toString(16).padStart(2, '0')).join('');
@@ -59,6 +60,12 @@
       saved.scale = value;
       applyScale(value);
       return {value, stored: persist()};
+    },
+    sceneStopped: () => saved.sceneStopped === true,
+    setSceneStopped(stopped) {
+      saved.sceneStopped = Boolean(stopped);
+      persist();
+      return saved.sceneStopped;
     },
     wide: () => saved.wide === true,
     setWide(on) {

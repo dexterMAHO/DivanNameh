@@ -1,25 +1,84 @@
 /* Home — the entrance. Graphic expression is highest here, because this page
    has to introduce the product; from the poem page onward it steps back. */
 
-.home-hero {
+/* ---------- The scene ---------- */
+/* Four levels in one frame: the painted plate, a cloud band and a branch that
+   cross its edge from outside, and a cartouche carrying the heading. The
+   cartouche has its own surface, so text contrast never depends on whatever
+   part of the painting sits behind it. */
+.home-scene {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(var(--space-6), 5vw, var(--space-12));
-  padding-block: var(--space-6) var(--space-12);
+  gap: clamp(var(--space-6), 4vw, var(--space-10));
+  padding-block: var(--space-8) var(--space-12);
 }
-.hero-copy h1 {
-  margin-block: var(--space-5) var(--space-4);
-  font-size: clamp(2.125rem, 5vw, 3.75rem);
+.scene-plate {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  grid-row: 1;
+  padding: var(--space-3);
+  border: 1px solid var(--color-gold);
+  background: var(--color-surface-muted);
+  box-shadow: 0 0 0 5px var(--color-background), 0 0 0 6px var(--color-ornament), var(--shadow-card);
+}
+.scene-plate::after {
+  content: "";
+  position: absolute;
+  inset: var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--color-surface) 65%, transparent);
+  pointer-events: none;
+}
+.scene-plate img {
+  display: block;
+  width: 100%;
+  /* The height attribute is a presentational hint and outranks `auto`, so
+     aspect-ratio is ignored without this. */
+  height: auto;
+  aspect-ratio: 1.18 / 1;
+  object-fit: cover;
+  object-position: 36% center;
+  border: 4px double var(--color-gold);
+}
+
+/* The layers that break the frame. Decorative, inert, and dropped when the
+   composition collapses to one column. */
+.scene-layer { position: absolute; z-index: 2; pointer-events: none; }
+.scene-cloud { inset-block-start: -1.5rem; inset-inline-start: -4.5rem; width: 24rem; opacity: .62; }
+.scene-branch { inset-block-start: -3rem; inset-inline-start: 34%; width: 9rem; opacity: .7; }
+
+.scene-cartouche {
+  position: relative;
+  z-index: 3;
+  grid-column: 2;
+  grid-row: 1;
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  border: 1px solid var(--color-gold);
+  box-shadow: var(--shadow-card);
+  /* It overlaps the plate, the way a text panel is inset into a miniature. */
+  margin-inline-start: clamp(-4rem, -3vw, -1rem);
+}
+.scene-cartouche .illum-corner {
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline-start: -1px;
+  width: 2.75rem;
+}
+.scene-cartouche h1 {
+  margin-block: var(--space-4) var(--space-3);
+  font-size: clamp(1.875rem, 3.4vw, 3rem);
   line-height: 1.4;
 }
-/* The hatched underline is the one place a decorative mark touches a heading. */
-.hero-copy h1 em {
+.scene-cartouche h1 em {
   position: relative;
   font-style: normal;
   color: var(--color-vermillion);
 }
-.hero-copy h1 em::after {
+.scene-cartouche h1 em::after {
   content: "";
   position: absolute;
   inset-inline: 2%;
@@ -29,42 +88,22 @@
   opacity: .7;
 }
 .hero-lead {
-  max-width: 34rem;
-  margin-block-end: var(--space-6);
+  margin-block-end: var(--space-5);
   color: var(--color-muted-foreground);
-  font-size: var(--text-md);
-  line-height: 2.3;
+  line-height: 2.2;
 }
 
 .hero-search {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  max-width: 37rem;
   padding: var(--space-1) var(--space-2);
-  background: var(--color-surface);
+  background: var(--color-background);
   border: 1px solid var(--color-gold);
   border-radius: var(--radius-control);
-  outline: 1px solid var(--color-ornament-soft);
-  outline-offset: 4px;
-  box-shadow: var(--shadow-card);
 }
-.hero-search .search-mark {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  flex: none;
-  color: var(--color-gold);
-}
-.hero-search input {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  padding-block: var(--space-2);
-  border: 0;
-  background: transparent;
-  font-size: var(--text-base);
-}
+.hero-search .search-mark { display: grid; place-items: center; width: 2rem; flex: none; color: var(--color-gold); }
+.hero-search input { flex: 1; min-width: 0; margin: 0; padding-block: var(--space-2); border: 0; background: transparent; font-size: var(--text-base); }
 .hero-search input:hover, .hero-search input:focus { border: 0; }
 .hero-search .button { flex: none; min-height: 2.5rem; padding-inline: var(--space-4); }
 
@@ -73,82 +112,30 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  margin-block-start: var(--space-4);
+  margin-block: var(--space-4) 0;
   color: var(--color-muted-foreground);
   font-size: var(--text-sm);
 }
-.hero-quicklinks a {
-  color: var(--color-display);
-  text-decoration: none;
-  border-block-end: 1px dotted var(--color-ornament);
-}
+.hero-quicklinks a { color: var(--color-display); text-decoration: none; border-block-end: 1px dotted var(--color-ornament); }
 .hero-quicklinks a:hover { color: var(--color-vermillion); border-block-end-style: solid; }
-.hero-note {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-block-start: var(--space-6);
-  color: var(--color-muted-foreground);
-  font: var(--text-poem-card)/1.9 var(--font-literary);
-}
 
-/* The painted panel sits in a double frame, the way a miniature is mounted. */
-.hero-visual { min-width: 0; }
-.hero-art-frame {
-  position: relative;
-  padding: var(--space-3);
-  border: 1px solid var(--color-gold);
-  background: var(--color-surface-muted);
-  box-shadow: 0 0 0 5px var(--color-background), 0 0 0 6px var(--color-ornament), var(--shadow-card);
+/* Slow drift gives the scene depth without ever moving layout or scroll. */
+@media (prefers-reduced-motion: no-preference) {
+  .motion-ready .scene-cloud { animation: scene-drift 54s ease-in-out infinite; }
+  .motion-ready .scene-branch { animation: scene-sway 38s ease-in-out infinite; }
 }
-.hero-art-frame::before {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  inset: .3125rem;
-  border: 1px solid color-mix(in srgb, var(--color-surface) 70%, transparent);
-  pointer-events: none;
+@keyframes scene-drift {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 2.5rem .6rem; }
 }
-.hero-art {
-  position: relative;
-  margin: 0;
-  overflow: hidden;
-  aspect-ratio: 1.12 / 1;
-  background: var(--color-feature);
-  border: 4px double var(--color-gold);
+@keyframes scene-sway {
+  0%, 100% { rotate: 0deg; }
+  50% { rotate: 1.6deg; }
 }
-.hero-art img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-  object-position: 34% center;
-  transition: scale 1s var(--ease-out);
-}
-.hero-art-frame:hover .hero-art img { scale: 1.04; }
-.hero-art figcaption {
-  position: absolute;
-  z-index: 2;
-  inset-block-end: var(--space-4);
-  inset-inline-end: var(--space-4);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  background: color-mix(in srgb, var(--color-feature) 88%, transparent);
-  border: 1px solid var(--color-gold);
-  color: var(--color-on-feature);
-  font: var(--text-sm)/1.8 var(--font-literary);
-}
-.hero-art figcaption i {
-  width: .375rem;
-  height: .375rem;
-  border-radius: 50%;
-  background: var(--color-gold);
-}
-.floating-rosette { position: absolute; z-index: 3; font-size: 2rem; }
-.rosette-a { top: -.8125rem; inset-inline-end: .5rem; }
-.rosette-b { bottom: .25rem; inset-inline-start: 0; font-size: 1.5rem; }
+:root[data-reduce-motion=yes] .scene-cloud,
+:root[data-reduce-motion=yes] .scene-branch,
+:root[data-scene-motion=off] .scene-cloud,
+:root[data-scene-motion=off] .scene-branch { animation: none !important; }
 
 /* ---------- Review feature ---------- */
 .review-feature {
@@ -356,9 +343,21 @@
 @media (max-width: 1024px) {
   .review-feature { grid-template-columns: minmax(0, 1fr); }
 }
+@media (max-width: 980px) {
+  /* One column: the cartouche sits under the plate instead of overlapping it,
+     and the layers that cross the frame are dropped rather than cropped. */
+  .home-scene { grid-template-columns: minmax(0, 1fr); gap: 0; padding-block-start: var(--space-4); }
+  .scene-plate { grid-column: 1; grid-row: 1; }
+  .scene-cartouche { grid-column: 1; grid-row: 2; margin-inline-start: 0; margin-block-start: calc(var(--space-6) * -1); margin-inline: var(--space-4); }
+  .scene-layer { display: none; }
+}
+@media (max-width: 560px) {
+  .scene-cartouche { margin-inline: var(--space-2); margin-block-start: calc(var(--space-4) * -1); }
+  .scene-plate img { aspect-ratio: 1.3 / 1; }
+  .hero-search { flex-wrap: wrap; }
+  .hero-search .button { flex: 1 0 100%; }
+}
 @media (max-width: 860px) {
-  .home-hero { grid-template-columns: minmax(0, 1fr); }
-  .hero-visual { order: -1; max-width: 30rem; }
   .daily-feature { grid-template-columns: minmax(0, 1fr); }
   .daily-art { min-height: 11rem; border-inline-end: 0; border-block-end: 1px solid var(--color-ornament); }
 }
@@ -378,3 +377,26 @@
   .path-card { clip-path: none; }
   .hero-copy h1 { font-size: clamp(1.875rem, 8.5vw, 2.5rem); }
 }
+
+/* ---------- Stopping the scene ---------- */
+.scene-motion-toggle {
+  position: absolute;
+  z-index: 4;
+  inset-block-end: var(--space-3);
+  inset-inline-end: var(--space-3);
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-ornament);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-xs);
+}
+.scene-motion-toggle .motion-off { display: none; }
+.scene-motion-toggle[aria-pressed=true] .motion-on { display: none; }
+.scene-motion-toggle[aria-pressed=true] .motion-off { display: inline; }
+/* Stopped is stopped, whichever mechanism asked for it. */
+.home-scene[data-scene-motion=off] .scene-cloud,
+.home-scene[data-scene-motion=off] .scene-branch { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .scene-motion-toggle { display: none; } }
+@media (max-width: 980px) { .scene-motion-toggle { display: none; } }

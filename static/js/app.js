@@ -15,9 +15,15 @@ if (favicon) {
 
 const digits = new Intl.NumberFormat('fa-IR', {useGrouping: false});
 
-// Entrance motion only starts once the document is ready, so a slow first paint
-// never shows a half-faded page. The resting state is the state without motion.
-addEventListener('load', () => document.body.classList.add('motion-ready'));
+// Entrance motion starts as soon as the markup is parsed. Waiting for `load`
+// would hold it until every image had arrived, leaving sections below the fold
+// invisible for as long as the slowest image took. The resting state is the
+// state without motion, so nothing depends on the animation finishing.
+if (document.readyState === 'loading') {
+  addEventListener('DOMContentLoaded', () => document.body.classList.add('motion-ready'), {once: true});
+} else {
+  document.body.classList.add('motion-ready');
+}
 
 for (const message of document.querySelectorAll('[data-message-tags]')) {
   const key = message.dataset.messageTags.split(' ').find(tag => tag.startsWith('poem-draft-'));
@@ -294,3 +300,23 @@ if (appearanceForm) {
 const invalidField = document.querySelector('[aria-invalid="true"]:not([data-example])');
 if (invalidField) invalidField.focus();
 else document.querySelector('[data-form-error]')?.focus();
+
+
+/* The home scene drifts continuously, so it carries its own stop control
+   beside the account setting and the device preference. The choice is kept in
+   the same per-account store as the other local appearance preferences. */
+const sceneToggle = document.getElementById('scene-motion');
+if (sceneToggle && window.divanAppearance) {
+  const scene = sceneToggle.closest('.home-scene');
+  const apply = stopped => {
+    scene.dataset.sceneMotion = stopped ? 'off' : 'on';
+    sceneToggle.setAttribute('aria-pressed', String(stopped));
+  };
+  sceneToggle.hidden = false;
+  apply(window.divanAppearance.sceneStopped());
+  sceneToggle.addEventListener('click', () => {
+    const stopped = !window.divanAppearance.sceneStopped();
+    window.divanAppearance.setSceneStopped(stopped);
+    apply(stopped);
+  });
+}

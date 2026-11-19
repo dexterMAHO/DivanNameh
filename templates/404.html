@@ -1,1 +1,10 @@
-{% extends 'base.html' %}{% block title %}این برگ از دفتر پیدا نشد{% endblock %}{% block content %}<section class="empty"><span class="eyebrow">404</span><h1>این برگ از دفتر پیدا نشد</h1><p>ممکن است نشانی تغییر کرده باشد. از پیشخوان به بخش دلخواهتان بروید.</p><a class="button" href="/">بازگشت به پیشخوان</a></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}این برگ از دفتر پیدا نشد{% endblock %}
+{% block content %}
+<section class="empty">
+  {% include 'components/medallion.html' with name='trace' %}
+  <h1>این برگ از دفتر پیدا نشد</h1>
+  <p>شاید نشانی تغییر کرده باشد یا شعر از دفتر برداشته شده باشد. می‌توانی از گنجینه شروع کنی، یا اگر بیتی در ذهن داری ردّش را بگیری.</p>
+  <p class="empty-actions"><a class="button primary" href="{% url 'explore' %}">رفتن به گنجینهٔ شعر</a><a class="button quiet" href="{% url 'treasury-trace' %}">گرفتن ردّ یک مصرع</a></p>
+</section>
+{% endblock %}

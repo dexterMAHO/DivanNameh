@@ -1,25 +1,33 @@
 {% load static persian %}<!doctype html>
-<html lang="fa" dir="rtl" data-theme="{{ user.theme|default:'auto' }}" data-palette="{{ user.palette|default:'paper' }}" data-reading-size="{{ user.reading_size }}" data-reading-spacing="{{ user.reading_spacing }}" data-reading-layout="{{ user.reading_layout }}" data-reading-numbers="{{ user.reading_numbers|yesno:'yes,no,yes' }}">
+<html lang="fa" dir="rtl" data-preference-user="{{ user.pk|default:'guest' }}" data-theme="{{ user.theme|default:'auto' }}" data-palette="{{ user.palette|default:'paper' }}" data-reading-size="{{ user.reading_size }}" data-reading-spacing="{{ user.reading_spacing }}" data-reading-layout="{{ user.reading_layout }}" data-reading-numbers="{{ user.reading_numbers|yesno:'yes,no,yes' }}" data-reduce-motion="{{ user.reduce_motion|yesno:'yes,no,no' }}">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{% block title %}دفتر شخصی شعر{% endblock %} | دیوان نامه</title>
+  <meta name="description" content="{% block description %}دیوان‌نامه؛ جایی برای یافتن، خواندن، نگه‌داشتن و به خاطر سپردن شعر فارسی.{% endblock %}">
   {% static 'img/brand/favicon.png' as favicon_light %}
   {% static 'img/brand/favicon-dark.png' as favicon_dark %}
   <link rel="icon" type="image/png" sizes="32x32"
         href="{% if user.theme == 'dark' %}{{ favicon_dark }}{% else %}{{ favicon_light }}{% endif %}"
         data-light="{{ favicon_light }}" data-dark="{{ favicon_dark }}">
   <link rel="preload" href="{% static 'fonts/Vazirmatn.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'fonts/NotoNaskhArabic.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <link rel="stylesheet" href="{% static 'css/heritage.css' %}">
+  {% block styles %}{% endblock %}
+  <script src="{% static 'js/appearance.js' %}"></script>
   <script type="module" src="{% static 'js/app.js' %}"></script>
   {% block scripts %}{% endblock %}
 </head>
 <body{% if not user.is_authenticated %} class="guest"{% endif %}>
 {% include 'components/icons.html' %}
 <a class="skip" href="#main">رفتن به محتوا</a>
+{# The ruled manuscript border. Decorative, inert, hidden on small screens. #}
+<div class="page-frame" aria-hidden="true"><span class="corner tl">✿</span><span class="corner tr">❀</span><span class="corner bl">❀</span><span class="corner br">✿</span></div>
 <div class="app-shell">
   <header class="masthead">
-    <a class="brand" href="{% url 'dashboard' %}" aria-label="دیوان‌نامه">
+    <a class="brand" href="{% url 'dashboard' %}" aria-label="دیوان‌نامه، صفحهٔ نخست">
+      {% include 'components/seal.html' %}
       <span class="brand-logo" aria-hidden="true"></span>
     </a>
     <div class="masthead-actions">
@@ -54,26 +62,26 @@
       <a class="profile-link" {% if request.resolver_match.url_name == 'settings' %}aria-current="page"{% endif %} href="{% url 'settings' %}" aria-label="تنظیمات حساب">
         {% include 'components/avatar.html' %}<span>تنظیمات</span>
       </a>
-      <button class="icon-button" id="nav-toggle" type="button" aria-controls="navigation-panel" aria-expanded="false" aria-label="فهرست ناوبری">
+      <button class="icon-button header-tool" id="nav-toggle" type="button" aria-controls="navigation-panel" aria-expanded="false" aria-label="فهرست کامل دفتر">
         {% include 'components/icon.html' with name='menu' %}
       </button>
       {% endif %}
     </div>
     {% if user.is_authenticated %}
     {% with route=request.resolver_match.url_name %}
-      <nav class="mobile-shortcuts" aria-label="میانبرهای اصلی">
-        <a href="{% url 'poems' %}" {% if route == 'poems' %}aria-current="page"{% endif %}>کتابخانهٔ شخصی</a>
-        <a href="{% url 'treasury' %}" {% if route == 'treasury' %}aria-current="page"{% endif %}>گنجینه</a>
-        <a href="{% url 'explore' %}" {% if route == 'explore' %}aria-current="page"{% endif %}>شعرجویی</a>
-        <a href="{% url 'discover' %}" {% if route == 'discover' %}aria-current="page"{% endif %}>کشف شعر</a>
-        <a href="{% url 'review' %}" {% if route == 'review' %}aria-current="page"{% endif %}>مرور{% if due_count %} · <span class="count">{{ due_count|persian }}</span>{% endif %}</a>
+      <nav class="main-nav" aria-label="ناوبری اصلی">
+        <a href="{% url 'dashboard' %}" {% if route == 'dashboard' %}aria-current="page"{% endif %}>خانه</a>
+        <a href="{% url 'explore' %}" {% if route == 'explore' or route == 'discover' or route == 'literary-collection' %}aria-current="page"{% endif %}>گنجینهٔ شعر</a>
+        <a href="{% url 'treasury' %}" {% if route == 'treasury' or route == 'treasury-book' or route == 'treasury-entry' or route == 'treasury-works' or route == 'treasury-trace' %}aria-current="page"{% endif %}>شاعران</a>
+        <a href="{% url 'poems' %}" {% if route == 'poems' or route == 'poem-detail' or route == 'poem-edit' or route == 'poem-new' or route == 'favorites' or route == 'tags' or route == 'tag-detail' or route == 'collections' or route == 'collection-detail' %}aria-current="page"{% endif %}>دفتر من</a>
+        <a href="{% url 'review' %}" {% if route == 'review' or route == 'memorize' or route == 'study-stats' %}aria-current="page"{% endif %}>مرور و حفظ{% if due_count %} <span class="count">{{ due_count|persian }}</span>{% endif %}</a>
       </nav>
     {% endwith %}
     {% endif %}
   </header>
   {% if user.is_authenticated %}
-  <aside id="navigation-panel" class="sidebar" aria-label="دفتر شخصی">
-    <nav id="main-nav" aria-label="ناوبری اصلی">{% include 'components/nav.html' %}</nav>
+  <aside id="navigation-panel" class="sidebar" aria-label="فهرست کامل دفتر">
+    <nav id="main-nav" aria-label="بخش‌های دفتر">{% include 'components/nav.html' %}</nav>
     <form class="sidebar-logout" action="{% url 'logout' %}" method="post">
       {% csrf_token %}<button class="quiet">{% include 'components/icon.html' with name='logout' %}خروج از حساب</button>
     </form>
@@ -90,6 +98,19 @@
       </div>
       <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
     </div>
+    <footer class="site-footer">
+      <div class="footer-ornament" aria-hidden="true">❧ ✦ ❧</div>
+      <a class="footer-brand" href="{% url 'dashboard' %}">دیوان‌نامه</a>
+      <p>برای شعرهایی که می‌خواهیم بمانند.</p>
+      <div class="footer-links">
+        <a href="{% url 'treasury' %}">شاعران گنجینه</a>
+        <a href="{% url 'explore' %}">گنجینهٔ شعر</a>
+        <a href="{% url 'treasury-trace' %}">ردّ مصرع</a>
+        <a href="{% url 'guide' %}">آموزش</a>
+        {% if user.is_authenticated %}<a href="{% url 'settings' %}">تنظیمات</a>{% endif %}
+      </div>
+      <small>متن شعرها از نسخه‌های مرجع گنجینه می‌آید و نشانی منبع هر اثر در صفحهٔ آن آمده است.</small>
+    </footer>
   </div>
 </div>
 </body></html>

@@ -1,23 +1,63 @@
 {% extends 'base.html' %}
-{% load persian %}
+{% load persian static %}
 {% block title %}ردّ مصرع{% endblock %}
+{% block description %}بخشی از یک مصرع را وارد کنید تا بیت و شعر آن در گنجینهٔ دیوان‌نامه پیدا شود.{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/discovery.css' %}">{% endblock %}
 {% block content %}
-<header class="page-heading compact"><h1>ردّ مصرع</h1><div class="actions"><a href="{% url 'treasury' %}">گنجینهٔ فارسی</a>{% if user.is_authenticated %}<a href="{% url 'treasury-works' %}{% if query %}?q={{ query|urlencode:'' }}{% endif %}">جست‌وجوی آرشیو آثار</a>{% endif %}</div></header>
-<form method="get" class="panel inline-form">
-  <div><label for="trace-query">عنوان، شاعر یا چند واژه از بیت</label><input type="search" id="trace-query" name="q" maxlength="120" value="{{ query }}" required></div>
-  <button class="primary">جست‌وجو</button>
+<section class="page-intro">
+  <p class="eyebrow centred">یک مصرع در ذهن، یک شعر در گنجینه</p>
+  <h1>ردّ مصرع</h1>
+  <p class="page-lead">بیتی در خاطرت مانده و نمی‌دانی از کجاست؟ همان چند واژه‌ای را که به یاد داری بنویس. جست‌وجو تفاوت «ی» و «ي»، «ک» و «ك»، نیم‌فاصله و اعراب را خودش کنار می‌گذارد و عبارت ناقص را هم می‌پذیرد.</p>
+</section>
+
+<form method="get" class="panel trace-form" role="search">
+  <div>
+    <label for="trace-query">چند واژه از بیت، یا نام شاعر و عنوان اثر</label>
+    <input type="search" id="trace-query" name="q" maxlength="120" value="{{ query }}" required
+           placeholder="برای نمونه: الا یا ایها الساقی">
+  </div>
+  <button class="primary" type="submit">{% include 'components/icon.html' with name='search' %}گرفتن ردّ بیت</button>
 </form>
+
 {% if query %}
-<p class="fine">{{ page.paginator.count|persian }} نتیجه</p>
-<div class="card-grid">
-  {% for result in page %}
-  <article class="panel">
-    <h2><a href="{{ result.url }}">{{ result.entry.title }}</a></h2>
-    <p>{{ result.entry.book.author }}{% if result.position %} · بیت {{ result.position|persian }}{% endif %}</p>
-    {% if result.position %}<blockquote class="literary-quote">{{ result.first }}<br>{{ result.second }}</blockquote><a href="{{ result.url }}">رسیدن به بیت در متن کامل</a>{% endif %}
-  </article>
-  {% empty %}<p>نتیجه‌ای پیدا نشد. بخشی کوتاه‌تر از بیت یا نام شاعر را امتحان کنید.</p>{% endfor %}
-</div>
-{% include 'components/pagination.html' %}
+<section aria-live="polite">
+  <div class="results-toolbar">
+    <div><span class="section-kicker">نتیجهٔ جست‌وجو برای «{{ query }}»</span><h2>بیت‌های یافت‌شده</h2></div>
+    <span class="results-count">{{ page.paginator.count|persian }} نتیجه</span>
+  </div>
+  {% if page.object_list %}
+  <div class="trace-results">
+    {% for result in page %}
+    <article class="panel trace-card">
+      <h2><a href="{{ result.url }}">{{ result.entry.title }}</a></h2>
+      <p class="trace-meta">{{ result.entry.book.author }}{% if result.position %} <i class="meta-dot" aria-hidden="true"></i> بیت {{ result.position|persian }}{% endif %}</p>
+      {% if result.position %}
+        <blockquote class="trace-quote">{{ result.first }}{% if result.second %}<br>{{ result.second }}{% endif %}</blockquote>
+        <a class="text-link" href="{{ result.url }}">رسیدن به همین بیت در متن کامل {% include 'components/icon.html' with name='arrow' %}</a>
+      {% else %}
+        <a class="text-link" href="{{ result.url }}">باز کردن این اثر {% include 'components/icon.html' with name='arrow' %}</a>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% include 'components/pagination.html' %}
+  {% else %}
+  <section class="empty">
+    {% include 'components/medallion.html' with name='trace' %}
+    <h2>ردّی از این واژه‌ها در گنجینهٔ عمومی پیدا نشد</h2>
+    <p>عبارت کوتاه‌تری را امتحان کن — دو سه واژهٔ پشت‌سرهم از میانهٔ مصرع بهتر از یک مصرع کامل جواب می‌دهد. یا نام شاعر را بنویس و از فهرست آثارش پیش برو.</p>
+    <p class="empty-actions">
+      <a class="button primary" href="{% url 'treasury' %}">آرشیو شاعران</a>
+      {% if user.is_authenticated %}<a class="button quiet" href="{% url 'treasury-works' %}?q={{ query|urlencode:'' }}">جست‌وجو در همهٔ آثار</a>{% endif %}
+    </p>
+  </section>
+  {% endif %}
+</section>
+{% else %}
+<section class="empty">
+  {% include 'components/medallion.html' with name='trace' %}
+  <h2>جست‌وجو را با چند واژه شروع کن</h2>
+  <p>هرچه واژه‌ها پشت‌سرهم‌تر باشند، نتیجه دقیق‌تر است. ردّ مصرع در متن کامل گزیده‌های منتشرشدهٔ گنجینه می‌گردد و تو را مستقیم به همان بیت می‌برد.</p>
+</section>
 {% endif %}
 {% endblock %}

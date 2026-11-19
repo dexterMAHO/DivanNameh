@@ -1,28 +1,170 @@
 {% extends 'base.html' %}
-{% load persian %}
-{% block title %}پیشخوان{% endblock %}
+{% load persian static %}
+{% block title %}خانه{% endblock %}
+{% block description %}پیشخوان دیوان‌نامه؛ مرور امروز، بیت پیشنهادی و راه‌های کشف شعر فارسی.{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/home.css' %}">{% endblock %}
 {% block content %}
-<header class="page-heading">
-  <div><h1>پیشخوان</h1><p class="muted">دفتر شخصی شعر و مرورهای شما</p></div>
-</header>
-<section class="review-feature">
-  <div class="feature-copy">
-    <h2>{% if due_count %}{{ due_count|persian }} کارت آمادهٔ مرور{% elif reviewed_today %}مرورهای امروز ثبت شد{% elif has_cards %}کارتی آمادهٔ مرور نیست{% else %}حفظ شعر را شروع کنید{% endif %}</h2>
-    {% if not due_count and next_study %}<p>موعد بعدی <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
-    {% if due_count %}<a class="button feature-button" href="{% url 'review' %}">شروع مرور امروز</a>
-    {% elif has_cards %}<a class="button feature-button" href="{% url 'memorize' %}">دیدن فهرست حفظ</a>
-    {% else %}<a class="button feature-button" href="{% url 'poems' %}">انتخاب شعر از دفتر</a>{% endif %}
-    {% if today_count %}<span class="feature-foot">{{ today_count|persian }} مرور ثبت‌شدهٔ امروز</span>{% endif %}
+
+<section class="home-hero reveal">
+  <div class="hero-copy">
+    <p class="eyebrow">از واژه تا خاطره</p>
+    <h1>شعر را فقط نخوان؛<br><em>در خودت نگه دار.</em></h1>
+    <p class="hero-lead">دیوان‌نامه جایی است برای یافتن شعرهایی که به دل می‌نشینند: خواندنشان، نگه‌داشتن بیت‌های عزیز و بازگشتن به آن‌ها تا در حافظه بمانند.</p>
+    <form class="hero-search" role="search" method="get" action="{% url 'treasury-works' %}">
+      <label class="visually-hidden" for="home-search">جست‌وجوی شعر، شاعر یا بخشی از یک بیت</label>
+      <span class="search-mark" aria-hidden="true">{% include 'components/icon.html' with name='search' %}</span>
+      <input id="home-search" type="search" name="q" maxlength="120" autocomplete="off"
+             placeholder="نام شاعر، بخشی از یک مصرع یا عنوان اثر…">
+      <button class="button primary" type="submit">جست‌وجو در گنجینه</button>
+    </form>
+    <p class="hero-quicklinks">
+      <span>یا از این راه‌ها:</span>
+      <a href="{% url 'treasury-trace' %}">ردّ یک مصرع را بگیر</a>
+      <a href="{% url 'poems' %}">جست‌وجو در دفتر خودت</a>
+      <a href="{% url 'discover' %}">کشف شعر تصادفی</a>
+    </p>
+    <p class="hero-note"><span class="rosette" aria-hidden="true">✿</span> هر بار که به شعری برمی‌گردی، چیزی از آن در تو می‌ماند.</p>
   </div>
-  <div class="book-art" aria-hidden="true"><div class="book-orbit"></div><div class="book-cover"><span class="book-rule"></span><span>دیوان<br>نامه</span><small>یک بیت بیشتر<br>در خاطر بماند</small><span class="book-rule"></span></div><div class="book-caption">بخوان · به یاد آور · مرور کن</div></div>
+  <div class="hero-visual">
+    <div class="hero-art-frame">
+      <figure class="hero-art">
+        <img src="{% static 'img/miniature/hero-garden.webp' %}" width="1270" height="863"
+             alt="نگاره‌ای به شیوهٔ مینیاتور ایرانی: خواننده‌ای زیر درخت شکوفه، آهویی کنار او و ایوانی در دوردست" fetchpriority="high">
+        <figcaption><i aria-hidden="true"></i> باغِ خیال</figcaption>
+      </figure>
+      <span class="floating-rosette rosette rosette-a" aria-hidden="true">✿</span>
+      <span class="floating-rosette rosette rosette-b" aria-hidden="true">✥</span>
+    </div>
+  </div>
 </section>
-<section class="discovery-strip" aria-labelledby="dashboard-explore">
-  <span class="discovery-icon">{% include 'components/icon.html' with name='compass' %}</span>
-  <div><h2 id="dashboard-explore">شعرجویی</h2><p>شعرهای منتخب و مجموعه‌های مضمونی را ببینید یا بر اساس شاعر و موضوع بگردید.</p></div>
+
+{# The review call sits first because it is the only thing on this page with a deadline. #}
+<section class="review-feature feature-panel reveal" aria-labelledby="home-review">
+  <div class="feature-copy">
+    <span class="section-kicker">مرور امروز</span>
+    <h2 id="home-review">{% if due_count %}{{ due_count|persian }} کارت آمادهٔ مرور است{% elif reviewed_today %}مرورهای امروز ثبت شد{% elif has_cards %}کارتی آمادهٔ مرور نیست{% else %}حفظ شعر را از یک بیت شروع کنید{% endif %}</h2>
+    {% if due_count %}<p>هر کارت یک مصرع را نشان می‌دهد و ادامه را از تو می‌پرسد. چند دقیقه کافی است.</p>
+    {% elif reviewed_today %}<p>امروز {{ today_count|persian }} مرور ثبت شد. موعد بعدی به‌صورت خودکار تعیین شده است.</p>
+    {% elif has_cards %}<p>همهٔ کارت‌ها در فاصلهٔ خود هستند؛ وقتی موعدشان رسید همین‌جا خبر می‌دهیم.</p>
+    {% else %}<p>در صفحهٔ هر شعر، کنار بیتی که می‌خواهی حفظ کنی «افزودن به فهرست حفظ» را بزن.</p>{% endif %}
+    {% if not due_count and next_study %}<p class="feature-foot">نزدیک‌ترین موعد <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
+    <p class="feature-actions">
+      {% if due_count %}<a class="button feature-button" href="{% url 'review' %}">شروع مرور امروز</a>
+      {% elif has_cards %}<a class="button feature-button" href="{% url 'memorize' %}">دیدن فهرست حفظ</a>
+      {% else %}<a class="button feature-button" href="{% url 'explore' %}">یافتن شعری برای شروع</a>{% endif %}
+      {% if has_cards %}<a class="text-link feature-link" href="{% url 'study-stats' %}">آمار حفظ</a>{% endif %}
+    </p>
+  </div>
+  <aside class="feature-stats" aria-label="وضعیت دفتر شما">
+    <span class="stat-rosette rosette" aria-hidden="true">✿</span>
+    <p class="stat-line"><a href="{% url 'poems' %}"><span>شعر در دفتر</span><strong>{{ poem_count|persian }}</strong></a></p>
+    <p class="stat-line"><a href="{% url 'favorites' %}"><span>شاه‌بیت برگزیده</span><strong>{{ favorite_count|persian }}</strong></a></p>
+    <p class="stat-line"><a href="{% url 'memorize' %}"><span>کارت در فهرست حفظ</span><strong>{{ item_count|persian }}</strong></a></p>
+    {% if poet_count %}<p class="stat-line"><a href="{% url 'poets' %}"><span>شاعر در دفتر</span><strong>{{ poet_count|persian }}</strong></a></p>{% endif %}
+  </aside>
+</section>
+
+<section class="home-pathways reveal" aria-labelledby="home-pathways">
+  <div class="section-heading section-heading-centred">
+    <span class="heading-side" aria-hidden="true"><b>✥</b></span>
+    <div><span class="section-kicker">چهار راه برای ماندن در شعر</span><h2 id="home-pathways">از کجا آغاز کنیم؟</h2></div>
+    <span class="heading-side" aria-hidden="true"><b>✥</b></span>
+  </div>
+  <div class="path-grid">
+    <a class="path-card" href="{% url 'explore' %}">
+      {% include 'components/medallion.html' with name='book' %}
+      <span class="path-title">گنجینهٔ شعر</span>
+      <span class="path-desc">شعرهای منتشرشده را بر اساس شاعر و موضوع ببین و کامل بخوان.</span>
+      <span class="path-link">ورود به گنجینه {% include 'components/icon.html' with name='arrow' %}</span>
+    </a>
+    <a class="path-card" href="{% url 'treasury' %}">
+      {% include 'components/medallion.html' with name='poet' %}
+      <span class="path-title">جهان شاعران</span>
+      <span class="path-desc">زندگی‌نامه، تصویر و فهرست آثار شاعران فارسی را مرور کن.</span>
+      <span class="path-link">دیدن شاعران {% include 'components/icon.html' with name='arrow' %}</span>
+    </a>
+    <a class="path-card" href="{% url 'poems' %}">
+      {% include 'components/medallion.html' with name='flower' %}
+      <span class="path-title">دفتر من</span>
+      <span class="path-desc">شعرها و شاه‌بیت‌هایی که نگه داشته‌ای، یک‌جا و قابل جست‌وجو.</span>
+      <span class="path-link">باز کردن دفتر {% include 'components/icon.html' with name='arrow' %}</span>
+    </a>
+    <a class="path-card" href="{% url 'review' %}">
+      {% include 'components/medallion.html' with name='lamp' %}
+      <span class="path-title">مرور و حفظ</span>
+      <span class="path-desc">با مرورهای کوتاه و فاصله‌دار، بیت‌ها را به خاطر بسپار.</span>
+      <span class="path-link">شروع مرور {% include 'components/icon.html' with name='arrow' %}</span>
+    </a>
+  </div>
+</section>
+
+{% if daily_verse %}
+{# A real verse from the reader's own shelf, or the public treasury for a new account. #}
+<section class="daily-feature reveal" aria-labelledby="home-daily">
+  <div class="daily-art">
+    <img src="{% static 'img/miniature/garden-detail.webp' %}" width="570" height="570" loading="lazy" decoding="async"
+         alt="گوشه‌ای از همان نگاره: ایوان، سرو و کوه‌های دوردست">
+    <span>نگارهٔ همراه</span>
+  </div>
+  <div class="daily-copy">
+    <span class="section-kicker">{{ daily_verse.origin }}</span>
+    <h2 id="home-daily">یک بیت برای امروز</h2>
+    <blockquote class="daily-verse"><p>{{ daily_verse.first }}</p>{% if daily_verse.second %}<p>{{ daily_verse.second }}</p>{% endif %}</blockquote>
+    <p class="daily-meta"><span>{{ daily_verse.poet }}</span><i class="meta-dot" aria-hidden="true"></i><span>{{ daily_verse.title }}</span></p>
+    <p class="daily-actions"><a class="button primary" href="{{ daily_verse.url }}">خواندن این شعر</a></p>
+  </div>
+  <span class="daily-seal rosette" aria-hidden="true">✦</span>
+</section>
+{% endif %}
+
+<section class="home-lower reveal">
+  <div class="home-lower-main">
+    <div class="section-heading">
+      <div><span class="section-kicker">پیشنهاد برای ادامهٔ مسیر</span><h2>شعرهایی که می‌توانی کامل بخوانی</h2></div>
+      <a class="text-link" href="{% url 'explore' %}">دیدن همهٔ گنجینه {% include 'components/icon.html' with name='arrow' %}</a>
+    </div>
+    {% if suggestions %}
+    <ol class="suggestion-row">
+      {% for item in suggestions %}
+      <li><a class="suggestion-card" href="{{ item.url }}">
+        <span class="suggestion-num" aria-hidden="true">{{ forloop.counter|persian }}</span>
+        <span class="suggestion-copy"><b>{{ item.title }}</b><small>{{ item.poet }}</small></span>
+        {% include 'components/icon.html' with name='arrow' class='suggestion-arrow' %}
+      </a></li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <section class="empty">
+      {% include 'components/medallion.html' with name='book' %}
+      <h2>گنجینهٔ عمومی هنوز شعری منتشر نکرده است</h2>
+      <p>تا انتشار گزیده‌های تحریریه، می‌توانی از آرشیو شاعران شروع کنی و هر اثری را که خواستی به دفترت بسپاری.</p>
+      <a class="button primary" href="{% url 'treasury' %}">رفتن به آرشیو شاعران</a>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="home-recent">
+    <div class="section-heading">
+      <div><span class="section-kicker">تازه‌های دفتر</span><h2>آخرین شعرهایی که خواندی</h2></div>
+      {% if recent_poems %}<a class="text-link" href="{% url 'poems' %}">تمام دفتر {% include 'components/icon.html' with name='arrow' %}</a>{% endif %}
+    </div>
+    <div class="card-grid">
+      {% for poem in recent_poems %}{% include 'components/poem_card.html' with card_heading='h3' %}{% empty %}
+      <section class="empty">
+        {% include 'components/medallion.html' with name='flower' %}
+        <h2>نخستین برگ دفتر هنوز سفید است</h2>
+        <p>از گنجینه شعری را بپسند و ذخیره کن، یا شعری را که خودت داری در دفتر ثبت کن. از همین‌جا شروع می‌شود.</p>
+        <p class="empty-actions"><a class="button primary" href="{% url 'explore' %}">انتخاب از گنجینه</a><a class="button quiet" href="{% url 'poem-new' %}">ثبت شعر تازه</a></p>
+      </section>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# The route the browser check follows to exploration; kept as its own landmark. #}
+<section class="discovery-strip reveal" aria-labelledby="home-explore">
+  <span class="discovery-icon" aria-hidden="true">{% include 'components/icon.html' with name='compass' %}</span>
+  <div><h2 id="home-explore">شعرجویی</h2><p>مجموعه‌های مضمونی و پیوندهای ادبی میان آثار را ببین، یا بر اساس شاعر و موضوع بگرد.</p></div>
   <a class="button primary" href="{% url 'explore' %}">رفتن به شعرجویی {% include 'components/icon.html' with name='arrow' %}</a>
 </section>
-<section class="stats" aria-label="آمار دفتر"><a href="{% url 'poems' %}"><span class="stat-icon">{% include 'components/icon.html' with name='book' %}</span><span><strong>{{ poem_count|persian }}</strong><span>شعر در کتابخانه</span></span>{% include 'components/icon.html' with name='arrow' %}</a><a href="{% url 'memorize' %}"><span class="stat-icon">{% include 'components/icon.html' with name='repeat' %}</span><span><strong>{{ item_count|persian }}</strong><span>کارت در فهرست حفظ</span></span>{% include 'components/icon.html' with name='arrow' %}</a><a href="{% url 'favorites' %}"><span class="stat-icon">{% include 'components/icon.html' with name='star' %}</span><span><strong>{{ favorite_count|persian }}</strong><span>شاه‌بیت برگزیده</span></span>{% include 'components/icon.html' with name='arrow' %}</a></section>
-<div class="section-heading"><div><span class="eyebrow">آخرین برگ‌های نوشته‌شده</span><h2>تازه‌های دفتر</h2></div><a class="inline-link" href="{% url 'poems' %}">تمام کتابخانه{% include 'components/icon.html' with name='arrow' %}</a></div>
-<div class="card-grid">{% for poem in recent_poems %}{% include 'components/poem_card.html' with card_heading='h3' %}{% empty %}<section class="empty"><span class="empty-icon">{% include 'components/icon.html' with name='pen' %}</span><h2>نخستین برگ دفتر هنوز سفید است.</h2><p>یک شعر که دوستش دارید بنویسید. دفتر شما از همین‌جا آغاز می‌شود.</p><a class="button" href="{% url 'poem-new' %}">ثبت نخستین شعر{% include 'components/icon.html' with name='arrow' %}</a></section>{% endfor %}</div>
-
 {% endblock %}

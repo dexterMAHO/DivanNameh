@@ -30,3 +30,8 @@ media/
 
 # Target inventory may contain machine-local SSH settings.
 deployment/ansible/inventory.yml
+
+# Local agent tooling and generated analysis, not part of the product.
+.agents/
+.archify/
+scripts/.redesign-quick-check.mjs

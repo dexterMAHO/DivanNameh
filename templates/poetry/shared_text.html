@@ -1,6 +1,6 @@
 {% load persian %}
 <article class="reading-sheet share-sheet">
-  <header class="poem-heading"><p class="eyebrow">{{ snapshot.author }}</p><h1>{{ snapshot.title }}</h1></header>
+  <header class="poem-heading"><p class="context-label">{{ snapshot.author }}</p><h1>{{ snapshot.title }}</h1></header>
   {% for position, first, second, gap in shared_rows %}
     {% if gap %}<p class="share-gap" aria-label="بخشی از شعر در این گزیده نیامده است">…</p>{% endif %}
     <div class="share-verse" data-shared-position="{{ position }}">

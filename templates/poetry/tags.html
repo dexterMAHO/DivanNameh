@@ -1,8 +1,20 @@
 {% extends 'base.html' %}
-{% load persian %}
-{% block title %}موضوع‌ها{% endblock %}
+{% load persian static %}
+{% block title %}موضوع‌های دفتر{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/study.css' %}">{% endblock %}
 {% block content %}
-<header class="page-heading compact"><h1>موضوع‌های دفتر</h1><a href="{% url 'poems' %}">کتابخانه</a></header>
+<section class="page-intro">
+  <p class="eyebrow centred">دسته‌بندی به زبان خودت</p>
+  <h1>موضوع‌های دفتر</h1>
+  <p class="page-lead">موضوع‌ها را خودت می‌سازی و به شعرهای دفترت می‌بندی. می‌توانی دو موضوع هم‌معنا را ادغام کنی؛ شعرها در هر حال باقی می‌مانند.</p>
+</section>
+<nav class="notebook-tabs" aria-label="بخش‌های دفتر">
+  <a href="{% url 'poems' %}">شعرهای دفتر</a>
+  <a href="{% url 'favorites' %}">شاه‌بیت‌ها</a>
+  <a href="{% url 'tags' %}" aria-current="page">موضوع‌ها</a>
+  <a href="{% url 'collections' %}">مجموعه‌ها</a>
+  <a href="{% url 'poets' %}">شاعران دفتر</a>
+</nav>
 <form class="panel inline-form" action="{% url 'tag-new' %}" method="post">
   {% csrf_token %}<div>{{ form.name.as_field_group }}</div><button class="primary">ساخت موضوع</button>
 </form>
@@ -38,6 +50,12 @@
         {% csrf_token %}<button class="text-button" aria-label="حذف موضوع {{ tag.name }}">حذف موضوع</button>
       </form>
     </article>
-  {% empty %}<p>با ساخت نخستین موضوع، شعرهایتان را دسته‌بندی کنید.</p>{% endfor %}
+  {% empty %}
+  <section class="empty">
+    {% include 'components/medallion.html' with name='flower' %}
+    <h2>هنوز موضوعی نساخته‌ای</h2>
+    <p>موضوع مثل برچسبی است که خودت انتخاب می‌کنی: «بهار»، «دلتنگی»، «برای خواندن با صدای بلند». با فرم بالا نخستین موضوع را بساز.</p>
+  </section>
+  {% endfor %}
 </div>
 {% endblock %}

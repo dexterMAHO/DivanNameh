@@ -20,6 +20,7 @@ from .services.poem_editor import save_poem
 from .services.edit_requests import edit_changes, submit_edit
 from .services.tags import merge_tags, save_tag
 from .services.search import search_field, search_text
+from .services.dashboard import suggested_reading, verse_of_day
 from .services.discovery import choose_random_poem
 from .treasury_views import discover_work, entry_sections, reading_rows
 
@@ -34,6 +35,9 @@ def dashboard(request):
         'item_count': MemorizationItem.objects.filter(owner=request.user).count(),
         'favorite_count': FavoriteVerse.objects.filter(owner=request.user, verse__poem__archived_at__isnull=True).count(),
         'today_count': ReviewLog.objects.filter(item__owner=request.user, reviewed_at__date=timezone.localdate()).count(),
+        'daily_verse': verse_of_day(request.user),
+        'suggestions': suggested_reading(),
+        'poet_count': poems.values('poet_name').distinct().count(),
     })
 
 
@@ -69,6 +73,8 @@ def poem_list(request, slug=None):
         poems = poems.order_by(*orders[sort])
     return render(request, 'poetry/list.html', {
         'page': Paginator(poems, 20).get_page(request.GET.get('page')),
+        'favorite_count': FavoriteVerse.objects.filter(owner=request.user, verse__poem__archived_at__isnull=True).count(),
+        'card_count': MemorizationItem.objects.filter(owner=request.user).count(),
         'tag': tag, 'archived': archived, 'poet': poet, 'query': query, 'sort': sort,
         'active_topics': active_topics, 'active_topic_slugs': {topic.slug for topic in active_topics},
         'topic_choices': topic_choices,
@@ -110,7 +116,15 @@ def poem_detail(request, pk):
             current = reference[position - 1] if position <= len(reference) else None
             if saved != current:
                 comparison.append((position, saved, current))
+    # Nearby reading from the reader's own shelf: same poet first, then shared topics.
+    topic_ids = [tag.pk for tag in poem.tags.all()]
+    related = (Poem.objects.filter(owner=request.user, archived_at__isnull=True)
+               .filter(Q(poet_name=poem.poet_name) | Q(tags__in=topic_ids))
+               .exclude(pk=poem.pk).prefetch_related('verses')
+               .annotate(same_poet=Count('pk', filter=Q(poet_name=poem.poet_name)))
+               .order_by('-same_poet', '-updated_at').distinct()[:3])
     return render(request, 'poetry/detail.html', {
+        'related_poems': related,
         'library_back': library_back, 'origin_entry': origin_entry,
         'edition_changed': edition_changed, 'origin_comparison': comparison,
         'poem': poem, 'favorite_ids': favorites,

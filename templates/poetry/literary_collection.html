@@ -1,13 +1,34 @@
 {% extends 'base.html' %}
-{% load persian %}
+{% load persian static %}
 {% block title %}{{ collection.title }}{% endblock %}
+{% block description %}{{ collection.description|default:'مجموعه‌ای مضمونی از بیت‌های گنجینهٔ دیوان‌نامه.' }}{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/discovery.css' %}">{% endblock %}
 {% block content %}
-<header class="page-heading compact"><div><span class="eyebrow">یک مضمون، چند صدا</span><h1>{{ collection.title }}</h1><p>{{ collection.description }}</p></div><a href="{% url 'treasury' %}">گنجینهٔ فارسی</a></header>
+<section class="page-intro">
+  <p class="eyebrow centred">یک مضمون، چند صدا</p>
+  <h1>{{ collection.title }}</h1>
+  {% if collection.description %}<p class="page-lead">{{ collection.description }}</p>{% endif %}
+  <p class="intro-metrics">
+    <span><b>{{ rows|length|persian }}</b> بیت در این مجموعه</span>
+    <i aria-hidden="true"></i>
+    <a class="text-link" href="{% url 'explore' %}">همهٔ گنجینهٔ شعر {% include 'components/icon.html' with name='arrow' %}</a>
+  </p>
+</section>
+<div class="trace-results">
 {% for quote, row, url in rows %}
-<article class="panel">
-  <blockquote class="literary-quote">{{ row.0 }}<br>{{ row.1 }}</blockquote>
+<article class="panel trace-card">
+  <p class="trace-meta"><span>{{ quote.pick.entry.book.author }}</span><i class="meta-dot" aria-hidden="true"></i><span>{{ quote.pick.entry.title }}</span><i class="meta-dot" aria-hidden="true"></i><span>بیت {{ quote.verse|persian }}</span></p>
+  <blockquote class="trace-quote">{{ row.0 }}{% if row.1 %}<br>{{ row.1 }}{% endif %}</blockquote>
   <p>{{ quote.commentary }}</p>
-  <a href="{{ url }}">{{ quote.pick.entry.book.author }} · بیت {{ quote.verse|persian }}</a>
+  <a class="text-link" href="{{ url }}">خواندن این بیت در متن کامل {% include 'components/icon.html' with name='arrow' %}</a>
 </article>
-{% empty %}<p>هنوز بیتی در این مجموعه منتشر نشده است.</p>{% endfor %}
+{% empty %}
+<section class="empty">
+  {% include 'components/medallion.html' with name='book' %}
+  <h2>هنوز بیتی در این مجموعه منتشر نشده است</h2>
+  <p>مجموعه‌های مضمونی به‌دست تحریریه ساخته می‌شوند. تا آن زمان می‌توانی از گنجینهٔ شعر شروع کنی.</p>
+  <a class="button primary" href="{% url 'explore' %}">رفتن به گنجینهٔ شعر</a>
+</section>
+{% endfor %}
+</div>
 {% endblock %}

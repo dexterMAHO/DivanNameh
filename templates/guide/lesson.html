@@ -4,7 +4,7 @@
 {% block content %}
 <nav class="breadcrumb" aria-label="مسیر آموزش"><a href="{% url 'guide' %}">فهرست آموزش</a></nav>
 <header class="page-heading compact">
-  <div><p class="eyebrow">درس {{ number|persian }} از {{ total|persian }}{% if done %} · کامل شده{% endif %}</p><h1>{{ lesson.title }}</h1><p>{{ lesson.objective }}</p></div>
+  <div><p class="context-label">درس {{ number|persian }} از {{ total|persian }}{% if done %} · کامل شده{% endif %}</p><h1>{{ lesson.title }}</h1><p>{{ lesson.objective }}</p></div>
 </header>
 <section class="panel guide-instructions">
   <h2>مراحل انجام</h2>

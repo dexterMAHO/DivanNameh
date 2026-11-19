@@ -1,0 +1,380 @@
+/* Home — the entrance. Graphic expression is highest here, because this page
+   has to introduce the product; from the poem page onward it steps back. */
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+  align-items: center;
+  gap: clamp(var(--space-6), 5vw, var(--space-12));
+  padding-block: var(--space-6) var(--space-12);
+}
+.hero-copy h1 {
+  margin-block: var(--space-5) var(--space-4);
+  font-size: clamp(2.125rem, 5vw, 3.75rem);
+  line-height: 1.4;
+}
+/* The hatched underline is the one place a decorative mark touches a heading. */
+.hero-copy h1 em {
+  position: relative;
+  font-style: normal;
+  color: var(--color-vermillion);
+}
+.hero-copy h1 em::after {
+  content: "";
+  position: absolute;
+  inset-inline: 2%;
+  bottom: .0625rem;
+  height: .3125rem;
+  background: repeating-linear-gradient(90deg, var(--color-gold) 0 2px, transparent 2px 6px);
+  opacity: .7;
+}
+.hero-lead {
+  max-width: 34rem;
+  margin-block-end: var(--space-6);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-md);
+  line-height: 2.3;
+}
+
+.hero-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 37rem;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-control);
+  outline: 1px solid var(--color-ornament-soft);
+  outline-offset: 4px;
+  box-shadow: var(--shadow-card);
+}
+.hero-search .search-mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  flex: none;
+  color: var(--color-gold);
+}
+.hero-search input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding-block: var(--space-2);
+  border: 0;
+  background: transparent;
+  font-size: var(--text-base);
+}
+.hero-search input:hover, .hero-search input:focus { border: 0; }
+.hero-search .button { flex: none; min-height: 2.5rem; padding-inline: var(--space-4); }
+
+.hero-quicklinks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-block-start: var(--space-4);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+.hero-quicklinks a {
+  color: var(--color-display);
+  text-decoration: none;
+  border-block-end: 1px dotted var(--color-ornament);
+}
+.hero-quicklinks a:hover { color: var(--color-vermillion); border-block-end-style: solid; }
+.hero-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-6);
+  color: var(--color-muted-foreground);
+  font: var(--text-poem-card)/1.9 var(--font-literary);
+}
+
+/* The painted panel sits in a double frame, the way a miniature is mounted. */
+.hero-visual { min-width: 0; }
+.hero-art-frame {
+  position: relative;
+  padding: var(--space-3);
+  border: 1px solid var(--color-gold);
+  background: var(--color-surface-muted);
+  box-shadow: 0 0 0 5px var(--color-background), 0 0 0 6px var(--color-ornament), var(--shadow-card);
+}
+.hero-art-frame::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: .3125rem;
+  border: 1px solid color-mix(in srgb, var(--color-surface) 70%, transparent);
+  pointer-events: none;
+}
+.hero-art {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  aspect-ratio: 1.12 / 1;
+  background: var(--color-feature);
+  border: 4px double var(--color-gold);
+}
+.hero-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 34% center;
+  transition: scale 1s var(--ease-out);
+}
+.hero-art-frame:hover .hero-art img { scale: 1.04; }
+.hero-art figcaption {
+  position: absolute;
+  z-index: 2;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: color-mix(in srgb, var(--color-feature) 88%, transparent);
+  border: 1px solid var(--color-gold);
+  color: var(--color-on-feature);
+  font: var(--text-sm)/1.8 var(--font-literary);
+}
+.hero-art figcaption i {
+  width: .375rem;
+  height: .375rem;
+  border-radius: 50%;
+  background: var(--color-gold);
+}
+.floating-rosette { position: absolute; z-index: 3; font-size: 2rem; }
+.rosette-a { top: -.8125rem; inset-inline-end: .5rem; }
+.rosette-b { bottom: .25rem; inset-inline-start: 0; font-size: 1.5rem; }
+
+/* ---------- Review feature ---------- */
+.review-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: clamp(var(--space-5), 3vw, var(--space-10));
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
+  margin-block-end: var(--space-12);
+}
+.feature-copy h2 { font-size: var(--text-section); margin-block: var(--space-2) var(--space-3); }
+.feature-copy p { line-height: 2.1; }
+.feature-foot { font-size: var(--text-sm); }
+.feature-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  margin-block-end: 0;
+}
+.feature-button {
+  background: var(--color-on-feature);
+  border-color: var(--color-gold);
+  color: var(--color-feature);
+}
+.feature-button:hover {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-feature);
+}
+.feature-link, a.feature-link { color: var(--color-feature-muted); border-block-end-color: var(--color-feature-muted); }
+.feature-link:hover { color: var(--color-on-feature); }
+
+.feature-stats { align-self: start; }
+.feature-stats .stat-rosette { display: block; font-size: 1.75rem; }
+.stat-line {
+  margin: 0;
+  border-block-start: 1px solid color-mix(in srgb, var(--color-on-feature) 28%, transparent);
+}
+.stat-line a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  color: var(--color-feature-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+.stat-line a:hover { color: var(--color-on-feature); }
+.stat-line strong { color: var(--color-on-feature); font: 700 1.25rem/1 var(--font-literary); }
+
+/* ---------- Pathways ---------- */
+.home-pathways { margin-block-end: var(--space-12); }
+.path-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-block-start: var(--space-6);
+}
+/* The notched outline echoes a manuscript cartouche. */
+.path-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-4);
+  background: linear-gradient(150deg, var(--color-surface), var(--color-surface-muted));
+  border: 1px solid var(--color-ornament);
+  text-decoration: none;
+  clip-path: polygon(0 8%, 5% 8%, 7% 2%, 93% 2%, 95% 8%, 100% 8%, 100% 92%, 95% 92%, 93% 98%, 7% 98%, 5% 92%, 0 92%);
+  transition: translate var(--duration-surface) var(--ease-out), background var(--duration-surface) var(--ease-out);
+}
+.path-card::before {
+  content: "";
+  position: absolute;
+  inset: .4375rem;
+  border: 1px solid var(--color-ornament-soft);
+  pointer-events: none;
+}
+.path-card:hover { translate: 0 -.375rem; background: var(--color-surface); }
+.path-title { color: var(--color-display); font: 700 1.25rem/1.5 var(--font-literary); }
+.path-desc {
+  max-width: 14rem;
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+  line-height: 1.9;
+}
+.path-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: auto;
+  padding-block-start: var(--space-3);
+  color: var(--color-vermillion);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* ---------- Verse of the day ---------- */
+.daily-feature {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr);
+  margin-block-end: var(--space-12);
+  border: 1px solid var(--color-gold);
+  background: linear-gradient(115deg, var(--color-surface), var(--color-surface-muted));
+  box-shadow: var(--shadow-card);
+}
+.daily-feature::before {
+  content: "";
+  position: absolute;
+  inset: .4375rem;
+  border: 1px solid var(--color-ornament-soft);
+  pointer-events: none;
+}
+.daily-art { position: relative; min-height: 15rem; overflow: hidden; border-inline-end: 1px solid var(--color-ornament); }
+.daily-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.daily-art span {
+  position: absolute;
+  inset-block-end: var(--space-3);
+  inset-inline-end: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  background: color-mix(in srgb, var(--color-feature) 88%, transparent);
+  border: 1px solid var(--color-gold);
+  color: var(--color-on-feature);
+  font: var(--text-sm)/1.8 var(--font-literary);
+}
+.daily-copy { position: relative; align-self: center; padding: clamp(var(--space-5), 3vw, var(--space-8)); }
+.daily-copy h2 { margin-block: var(--space-2) var(--space-4); font-size: var(--text-section); }
+.daily-verse {
+  margin: 0;
+  color: var(--color-display);
+  font: var(--text-poem-lead)/var(--leading-poem) var(--font-literary);
+  overflow-wrap: anywhere;
+}
+.daily-verse p { margin: 0; }
+.daily-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-block: var(--space-4) var(--space-5);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+.daily-actions { margin: 0; }
+.daily-seal {
+  position: absolute;
+  top: -1.1875rem;
+  inset-inline-start: var(--space-8);
+  display: grid;
+  place-items: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border: 1px solid var(--color-gold);
+  border-radius: 50%;
+  background: var(--color-background);
+  font-size: 1.25rem;
+}
+
+/* ---------- Suggestions and recent ---------- */
+.home-lower { display: grid; gap: var(--space-12); }
+.home-lower-main, .home-recent { min-width: 0; }
+.suggestion-row { display: grid; gap: var(--space-3); margin: var(--space-5) 0 0; padding: 0; list-style: none; }
+.suggestion-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-ornament);
+  background: var(--color-surface);
+  text-decoration: none;
+  transition: translate var(--duration-control) var(--ease-out), background var(--duration-control) var(--ease-out);
+}
+.suggestion-card:hover { translate: -.25rem 0; background: var(--color-gold-soft); }
+.suggestion-num { flex: none; color: var(--color-gold); font: 700 1.375rem/1 var(--font-literary); }
+.suggestion-copy { display: grid; gap: var(--space-1); flex: 1; min-width: 0; }
+.suggestion-copy b { color: var(--color-display); font: 700 var(--text-poem-card)/1.6 var(--font-literary); overflow-wrap: anywhere; }
+.suggestion-copy small { color: var(--color-muted-foreground); font-size: var(--text-sm); }
+.suggestion-arrow { flex: none; color: var(--color-vermillion); }
+.home-recent .card-grid { margin-block-start: var(--space-5); }
+
+/* ---------- Exploration strip ---------- */
+.discovery-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-block-start: var(--space-12);
+  padding-block: var(--space-6);
+  border-block: 1px solid var(--color-ornament);
+  background: transparent;
+  border-radius: 0;
+}
+.discovery-strip > div { flex: 1; min-width: 0; }
+.discovery-strip h2 { margin-block-end: var(--space-1); font-size: var(--text-section); }
+.discovery-strip p { margin: 0; color: var(--color-muted-foreground); }
+.discovery-icon { flex: none; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border: 1px solid var(--color-ornament); border-radius: 50%; color: var(--color-gold); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .path-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1024px) {
+  .review-feature { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .home-hero { grid-template-columns: minmax(0, 1fr); }
+  .hero-visual { order: -1; max-width: 30rem; }
+  .daily-feature { grid-template-columns: minmax(0, 1fr); }
+  .daily-art { min-height: 11rem; border-inline-end: 0; border-block-end: 1px solid var(--color-ornament); }
+}
+@media (max-width: 767px) {
+  .home-hero { padding-block: var(--space-4) var(--space-8); gap: var(--space-6); }
+  .hero-search { flex-wrap: wrap; }
+  .hero-search .button { flex: 1 0 100%; }
+  .path-grid { gap: var(--space-3); }
+  .path-card { padding: var(--space-4) var(--space-3); }
+  .path-desc { font-size: var(--text-xs); }
+  .discovery-strip { flex-direction: column; align-items: flex-start; }
+  .discovery-strip .button { align-self: stretch; }
+  .daily-seal { inset-inline-start: var(--space-4); }
+}
+@media (max-width: 420px) {
+  .path-grid { grid-template-columns: minmax(0, 1fr); }
+  .path-card { clip-path: none; }
+  .hero-copy h1 { font-size: clamp(1.875rem, 8.5vw, 2.5rem); }
+}

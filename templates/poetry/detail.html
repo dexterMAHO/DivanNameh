@@ -1,40 +1,134 @@
 {% extends 'base.html' %}
 {% load persian static %}
-{% block scripts %}<script type="module" src="{% static 'js/poem-copy.js' %}"></script>{% endblock %}
 {% block title %}{{ poem.display_title }}{% endblock %}
+{% block description %}{{ poem.display_title }} از {{ poem.poet_name }} در دیوان‌نامه؛ خواندن، نگه‌داشتن و حفظ بیت‌ها.{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/reading.css' %}">{% endblock %}
+{% block scripts %}
+<script type="module" src="{% static 'js/poem-copy.js' %}"></script>
+<script type="module" src="{% static 'js/reader.js' %}"></script>
+{% endblock %}
 {% block content %}
-<nav class="breadcrumb" aria-label="مسیر کتابخانه">
-  <a href="{{ library_back }}">کتابخانه</a><span aria-hidden="true">/</span>
-  <a href="{% url 'poems' %}?poet={{ poem.poet_name|urlencode:'' }}">{{ poem.poet_name }}</a>
+<nav class="breadcrumb" aria-label="مسیر">
+  <a href="{{ library_back }}">دفتر من</a><span aria-hidden="true">‹</span>
+  <a href="{% url 'poems' %}?poet={{ poem.poet_name|urlencode:'' }}">{{ poem.poet_name }}</a><span aria-hidden="true">‹</span>
+  <strong>{{ poem.display_title }}</strong>
 </nav>
+
 {% if edit_request %}<p class="notice">درخواست ویرایش {{ edit_request.get_status_display }} است. <a href="{% url 'edit-history-detail' edit_request.pk %}">دیدن درخواست</a></p>{% endif %}
 {% if poem.archived_at %}<p class="notice">{% include 'components/icon.html' with name='archive' %}این شعر آرشیو شده و در صف مرور نمایش داده نمی‌شود.</p>{% endif %}
-<article class="reading-sheet" data-reading-key="{{ user.pk }}-poem-{{ poem.pk }}" data-copy-credit="{{ poem.display_title }} · {{ poem.poet_name }}{% if poem.source_url %} · {{ poem.source_url }}{% endif %}">
-  <header class="poem-heading"><span class="eyebrow">از دفترِ {{ poem.poet_name }}</span><h1>{{ poem.display_title }}</h1><div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div><div class="literary-divider" aria-hidden="true"><span></span>{% include 'components/icon.html' with name='book' %}<span></span></div></header>
-  <button type="button" class="text-button resume-reading" hidden>ادامه از آخرین جای خواندن</button>
-  <div class="poetry-panel">
-    {% for verse in poem.verses.all %}
-      <div class="verse-row">
-        {% include 'components/verse.html' %}
-        <div class="verse-actions">
-          <label class="icon-button treasury-bookmark copy-choice" hidden>
-            <input class="visually-hidden" type="checkbox" data-copy-verse value="{{ verse.position }}" aria-label="انتخاب ردیف {{ verse.position|persian }} برای کپی">
-            {% include 'components/icon.html' with name='bookmark' %}
-          </label>
-          <form method="post" action="{% if verse.pk in favorite_ids %}{% url 'unfavorite' verse.pk %}{% else %}{% url 'favorite' verse.pk %}{% endif %}" data-favorite data-add="{% url 'favorite' verse.pk %}" data-remove="{% url 'unfavorite' verse.pk %}">
-            {% csrf_token %}
-            <button class="favorite icon-button" aria-label="شاه‌بیت ردیف {{ verse.position|persian }}" aria-pressed="{% if verse.pk in favorite_ids %}true{% else %}false{% endif %}">{% include 'components/icon.html' with name='star' %}</button>
-            <span class="inline-status" role="status"></span>
-          </form>
-        </div>
-      </div>
-    {% endfor %}
+
+<section class="poem-heading-grid">
+  <div class="poem-heading-copy">
+    <p class="eyebrow">درنگی در متن شعر</p>
+    <div class="poem-title-row">
+      <h1>{{ poem.display_title }}</h1>
+      <span class="poem-title-mark rosette" aria-hidden="true">❧</span>
+    </div>
+    <p class="poem-meta">
+      <a class="poet-chip" href="{% url 'poems' %}?poet={{ poem.poet_name|urlencode:'' }}">{{ poem.poet_name }}</a>
+      <i class="meta-dot" aria-hidden="true"></i>
+      <span>{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span>
+      {% if origin_entry %}<i class="meta-dot" aria-hidden="true"></i><span>گزیده‌ای از گنجینه</span>{% endif %}
+    </p>
+    {% if poem.tags.all %}<div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}
+    <p class="poem-intro-text">هر بیت راه جداگانهٔ خودش را به دفتر تو دارد: می‌توانی آن را شاه‌بیت کنی، به فهرست حفظ بسپاری، رونوشت بگیری یا با دیگران به اشتراک بگذاری.</p>
+    <div class="poem-primary-actions">
+      <a class="button primary" href="{% url 'share-library' poem.pk %}">{% include 'components/icon.html' with name='eye' %}<span>اشتراک شعر یا گزیده</span></a>
+      <button class="button quiet" type="button" id="focus-mode" aria-pressed="false">{% include 'components/icon.html' with name='eye' %}<span>حالت تمرکز</span></button>
+      <button class="button quiet resume-reading" type="button" hidden>ادامه از آخرین جای خواندن</button>
+    </div>
+    <p class="poem-status"><span class="rosette" aria-hidden="true">✿</span> ستارهٔ کنار هر بیت، شاه‌بیت را ثبت می‌کند.</p>
   </div>
-  <div class="poem-colophon"><span>{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span><span>ستارهٔ کنار متن، شاه‌بیت را ثبت می‌کند.</span></div>
-</article>
-<p><a class="button" href="{% url 'share-library' poem.pk %}">اشتراک شعر یا گزیده</a></p>
+  <figure class="poem-art">
+    <img src="{% static 'img/miniature/garden-detail.webp' %}" width="570" height="570" loading="lazy" decoding="async"
+         alt="نگاره‌ای مینیاتوری با ایوان، سرو و کوه، به‌عنوان حاشیهٔ تصویری این صفحه">
+    <figcaption><span>نگارهٔ همراه</span><b>باغِ سکوت و روشنایی</b></figcaption>
+    <span class="poem-art-corner rosette" aria-hidden="true">✥</span>
+  </figure>
+</section>
+
+{% include 'components/reading_toolbar.html' %}
+
+<div class="poem-reading-layout">
+  <article class="reading-sheet" data-reading-key="{{ user.pk }}-poem-{{ poem.pk }}" data-copy-credit="{{ poem.display_title }} · {{ poem.poet_name }}{% if poem.source_url %} · {{ poem.source_url }}{% endif %}">
+    <p class="paper-ornament" aria-hidden="true"><span>❀</span><i></i><span>✦</span><i></i><span>❀</span></p>
+    <div class="paper-heading">
+      <span class="section-kicker">متن کامل</span>
+      <span class="paper-heading-rule" aria-hidden="true"></span>
+      <span class="paper-poet">{{ poem.poet_name }}</span>
+    </div>
+    <div class="poetry-panel">
+      {% for verse in poem.verses.all %}
+        <div class="verse-row">
+          {% include 'components/verse.html' with verse_anchor=True %}
+          <div class="verse-actions">
+            {# Four independent actions. Marking a verse for memorisation never stars it. #}
+            <form method="post" action="{% if verse.pk in favorite_ids %}{% url 'unfavorite' verse.pk %}{% else %}{% url 'favorite' verse.pk %}{% endif %}" data-favorite data-add="{% url 'favorite' verse.pk %}" data-remove="{% url 'unfavorite' verse.pk %}">
+              {% csrf_token %}
+              <button class="favorite verse-action" aria-label="شاه‌بیت کردن بیت {{ verse.position|persian }}" aria-pressed="{% if verse.pk in favorite_ids %}true{% else %}false{% endif %}">{% include 'components/icon.html' with name='star' %}<span>شاه‌بیت</span></button>
+              <span class="inline-status" role="status"></span>
+            </form>
+            {% if not poem.archived_at %}
+              {% if user.action_password %}
+                {# The operation password is entered once, in the study panel. #}
+                <a class="verse-action" href="#study-range" data-memorize-verse="{{ verse.pk }}">{% include 'components/icon.html' with name='repeat' %}<span>افزودن به حفظ</span></a>
+              {% else %}
+                <form method="post" action="{% url 'item-new' %}" data-ajax>
+                  {% csrf_token %}
+                  <input type="hidden" name="poem_id" value="{{ poem.pk }}">
+                  <input type="hidden" name="scope" value="range">
+                  <input type="hidden" name="start_verse_id" value="{{ verse.pk }}">
+                  <input type="hidden" name="end_verse_id" value="{{ verse.pk }}">
+                  <input type="hidden" name="return_to_poem" value="1">
+                  <button class="verse-action" aria-label="افزودن بیت {{ verse.position|persian }} به فهرست حفظ">{% include 'components/icon.html' with name='repeat' %}<span>افزودن به حفظ</span></button>
+                  <span class="inline-status" role="status"></span>
+                </form>
+              {% endif %}
+            {% endif %}
+            <button class="verse-action" type="button" data-copy-verse-now="{{ verse.position }}" hidden>{% include 'components/icon.html' with name='check' %}<span>رونوشت</span></button>
+            <a class="verse-action" href="{% url 'share-library' poem.pk %}?verse={{ verse.position }}">{% include 'components/icon.html' with name='eye' %}<span>اشتراک بیت</span></a>
+            <label class="verse-action copy-choice" hidden>
+              <input class="visually-hidden" type="checkbox" data-copy-verse value="{{ verse.position }}">
+              {% include 'components/icon.html' with name='bookmark' %}<span>انتخاب برای رونوشت گزیده</span>
+            </label>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="paper-end-mark" aria-hidden="true">❧ پایانِ این برگ ❧</p>
+  </article>
+
+  <aside class="reading-sidebar" aria-label="ابزارهای این شعر">
+    {% include 'poetry/memorize_tools.html' %}
+    <section class="panel sidebar-panel">
+      <div class="sidebar-panel-title"><span class="rosette" aria-hidden="true">✥</span><h2>راهنمای نشانه‌ها</h2></div>
+      <ul class="legend-list">
+        <li><span class="legend-symbol" aria-hidden="true">{% include 'components/icon.html' with name='star' %}</span><span><b>شاه‌بیت</b><small>بیت در فهرست شاه‌بیت‌های تو ثبت می‌شود.</small></span></li>
+        <li><span class="legend-symbol" aria-hidden="true">{% include 'components/icon.html' with name='repeat' %}</span><span><b>فهرست حفظ</b><small>کارت تمرین ساخته می‌شود؛ بیت شاه‌بیت نمی‌شود.</small></span></li>
+        <li><span class="legend-symbol" aria-hidden="true">{% include 'components/icon.html' with name='bookmark' %}</span><span><b>انتخاب</b><small>چند بیت را برای رونوشت گزیده علامت بزن.</small></span></li>
+      </ul>
+    </section>
+    {% if poem.notes %}
+    <section class="panel sidebar-panel">
+      <div class="sidebar-panel-title"><span class="rosette" aria-hidden="true">✿</span><h2>حاشیهٔ دفتر</h2></div>
+      <div class="notes">{{ poem.notes|linebreaksbr }}</div>
+    </section>
+    {% endif %}
+  </aside>
+</div>
+
 {% include 'poetry/copy_tools.html' with has_selection=True %}
-{% include 'poetry/memorize_tools.html' %}
+
+{% if related_poems %}
+<section class="poem-afterword" aria-labelledby="related-reading">
+  <div class="section-heading">
+    <div><span class="section-kicker">پس از خواندن</span><h2 id="related-reading">از همین حال‌وهوا در دفتر تو</h2></div>
+    <a class="text-link" href="{% url 'poems' %}?poet={{ poem.poet_name|urlencode:'' }}">همهٔ شعرهای {{ poem.poet_name }} {% include 'components/icon.html' with name='arrow' %}</a>
+  </div>
+  <div class="card-grid">{% for poem in related_poems %}{% include 'components/poem_card.html' with card_heading='h3' %}{% endfor %}</div>
+</section>
+{% endif %}
+
 {% if origin_entry %}
   <details class="panel" id="poem-origin" {% if origin_comparison is not None %}open{% endif %}>
     <summary>منشأ این گزیده در گنجینه</summary>
@@ -59,17 +153,17 @@
     {% endif %}
   </details>
 {% endif %}
-{% if poem.notes %}<section class="panel"><span class="eyebrow">یادداشت شخصی</span><h2>حاشیهٔ دفتر</h2><div class="notes">{{ poem.notes|linebreaksbr }}</div></section>{% endif %}
-<div class="reading-tools">
+
+<div class="reading-tools poem-footer-tools">
   {% if edit_request.status != 'pending' %}<a class="button quiet" href="{% url 'poem-edit' poem.pk %}">درخواست ویرایش</a>{% endif %}
-  {% if poem.source_url %}<a class="inline-link" href="{{ poem.source_url }}" rel="noopener noreferrer" target="_blank">مشاهدهٔ منبع شعر</a>{% endif %}
+  {% if poem.source_url %}<a class="text-link" href="{{ poem.source_url }}" rel="noopener noreferrer" target="_blank">مشاهدهٔ منبع شعر</a>{% endif %}
   {% if poem.archived_at %}
   <form method="post" action="{% url 'poem-restore' poem.pk %}">
-    {% csrf_token %}<button class="quiet">بازگردانی به کتابخانه</button>
+    {% csrf_token %}<button class="quiet">بازگردانی به دفتر</button>
   </form>
   {% else %}
   <details class="archive-options">
-    <summary>برداشتن از کتابخانه</summary>
+    <summary>برداشتن از دفتر</summary>
     {% if user.action_password %}
     <p class="fine">شعر به آرشیو منتقل می‌شود و می‌توانید آن را بازگردانید.</p>
     <form method="post" action="{% url 'poem-archive' poem.pk %}">

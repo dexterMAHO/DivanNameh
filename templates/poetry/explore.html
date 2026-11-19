@@ -1,9 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}شعرجویی{% endblock %}
+{% load persian static %}
+{% block title %}گنجینهٔ شعر{% endblock %}
+{% block description %}گنجینهٔ شعر دیوان‌نامه؛ گزیده‌های منتشرشده با متن کامل، بر اساس شاعر و موضوع.{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/discovery.css' %}">{% endblock %}
 {% block content %}
-<header class="page-heading compact">
-  <div><h1>شعرجویی</h1><p>شعرهای منتخب را بخوانید و بر اساس شاعر، موضوع و مجموعه‌های مضمونی بگردید.</p></div>
-  <a href="{% url 'discover' %}">کشف شعر تصادفی</a>
-</header>
+<section class="page-intro">
+  <p class="eyebrow centred">تالار کشف و خواندن</p>
+  <h1>گنجینهٔ شعر</h1>
+  <p class="page-lead">از یک نام، یک مصرع یا یک موضوع شروع کن. شعرها را پیدا کن، کامل بخوان و هر بیتی را که می‌خواهی با خودت نگه داری به دفتر بسپار.</p>
+  <p class="intro-metrics">
+    <span><b>{{ pick_page.paginator.count|persian }}</b> گزیدهٔ منتشرشده</span>
+    <i aria-hidden="true"></i>
+    <span><b>{{ public_poets|length|persian }}</b> شاعر</span>
+    <i aria-hidden="true"></i>
+    <a class="text-link" href="{% url 'discover' %}">کشف شعر تصادفی {% include 'components/icon.html' with name='arrow' %}</a>
+  </p>
+</section>
 {% include 'poetry/treasury_showcase.html' %}
 {% endblock %}

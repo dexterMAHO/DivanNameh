@@ -160,7 +160,7 @@ class TreasuryPageTests(TestCase):
         )
         response = self.client.get('/discover/', {'treasury_exclude': self.ghazal.pk})
         self.assertContains(response, other.get_absolute_url())
-        self.assertContains(response, 'هنوز شعری برای کشف ندارید.')
+        self.assertContains(response, 'دفتر تو هنوز شعری ندارد که به بخت انتخاب شود.')
 
     def test_discovery_randomizes_only_a_bounded_set_of_ids(self):
         from django.db import connection

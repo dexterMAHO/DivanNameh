@@ -1,66 +1,107 @@
 {% extends 'base.html' %}
 {% load persian static %}
-{% block scripts %}{% if mode == 'blanks' and item %}<script type="module" src="{% static 'js/practice.js' %}"></script>{% endif %}{% endblock %}
 {% block title %}مرور امروز{% endblock %}
+{% block description %}کارت‌های مرور فاصله‌دار دیوان‌نامه؛ یک بیت در هر لحظه.{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/study.css' %}">{% endblock %}
+{% block scripts %}{% if mode == 'blanks' and item %}<script type="module" src="{% static 'js/practice.js' %}"></script>{% endif %}{% endblock %}
 {% block content %}
-<header class="page-heading compact">
+<section class="page-intro">
+  <p class="eyebrow centred">تمرینِ بازگشت به واژه‌ها</p>
   <h1>مرور امروز</h1>
-  {% if remaining %}<span class="stamp">{{ remaining|persian }} کارت باقی‌مانده</span>{% endif %}
-</header>
+  <p class="page-lead">برای حفظ شعر لازم نیست ساعت‌ها وقت بگذاری. یک مصرع را ببین، ادامه را به یاد بیاور، بعد پاسخ را آشکار کن. مرورهای کوتاه ماندگاری بیشتری می‌سازند.</p>
+</section>
+
+{# One row of real figures; the bar is today's round, not an invented session. #}
+<section class="review-dashboard panel" aria-label="وضعیت مرور">
+  <p class="review-stat"><span>در صف مرور</span><strong>{{ remaining|persian }}</strong></p>
+  <p class="review-stat"><span>ثبت‌شده در امروز</span><strong>{{ done_today|persian }}</strong></p>
+  <p class="review-stat"><span>کل کارت‌ها</span><strong>{{ card_count|persian }}</strong></p>
+  <div class="review-session-progress">
+    <p class="progress-copy"><span>پیشرفت نوبت امروز</span><strong>{{ round_percent|persian }}٪</strong></p>
+    <div class="progress-track"><span style="inline-size: {{ round_percent }}%"></span></div>
+  </div>
+</section>
+
 {% if item %}
-  <form method="get" class="inline-form practice-mode">
+<section class="review-stage" aria-labelledby="review-card-title">
+  <div class="review-stage-head">
+    <span class="section-kicker">کارتِ یادسپاری</span>
+    <span class="review-position">{{ remaining|persian }} کارت باقی‌مانده در این نوبت</span>
+  </div>
+
+  <article class="flashcard">
+    <span class="flashcard-ornament rosette" aria-hidden="true">✥</span>
+    <div class="flashcard-content">
+      <p class="flashcard-label">{{ item.poem.poet_name }} <i class="meta-dot" aria-hidden="true"></i> {{ item.scope_label|persian }}</p>
+      <h2 id="review-card-title">{{ item.poem.display_title }}</h2>
+      {% if mode == 'blanks' %}
+        <p class="flashcard-hint">واژه‌های جاافتاده را به یاد بیاور، بعد پاسخ را باز کن.</p>
+        <p class="flashcard-prompt cue">{% for word, hidden in blanks %}{% if hidden %}<span aria-label="واژهٔ جاافتاده">ـــــ</span>{% else %}{{ word }}{% endif %} {% endfor %}</p>
+      {% else %}
+        <p class="flashcard-hint">از این مصرع شروع کن و ادامه را از حفظ بخوان.</p>
+        <p class="flashcard-prompt cue">{{ cue }}</p>
+      {% endif %}
+
+      {% if mode == 'blanks' %}
+        <div id="typed-practice" class="typed-practice" hidden>
+          <label for="practice-response">مصرع کامل را برای خودسنجی بنویس</label>
+          <input type="text" id="practice-response" autocomplete="off">
+          <button type="button" id="check-practice">مقایسه با متن شعر</button>
+          <p role="status" class="inline-status"></p>
+        </div>
+      {% endif %}
+
+      <details id="review-answer">
+        <summary class="button primary"><span class="when-closed">آشکار کردن پاسخ</span><span class="when-open">پنهان کردن پاسخ</span></summary>
+        <div class="review-verses">
+          {% for verse in verses %}
+            {% if mode == 'progressive' and not forloop.first %}
+              <details><summary>نمایش ردیف {{ forloop.counter|persian }}</summary>{% include 'components/verse.html' %}</details>
+            {% else %}{% include 'components/verse.html' %}{% endif %}
+          {% endfor %}
+        </div>
+        <form method="post" action="{% url 'rate' item.pk %}" id="rating-form" class="review-rating">
+          {% csrf_token %}
+          <input type="hidden" name="request_id" value="{{ request_id }}">
+          <input type="hidden" name="mode" value="{{ mode }}">
+          <h3>چطور به یاد آوردی؟</h3>
+          <div class="rating-actions">
+            {% for value, label in ratings %}<button class="rating-btn rating-{{ value }}" name="rating" value="{{ value }}">{{ label }}</button>{% endfor %}
+          </div>
+          <p class="fine">پاسخ تو فاصلهٔ مرور بعدی همین کارت را تعیین می‌کند.</p>
+        </form>
+      </details>
+    </div>
+  </article>
+
+  <form method="get" class="practice-mode">
     <label for="practice-mode">روش تمرین
       <select id="practice-mode" name="mode">
         {% for value, label in modes %}<option value="{{ value }}" {% if mode == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </label>
-    <button>تغییر روش</button>
+    <button class="quiet">تغییر روش</button>
   </form>
-  <section class="review-card poetry-panel">
-    <p class="eyebrow">{{ item.poem.poet_name }} · {{ item.scope_label|persian }}</p>
-    <h2>{{ item.poem.display_title }}</h2>
-    {% if mode == 'blanks' %}
-      <p class="muted">واژه‌های جاافتاده را به یاد بیاورید و پاسخ را باز کنید.</p>
-      <p class="cue">{% for word, hidden in blanks %}{% if hidden %}<span aria-label="واژهٔ جاافتاده">ـــــ</span>{% else %}{{ word }}{% endif %} {% endfor %}</p>
-    {% else %}
-      <p class="muted">از این سطر شروع کنید و ادامه را از حفظ بخوانید.</p>
-      <p class="cue">{{ cue }}</p>
-    {% endif %}
-    {% if mode == 'blanks' %}
-      <div id="typed-practice" hidden>
-        <label for="practice-response">سطر کامل را برای خودسنجی بنویسید</label>
-        <input type="text" id="practice-response" autocomplete="off">
-        <button type="button" id="check-practice">مقایسه با متن شعر</button>
-        <p role="status" class="inline-status"></p>
-      </div>
-    {% endif %}
-    <details id="review-answer">
-      <summary class="button primary"><span class="when-closed">نمایش پاسخ</span><span class="when-open">پنهان‌کردن پاسخ</span></summary>
-      <form method="post" action="{% url 'rate' item.pk %}" id="rating-form">
-        {% csrf_token %}
-        <input type="hidden" name="request_id" value="{{ request_id }}">
-        <input type="hidden" name="mode" value="{{ mode }}">
-        <h3>چطور به یاد آوردید؟</h3>
-        <div class="rating-actions">
-          {% for value,label in ratings %}<button name="rating" value="{{ value }}">{{ label }}</button>{% endfor %}
-        </div>
-      </form>
-      <div class="review-verses">
-        {% for verse in verses %}
-          {% if mode == 'progressive' and not forloop.first %}
-            <details><summary>نمایش ردیف {{ forloop.counter|persian }}</summary>{% include 'components/verse.html' %}</details>
-          {% else %}{% include 'components/verse.html' %}{% endif %}
-        {% endfor %}
-      </div>
-    </details>
-  </section>
+  <p class="review-stage-foot"><a class="text-link" href="{{ item.poem.get_absolute_url }}">دیدن این شعر در دفتر {% include 'components/icon.html' with name='arrow' %}</a><a class="text-link" href="{% url 'memorize' %}">فهرست کامل حفظ {% include 'components/icon.html' with name='arrow' %}</a></p>
+</section>
 {% else %}
-  <section class="empty">
-    <h2>{% if reviewed_today %}مرور امروز انجام شد{% elif has_cards %}مروری برای الان باقی نمانده{% else %}هنوز کارت حفظ ندارید{% endif %}</h2>
-    {% if next_study %}<p>نزدیک‌ترین موعد <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
-    {% if has_cards %}<a class="button" href="{% url 'memorize' %}">فهرست حفظ</a>
-    {% else %}<a class="button" href="{% url 'poems' %}">انتخاب شعر برای حفظ</a>{% endif %}
-    {% if reviewed_today %}<a href="{% url 'study-stats' %}">آمار مرور</a>{% endif %}
-  </section>
+<section class="empty review-empty">
+  {% include 'components/medallion.html' with name='lamp' %}
+  {% if reviewed_today %}
+    <h2>نوبت امروز تمام شد</h2>
+    <p>{{ done_today|persian }} مرور امروز ثبت شد. موعد بعدی هر کارت به‌صورت خودکار و بر اساس پاسخ‌های تو تعیین شده است.</p>
+    {% if next_study %}<p class="fine">نزدیک‌ترین موعد <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
+    <p class="empty-actions"><a class="button primary" href="{% url 'study-stats' %}">دیدن آمار حفظ</a><a class="button quiet" href="{% url 'memorize' %}">فهرست حفظ</a></p>
+  {% elif has_cards %}
+    <h2>کارتی برای همین حالا آماده نیست</h2>
+    <p>همهٔ کارت‌های تو در فاصلهٔ مرور خودشان هستند. وقتی موعدشان رسید، شمارهٔ کنار «مرور و حفظ» در نوار بالا نشان می‌دهد چند کارت در صف است.</p>
+    {% if next_study %}<p class="fine">نزدیک‌ترین موعد <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
+    <p class="empty-actions"><a class="button primary" href="{% url 'memorize' %}">فهرست حفظ</a><a class="button quiet" href="{% url 'poems' %}">افزودن کارت تازه</a></p>
+  {% else %}
+    <h2>صف مرور تو هنوز خالی است</h2>
+    <p>به صفحهٔ یک شعر برو و کنار بیتی که می‌خواهی حفظ کنی «افزودن به حفظ» را بزن. همان بیت اینجا به کارت تمرین تبدیل می‌شود: مصرع اول را می‌بینی و ادامه را به یاد می‌آوری.</p>
+    <p class="empty-actions"><a class="button primary" href="{% url 'poems' %}">انتخاب شعر از دفتر</a><a class="button quiet" href="{% url 'explore' %}">یافتن شعر در گنجینه</a></p>
+  {% endif %}
+</section>
 {% endif %}
 {% endblock %}

@@ -1,8 +1,20 @@
 {% extends 'base.html' %}
-{% load persian %}
-{% block title %}مجموعه‌ها{% endblock %}
+{% load persian static %}
+{% block title %}مجموعه‌های شخصی{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/study.css' %}">{% endblock %}
 {% block content %}
-<header class="page-heading compact"><h1>مجموعه‌های شخصی</h1><a href="{% url 'poems' %}">کتابخانه</a></header>
+<section class="page-intro">
+  <p class="eyebrow centred">چیدمان به سلیقهٔ خودت</p>
+  <h1>مجموعه‌های شخصی</h1>
+  <p class="page-lead">مجموعه جایی است که خودت ترتیب می‌دهی: چند شعر و چند شاه‌بیت، به همان ترتیبی که می‌خواهی خوانده شوند.</p>
+</section>
+<nav class="notebook-tabs" aria-label="بخش‌های دفتر">
+  <a href="{% url 'poems' %}">شعرهای دفتر</a>
+  <a href="{% url 'favorites' %}">شاه‌بیت‌ها</a>
+  <a href="{% url 'tags' %}">موضوع‌ها</a>
+  <a href="{% url 'collections' %}" aria-current="page">مجموعه‌ها</a>
+  <a href="{% url 'poets' %}">شاعران دفتر</a>
+</nav>
 <form method="post" class="panel inline-form">
   {% csrf_token %}
   <div>{{ form.name.as_field_group }}</div><button class="primary">ساخت مجموعه</button>
@@ -13,6 +25,12 @@
       <h2><a href="{{ collection.get_absolute_url }}">{{ collection.name }}</a></h2>
       <p>{{ collection.item_count|persian }} شعر و شاه‌بیت</p>
     </article>
-  {% empty %}<p>برای مرتب‌کردن شعرها و شاه‌بیت‌ها، یک مجموعه بسازید.</p>{% endfor %}
+  {% empty %}
+  <section class="empty">
+    {% include 'components/medallion.html' with name='book' %}
+    <h2>هنوز مجموعه‌ای نساخته‌ای</h2>
+    <p>با فرم بالا یک مجموعه بساز، بعد در صفحهٔ آن شعرها و شاه‌بیت‌های دفترت را انتخاب کن و ترتیبشان را بچین.</p>
+  </section>
+  {% endfor %}
 </div>
 {% endblock %}

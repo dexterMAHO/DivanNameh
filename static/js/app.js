@@ -15,6 +15,10 @@ if (favicon) {
 
 const digits = new Intl.NumberFormat('fa-IR', {useGrouping: false});
 
+// Entrance motion only starts once the document is ready, so a slow first paint
+// never shows a half-faded page. The resting state is the state without motion.
+addEventListener('load', () => document.body.classList.add('motion-ready'));
+
 for (const message of document.querySelectorAll('[data-message-tags]')) {
   const key = message.dataset.messageTags.split(' ').find(tag => tag.startsWith('poem-draft-'));
   if (key) {
@@ -43,6 +47,8 @@ for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite
     const status = form.querySelector('[role="status"]');
     button.setAttribute('aria-disabled', 'true');
     button.disabled = true;
+    form.setAttribute('aria-busy', 'true');
+    showStatus(status, 'در حال ذخیره…');
     try {
       const data = await request(form.action, form);
       if (data.remaining_due_count !== undefined) {
@@ -74,6 +80,7 @@ for (const form of document.querySelectorAll('form[data-ajax],form[data-favorite
     } finally {
       button.disabled = false;
       button.removeAttribute('aria-disabled');
+      form.removeAttribute('aria-busy');
     }
   });
 }

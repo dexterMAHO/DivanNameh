@@ -1,0 +1,375 @@
+/* Discovery: the poem catalogue, the poet archive, verse tracing.
+   These pages may carry graphic expression, because their job is to invite.
+   The one rule that overrides the decoration: a poem excerpt never clips and
+   never widens the page, at any width. */
+
+/* ---------- Catalogue layout ---------- */
+.treasury-layout {
+  display: grid;
+  grid-template-columns: var(--width-aside) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  padding-block-end: var(--space-12);
+}
+.filter-panel { position: sticky; top: var(--space-4); padding: var(--space-5); }
+.filter-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.filter-panel-head h2 { margin: var(--space-1) 0 0; font-size: var(--text-lg); }
+.filter-icon { font-size: 1.75rem; }
+.field-label {
+  display: block;
+  margin: var(--space-4) 0 var(--space-1);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.filter-panel .field-control, .filter-panel input { margin: 0; }
+.filter-panel .wide { margin-block-start: var(--space-5); }
+.filter-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-block-start: var(--space-5);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px dashed var(--color-ornament);
+}
+.filter-note p { margin: 0; color: var(--color-muted-foreground); font-size: var(--text-sm); line-height: 1.9; }
+
+.treasury-results { min-width: 0; }
+.results-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.results-toolbar h2 { margin: var(--space-1) 0 0; font-size: var(--text-section); }
+.results-count {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-ornament);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Catalogue card ---------- */
+.poem-catalog { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.catalog-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-ornament);
+  background: linear-gradient(145deg, var(--color-surface), var(--color-surface-muted));
+  box-shadow: var(--shadow-card);
+  transition: translate var(--duration-surface) var(--ease-out), box-shadow var(--duration-surface) var(--ease-out);
+}
+.catalog-card::before {
+  content: "";
+  position: absolute;
+  inset: .375rem;
+  border: 1px solid var(--color-ornament-soft);
+  pointer-events: none;
+}
+.catalog-card:hover { translate: 0 -.25rem; }
+.catalog-card > * { position: relative; }
+.catalog-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.catalog-card-top form { display: flex; align-items: center; gap: var(--space-2); }
+.catalog-index { color: var(--color-gold); font: 700 1.25rem/1 var(--font-literary); }
+.catalog-tag { flex: 1; color: var(--color-vermillion); font-size: var(--text-sm); }
+.tiny-bookmark, button.tiny-bookmark {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--color-ornament);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-vermillion);
+}
+.tiny-bookmark:hover { translate: none; background: var(--color-vermillion); border-color: var(--color-vermillion); color: var(--color-on-primary); }
+.catalog-card h3 { margin: var(--space-3) 0 0; font-size: var(--text-poem-card); line-height: 1.6; }
+.catalog-card h3 a { text-decoration: none; }
+.catalog-card h3 a:hover { text-decoration: underline; text-underline-offset: 6px; }
+.catalog-poet { margin: var(--space-1) 0 0; color: var(--color-muted-foreground); font-size: var(--text-sm); }
+.catalog-quote {
+  margin-block: var(--space-4);
+  padding-block: var(--space-3);
+  border-block: 1px dashed var(--color-ornament);
+  color: var(--color-display);
+  font: var(--text-poem-card)/var(--leading-poem) var(--font-literary);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.catalog-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: auto;
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+.catalog-card .inline-status { flex-basis: 100%; }
+
+/* ---------- Literary sets ---------- */
+.literary-sets { margin-block-start: var(--space-10); }
+.set-list { list-style: none; margin: var(--space-5) 0 0; padding: 0; display: grid; gap: var(--space-3); }
+.set-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-ornament);
+  background: var(--color-surface);
+  text-decoration: none;
+}
+.set-card:hover { background: var(--color-gold-soft); }
+.set-card b { color: var(--color-display); font: 700 var(--text-md)/1.6 var(--font-literary); }
+.set-card small { grid-column: 1; color: var(--color-muted-foreground); font-size: var(--text-sm); line-height: 1.9; }
+.set-card .icon { grid-row: 1 / -1; grid-column: 2; color: var(--color-vermillion); }
+
+/* ---------- Guest band ---------- */
+.poet-feature-band {
+  position: relative;
+  margin-block: var(--space-10) var(--space-6);
+  padding: var(--space-6) var(--space-8);
+  text-align: center;
+  overflow: hidden;
+}
+.poet-feature-band p { margin-block: var(--space-2); }
+.poet-feature-band p:nth-child(2) {
+  color: var(--color-on-feature);
+  font: var(--text-poem-card)/1.9 var(--font-literary);
+  max-width: 44rem;
+  margin-inline: auto;
+}
+.feature-band-mark { font-size: 1.75rem; }
+
+/* ---------- Poet archive ---------- */
+.treasury-filters { padding: var(--space-5); margin-block-end: var(--space-6); }
+.treasury-filter-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  align-items: end;
+  gap: var(--space-2) var(--space-4);
+}
+.treasury-filter-query { grid-column: span 2; min-width: 0; }
+.treasury-filter-form label { margin-block: 0 var(--space-1); }
+.treasury-filter-form :is(input, select) { margin: 0; }
+
+.poets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-4);
+  padding-block-end: var(--space-6);
+}
+.poets-grid .empty { grid-column: 1 / -1; }
+.poet-profile-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+  padding: var(--space-4) var(--space-4) var(--space-5);
+  border: 1px solid var(--color-ornament);
+  background: linear-gradient(145deg, var(--color-surface), var(--color-surface-muted));
+  box-shadow: var(--shadow-card);
+  transition: translate var(--duration-surface) var(--ease-out);
+}
+.poet-profile-card::before {
+  content: "";
+  position: absolute;
+  inset: .375rem;
+  border: 1px solid var(--color-ornament-soft);
+  pointer-events: none;
+}
+.poet-profile-card:hover { translate: 0 -.3125rem; }
+.poet-profile-card > * { position: relative; }
+.poet-card-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.poet-card-index { color: var(--color-gold); font: 700 var(--text-md)/1 var(--font-literary); }
+.poet-card-rosette { color: var(--color-vermillion); font-size: 1.1875rem; }
+.poet-portrait-link { display: grid; justify-items: center; gap: var(--space-2); text-decoration: none; }
+
+/* The halo is the medallion; the portrait sits inside it. */
+.poet-portrait {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 7.5rem;
+  height: 8.25rem;
+  margin-block: var(--space-2) var(--space-1);
+}
+.portrait-halo {
+  position: absolute;
+  inset: .4375rem .5rem 0;
+  border: 2px solid var(--color-gold);
+  border-radius: 48% 48% 45% 45%;
+  background: radial-gradient(circle, var(--color-surface-muted), var(--color-surface));
+  box-shadow: inset 0 0 0 5px var(--color-surface);
+}
+.poet-portrait .poet-frame {
+  position: relative;
+  width: 5.75rem;
+  height: 6.875rem;
+  border: 0;
+  border-radius: 46% 46% 44% 44%;
+  overflow: hidden;
+  background: transparent;
+}
+.poet-portrait .poet-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 22%; }
+.poet-portrait .poet-monogram { color: var(--color-display); font: 700 2.25rem/1 var(--font-literary); }
+.poet-profile-card h2 { margin: 0; font-size: var(--text-poem-card); line-height: 1.5; overflow-wrap: anywhere; }
+.poet-subtitle { margin: var(--space-1) 0 0; color: var(--color-vermillion); font-size: var(--text-sm); }
+.poet-place { margin: 0; color: var(--color-muted-foreground); font-size: var(--text-sm); }
+.poet-bio {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-block: var(--space-3);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+  line-height: 2;
+}
+.poet-card-foot {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin-block: 0 var(--space-4);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+.poet-profile-card .button { margin-block-start: auto; width: 100%; }
+
+/* ---------- Verse tracing ---------- */
+.trace-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-3); padding: var(--space-5); }
+.trace-form label { margin-block: 0 var(--space-1); }
+.trace-form input { margin: 0; }
+.trace-results { display: grid; gap: var(--space-4); margin-block-start: var(--space-6); }
+.trace-card { padding: var(--space-5); }
+.trace-card h2 { margin-block-end: var(--space-1); font-size: var(--text-poem-card); }
+.trace-card h2 a { text-decoration: none; }
+.trace-meta { color: var(--color-muted-foreground); font-size: var(--text-sm); }
+.trace-quote {
+  margin-block: var(--space-4);
+  padding-block: var(--space-3);
+  border-block: 1px dashed var(--color-ornament);
+  color: var(--color-display);
+  font: var(--text-poem-card)/var(--leading-poem) var(--font-literary);
+  overflow-wrap: anywhere;
+}
+/* The matched words keep the gold wash rather than the browser's yellow. */
+.trace-quote mark, .literary-quote mark {
+  background: var(--color-gold-soft);
+  color: var(--color-display);
+  box-shadow: inset 0 -2px 0 var(--color-gold);
+  border-radius: 2px;
+  padding-inline: .125rem;
+}
+
+/* ---------- Random pick ---------- */
+.discover-panel { padding: var(--space-5) clamp(var(--space-4), 3vw, var(--space-8)); margin-block-end: var(--space-6); }
+.discover-panel h2 { font-size: var(--text-section); }
+.discover-source { color: var(--color-vermillion); font-size: var(--text-sm); }
+.discover-verses { margin-block: var(--space-4); }
+.discover-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-end: 0; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .poem-catalog { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .treasury-layout { grid-template-columns: minmax(0, 1fr); }
+  .filter-panel { position: static; }
+  .filter-panel form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0 var(--space-4); }
+  .filter-panel .wide { grid-column: 1 / -1; }
+}
+@media (max-width: 767px) {
+  .treasury-filter-query { grid-column: 1 / -1; }
+  .trace-form { grid-template-columns: minmax(0, 1fr); }
+  .poets-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); gap: var(--space-3); }
+  .poet-portrait { width: 6.5rem; height: 7.25rem; }
+  .poet-portrait .poet-frame { width: 5rem; height: 6rem; }
+  .poet-bio { -webkit-line-clamp: 3; }
+  .poet-feature-band { padding: var(--space-5) var(--space-4); }
+  .discover-actions .button { flex: 1 1 10rem; }
+}
+
+/* ---------- Poet profile header (treasury poet page) ---------- */
+.poet-profile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  margin-block-end: var(--space-6);
+}
+.poet-profile .poet-frame {
+  position: relative;
+  width: 9rem;
+  height: 11rem;
+  border: 2px solid var(--color-gold);
+  border-radius: 48% 48% 45% 45%;
+  overflow: hidden;
+  background: radial-gradient(circle, var(--color-surface-muted), var(--color-surface));
+  box-shadow: inset 0 0 0 5px var(--color-surface), var(--shadow-card);
+}
+.poet-profile .poet-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 22%; }
+.poet-profile .poet-monogram { color: var(--color-display); font: 700 3.5rem/1 var(--font-literary); }
+.poet-profile-body { min-width: 0; }
+.poet-profile-facts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+.poet-profile-bio { max-width: 62ch; line-height: 2.1; }
+.poet-profile-links { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); margin-block-start: var(--space-4); }
+
+/* ---------- Work listings ---------- */
+.treasury-list { padding: var(--space-5); }
+.treasury-jump { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-4); }
+.treasury-group-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block: var(--space-5) var(--space-2);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-ornament);
+  font-size: var(--text-md);
+}
+.treasury-group-title small { color: var(--color-muted-foreground); font-size: var(--text-sm); font-weight: 400; }
+.literary-link { padding-block: var(--space-4); border-block-end: 1px dashed var(--color-ornament); }
+.literary-link:last-child { border-block-end: 0; }
+.literary-link h3 { font-size: var(--text-md); }
+.literary-quote {
+  margin-block: var(--space-3);
+  padding-block: var(--space-3);
+  border-block: 1px dashed var(--color-ornament);
+  color: var(--color-display);
+  font: var(--text-poem-card)/var(--leading-poem) var(--font-literary);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .poet-profile { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; padding: var(--space-5) var(--space-4); }
+  .poet-profile-facts, .poet-profile-links { justify-content: center; }
+  .poet-profile-bio { text-align: start; }
+}

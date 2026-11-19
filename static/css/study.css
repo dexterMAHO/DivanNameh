@@ -1,0 +1,291 @@
+/* The notebook, the shahbeyt collection, the memorisation list and review.
+
+   These pages hold what the reader has already chosen, so the structure is
+   orderly rather than ornamental: horizontal rules, real dates, clear state.
+   Review is the strictest of all — one card, one question, nothing competing
+   for attention — and its reveal respects reduced motion. */
+
+/* ---------- Notebook overview ---------- */
+.notebook-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  margin-block-end: var(--space-6);
+}
+.notebook-stat { margin: 0; min-width: 0; }
+.notebook-stat > a, .notebook-stat > span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-control);
+}
+.notebook-stat > a:hover { background: var(--color-gold-soft); }
+.notebook-stat + .notebook-stat { border-inline-start: 1px solid var(--color-ornament); }
+.stat-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--color-ornament);
+  border-radius: 50%;
+  color: var(--color-gold);
+}
+.notebook-stat span span, .notebook-stat a > span:last-child { display: grid; gap: 0; min-width: 0; }
+.notebook-stat strong { color: var(--color-display); font: 700 1.375rem/1.2 var(--font-literary); }
+.notebook-stat small { color: var(--color-muted-foreground); font-size: var(--text-sm); }
+.notebook-tools { margin: 0; justify-self: end; }
+
+/* ---------- Section tabs ---------- */
+.notebook-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-block-end: var(--space-5);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-ornament);
+  box-shadow: 0 3px 0 -2px var(--color-ornament-soft);
+}
+.notebook-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-inline: var(--space-4);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  border-block-end: 2px solid transparent;
+}
+.notebook-tabs a:hover { color: var(--color-display); }
+.notebook-tabs a[aria-current=page] {
+  color: var(--color-display);
+  background: var(--color-gold-soft);
+  border-block-end-color: var(--color-gold);
+}
+
+/* ---------- Notebook search ---------- */
+.notebook-search-form {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-5);
+  margin-block-end: var(--space-5);
+}
+.notebook-search-form label { margin-block: 0 var(--space-1); }
+.notebook-search-form :is(input, select) { margin: 0; }
+.notebook-search-field { min-width: 0; }
+.library-topics { grid-column: 1 / -1; margin: 0; }
+.topic-choices { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-2); }
+.chip-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  margin: 0;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-ornament);
+  border-radius: var(--radius-pill);
+  font-weight: 400;
+  cursor: pointer;
+}
+.chip-choice:has(:checked) { background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary); }
+
+/* ---------- Shahbeyt sheets ---------- */
+.favorite-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 25rem), 1fr)); gap: var(--space-4); }
+.favorite-grid .empty { grid-column: 1 / -1; }
+.favorite-sheet { padding: var(--space-5); }
+.favorite-head { display: flex; align-items: flex-start; gap: var(--space-3); }
+.favorite-mark { flex: none; font-size: 1.375rem; }
+.favorite-sheet h2 { margin: 0; font-size: var(--text-poem-card); line-height: 1.6; }
+.favorite-sheet h2 a { text-decoration: none; }
+.favorite-sheet h2 a:hover { text-decoration: underline; text-underline-offset: 6px; }
+.favorite-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin-block: var(--space-1) 0;
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+.favorite-sheet .verse {
+  margin-block: var(--space-4);
+  padding-block: var(--space-4);
+  border-block: 1px dashed var(--color-ornament);
+}
+.favorite-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-ornament-soft);
+}
+.favorite-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+
+/* ---------- Memorisation list ---------- */
+.study-list { display: grid; gap: var(--space-4); }
+.study-item { padding: var(--space-5); gap: var(--space-5); }
+.study-item-body { min-width: 0; }
+.study-item-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-end: var(--space-1);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+.study-item h2 { margin-block-end: var(--space-2); font-size: var(--text-poem-card); }
+.study-item-state { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-block-end: var(--space-2); font-size: var(--text-sm); color: var(--color-muted-foreground); }
+.study-state {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-ornament);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+}
+.study-state-active { background: var(--color-jade-soft); border-color: var(--color-jade); color: var(--color-jade); }
+.study-state-paused { background: var(--color-surface-muted); color: var(--color-muted-foreground); }
+
+/* ---------- Review ---------- */
+.review-dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.6fr);
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+.review-stat { display: grid; gap: var(--space-1); margin: 0; padding-inline-start: var(--space-4); border-inline-start: 1px solid var(--color-ornament); }
+.review-stat:first-child { border-inline-start: 0; padding-inline-start: 0; }
+.review-stat span { color: var(--color-muted-foreground); font-size: var(--text-sm); }
+.review-stat strong { color: var(--color-display); font: 700 1.5rem/1 var(--font-literary); }
+.review-session-progress { min-width: 0; }
+
+.review-stage { max-width: 54rem; margin: var(--space-8) auto 0; }
+.review-stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+.review-position { color: var(--color-muted-foreground); font-size: var(--text-sm); }
+
+/* One card, centred, with the frame as its only decoration. */
+.flashcard {
+  position: relative;
+  padding: clamp(var(--space-6), 4vw, var(--space-10)) clamp(var(--space-4), 3vw, var(--space-8));
+  border: 1px solid var(--color-gold);
+  background: linear-gradient(140deg, var(--color-surface), var(--color-surface-muted));
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+.flashcard::before {
+  content: "";
+  position: absolute;
+  inset: var(--space-2);
+  border: 1px solid var(--color-ornament-soft);
+  pointer-events: none;
+}
+.flashcard-ornament { position: absolute; top: var(--space-4); inset-inline-start: 50%; translate: -50% 0; font-size: 1.5rem; }
+.flashcard-content { position: relative; max-width: 42rem; margin-inline: auto; }
+.flashcard-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block: var(--space-5) var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-ornament);
+  color: var(--color-vermillion);
+  font-size: var(--text-sm);
+}
+.flashcard-content h2 { font-size: var(--text-lg); }
+.flashcard-hint { color: var(--color-muted-foreground); font-size: var(--text-sm); }
+/* The prompt is the one piece of text on the card that matters. */
+.flashcard-prompt, .cue {
+  margin-block: var(--space-6);
+  color: var(--color-display);
+  font: var(--text-poem-lead)/var(--leading-poem) var(--font-literary);
+  overflow-wrap: anywhere;
+}
+.flashcard-prompt span { color: var(--color-gold); letter-spacing: .05em; }
+.typed-practice { max-width: 32rem; margin-inline: auto; text-align: start; }
+
+#review-answer { margin-block: var(--space-4) 0; }
+#review-answer > summary { display: inline-flex; margin-inline: auto; }
+#review-answer:not([open]) .when-open, #review-answer[open] .when-closed { display: none; }
+.review-verses {
+  margin-block: var(--space-6) 0;
+  padding-block: var(--space-5);
+  border-block: 1px dashed var(--color-ornament);
+  text-align: start;
+}
+.review-verses .hemistich { color: var(--color-jade); }
+/* A short reveal confirms the answer appeared; the resting state is identical. */
+#review-answer[open] .review-verses { animation: review-reveal var(--duration-reveal) var(--ease-out); }
+@keyframes review-reveal {
+  from { opacity: .6; translate: 0 .25rem; }
+  to { opacity: 1; translate: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #review-answer[open] .review-verses { animation: none; }
+}
+:root[data-reduce-motion=yes] #review-answer[open] .review-verses { animation: none; }
+
+.review-rating { margin-block: var(--space-6) 0; }
+.review-rating h3 { font-size: var(--text-md); }
+.rating-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+.rating-btn { min-height: 3.25rem; text-align: center; }
+.rating-again:hover, .rating-hard:hover { border-color: var(--color-vermillion); background: var(--color-danger-surface); color: var(--color-foreground); }
+.rating-good:hover, .rating-easy:hover { border-color: var(--color-jade); background: var(--color-jade-soft); color: var(--color-foreground); }
+
+.practice-mode {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block: var(--space-6) var(--space-3);
+}
+.practice-mode label { margin: 0; }
+.practice-mode select { margin: var(--space-1) 0 0; width: auto; min-width: 9rem; }
+.review-stage-foot { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
+.review-empty { margin-block-start: var(--space-6); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .review-dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .review-session-progress { grid-column: 1 / -1; }
+}
+@media (max-width: 767px) {
+  .notebook-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: var(--space-3); gap: var(--space-1); }
+  .notebook-stat + .notebook-stat { border-inline-start: 0; }
+  .notebook-stat > a, .notebook-stat > span { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+  .notebook-tools { grid-column: 1 / -1; justify-self: stretch; padding-block-start: var(--space-2); }
+  .notebook-tools .button { width: 100%; }
+  .notebook-search-form { grid-template-columns: minmax(0, 1fr); }
+  .notebook-search-form button { width: 100%; }
+  .notebook-tabs { flex-wrap: nowrap; overflow-x: auto; padding-block-end: 0; }
+  .notebook-tabs a { padding-inline: var(--space-3); white-space: nowrap; }
+  .study-item { flex-direction: column; align-items: stretch; }
+  .study-item .actions { flex-direction: row; flex-wrap: wrap; }
+  .favorite-footer { flex-direction: column; align-items: flex-start; }
+  .review-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .review-stat:nth-child(3) { border-inline-start: 0; padding-inline-start: 0; }
+  .review-stage { margin-block-start: var(--space-6); }
+  .flashcard { padding-inline: var(--space-4); }
+  .rating-actions { grid-template-columns: minmax(0, 1fr); }
+}

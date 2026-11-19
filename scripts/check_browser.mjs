@@ -264,6 +264,24 @@ try {
   await until(() => evaluate('document.querySelectorAll("#poem-study-cards li").length === 2'), 'second card saved');
   assert.equal(await evaluate('Boolean(document.querySelector(".range-form"))'), true);
 
+  // A bayt must never collapse to one character per line. This broke once when
+  // the reading sheet became a size container inside a grid area and lost its
+  // width, so the check covers the library poem page as well as the treasury.
+  for (const width of [360, 1440]) {
+    await viewport(width);
+    for (const path of [fixture.poem, fixture.long, fixture.work]) {
+      await open(path);
+      const line = await evaluate(`(() => {
+        const h = document.querySelector('.hemistich');
+        const box = h.getBoundingClientRect();
+        return {w: Math.round(box.width), h: Math.round(box.height), chars: h.textContent.trim().length};
+      })()`);
+      assert.ok(line.w > 80, `hemistich collapsed at ${width}: ${JSON.stringify(line)} on ${path}`);
+      assert.ok(line.h < line.w, `hemistich taller than wide at ${width}: ${JSON.stringify(line)} on ${path}`);
+    }
+  }
+  await viewport(1440);
+
   await open(fixture.poem);
   await evaluate('document.querySelector("[data-favorite] button").click()');
   await until(() => evaluate('document.querySelector("[data-favorite] button").getAttribute("aria-pressed") === "true"'), 'personal favorite saved');

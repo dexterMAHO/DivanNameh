@@ -1220,8 +1220,18 @@ input[type=file]::file-selector-button {
 .inline-status:not(:empty) { margin-block: var(--space-2); }
 .inline-status[data-error] { color: var(--color-danger); }
 .reading-sheet .hemistich { min-inline-size: 0; }
-/* Both reading surfaces size the bayt from their own width. */
-.reading-sheet, .treasury-text { container-type: inline-size; container-name: reading; }
+/* Both reading surfaces size the bayt from their own width.
+
+   inline-size: 100% is load-bearing, not tidiness. `container-type:
+   inline-size` applies `contain: inline-size`, so the box stops taking its
+   width from its contents. In normal block flow it still fills its parent, but
+   as a GRID ITEM it then collapsed to its padding — 98px of a 809px track —
+   and every hemistich inside wrapped to one character per line. */
+.reading-sheet, .treasury-text {
+  container-type: inline-size;
+  container-name: reading;
+  inline-size: 100%;
+}
 #treasury-tools { margin-block-end: var(--space-4); }
 .filter-summary { margin-block: var(--space-3); }
 .poem-card h3 a { text-decoration: none; }

@@ -4,8 +4,6 @@
   become: true
   vars:
     divan_root: /opt/divannameh
-    divan_use_existing_nginx: false
-    divan_nginx_http_port: 18080
     # Set divan_demo_domain to also serve the demo site from this host. Left
     # empty, every task below is skipped and the deployment is unchanged.
     divan_demo_domain: ""
@@ -25,6 +23,11 @@
       - --env-file
       - "{{ divan_release }}/compose.env"
   tasks:
+    - name: Apply proxy defaults without overriding the server inventory
+      ansible.builtin.set_fact:
+        divan_use_existing_nginx: "{{ divan_use_existing_nginx | default(false) | bool }}"
+        divan_nginx_http_port: "{{ divan_nginx_http_port | default(18080) | int }}"
+
     - name: Validate target and domain
       ansible.builtin.assert:
         that:

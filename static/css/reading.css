@@ -354,3 +354,26 @@ body.focus-mode main { padding-block-start: var(--space-6); }
 .treasury-work .scene-margin-branch { inset-block-start: 9rem; inset-inline-end: -8rem; width: 7.5rem; opacity: .34; }
 @media (max-width: 1400px) { .treasury-work .scene-margin-branch { display: none; } }
 @media (max-width: 1180px) { .treasury-work .scene-margin { display: none; } }
+
+/* Narrow screens: the actions become one row of marks so they never push the
+   next bayt off the page. Each keeps an accessible name, so hiding the visible
+   label costs nothing to a screen reader, and the 44px target is preserved. */
+@media (max-width: 560px) {
+  .verse-actions .verse-action span, .treasury-verse-actions .verse-action span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .verse-action { min-width: 2.75rem; justify-content: center; padding-inline: var(--space-2); }
+  /* site.css stacks .verse-actions below 768px; as a row of marks they fit. */
+  .treasury-verse-actions, .verse-row .verse-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .treasury-verse-actions { padding-inline-start: 2.75rem; }
+  .verse-row .verse-actions form { display: contents; }
+}

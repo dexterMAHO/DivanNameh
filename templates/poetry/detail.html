@@ -71,7 +71,7 @@
             {% if not poem.archived_at %}
               {% if user.action_password %}
                 {# The operation password is entered once, in the study panel. #}
-                <a class="verse-action" href="#study-range" data-memorize-verse="{{ verse.pk }}">{% include 'components/icon.html' with name='scroll' %}<span>افزودن به حفظ</span></a>
+                <a class="verse-action" href="#study-range" data-memorize-verse="{{ verse.pk }}" aria-label="افزودن بیت {{ verse.position|persian }} به فهرست حفظ">{% include 'components/icon.html' with name='scroll' %}<span>افزودن به حفظ</span></a>
               {% else %}
                 <form method="post" action="{% url 'item-new' %}" data-ajax>
                   {% csrf_token %}
@@ -85,9 +85,9 @@
                 </form>
               {% endif %}
             {% endif %}
-            <button class="verse-action" type="button" data-copy-verse-now="{{ verse.position }}" hidden>{% include 'components/icon.html' with name='check' %}<span>رونوشت</span></button>
+            <button class="verse-action" type="button" data-copy-verse-now="{{ verse.position }}" aria-label="رونوشت بیت {{ verse.position|persian }}" hidden>{% include 'components/icon.html' with name='check' %}<span>رونوشت</span></button>
             <a class="verse-action" href="{% url 'share-library' poem.pk %}?verse={{ verse.position }}">{% include 'components/icon.html' with name='sprig' %}<span>اشتراک بیت</span></a>
-            <label class="verse-action copy-choice" hidden>
+            <label class="verse-action copy-choice" title="انتخاب برای رونوشت گزیده" hidden>
               <input class="visually-hidden" type="checkbox" data-copy-verse value="{{ verse.position }}">
               {% include 'components/icon.html' with name='bookmark' %}<span>انتخاب برای رونوشت گزیده</span>
             </label>

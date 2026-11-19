@@ -88,11 +88,11 @@
             aria-label="شاه‌بیت کردن بیت {{ forloop.counter|persian }}">
             {% include 'components/icon.html' with name='toranj' %}<span>شاه‌بیت</span>
           </button>
-          <label class="verse-action treasury-bookmark">
+          <label class="verse-action treasury-bookmark" title="انتخاب برای گزیده">
             <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای گزیده">
             {% include 'components/icon.html' with name='bookmark' %}<span>انتخاب</span>
           </label>
-          {% if pick %}<a class="verse-action" href="{% url 'share-treasury' book.slug entry.key %}?verse={{ forloop.counter }}">{% include 'components/icon.html' with name='sprig' %}<span>اشتراک</span></a>{% endif %}
+          {% if pick %}<a class="verse-action" href="{% url 'share-treasury' book.slug entry.key %}?verse={{ forloop.counter }}" aria-label="اشتراک بیت {{ forloop.counter|persian }}">{% include 'components/icon.html' with name='sprig' %}<span>اشتراک</span></a>{% endif %}
           <span role="status" class="inline-status treasury-favorite-status"></span>
         </div>
         {% endif %}

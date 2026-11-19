@@ -7,5 +7,6 @@ all:
           ansible_port: 22
           ansible_user: ubuntu
           divan_domain: divan.example.com
+          divan_branch: miniature-frontend
           divan_workers: 2
           divan_use_existing_nginx: false

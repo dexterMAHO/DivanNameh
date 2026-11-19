@@ -3,6 +3,8 @@ set -euo pipefail
 umask 077
 
 root=${DIVAN_DEPLOY_ROOT:-/opt/divannameh}
+branch=${DIVAN_DEPLOY_BRANCH:-deploy}
+git check-ref-format --branch "$branch" >/dev/null
 checkout=$root/repository
 inventory=$root/auto-inventory.json
 
@@ -13,8 +15,8 @@ fi
 
 export GIT_TERMINAL_PROMPT=0
 export GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=yes'
-timeout 120 git -C "$checkout" fetch --no-tags origin refs/heads/deploy:refs/heads/deploy
-revision=$(git -C "$checkout" rev-parse --verify 'refs/heads/deploy^{commit}')
+timeout 120 git -C "$checkout" fetch --no-tags origin "+refs/heads/$branch:refs/remotes/origin/auto-deploy"
+revision=$(git -C "$checkout" rev-parse --verify 'refs/remotes/origin/auto-deploy^{commit}')
 release=$root/releases/$revision
 
 if [[ "$(readlink "$root/current" || true)" == "$release" ]]; then

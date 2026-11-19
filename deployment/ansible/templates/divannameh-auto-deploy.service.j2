@@ -1,11 +1,12 @@
 [Unit]
-Description=Deploy the latest DivanNameh deploy branch
+Description=Deploy the latest DivanNameh {{ divan_branch }} branch
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=oneshot
 Environment=DIVAN_DEPLOY_ROOT={{ divan_root }}
+Environment=DIVAN_DEPLOY_BRANCH={{ divan_branch }}
 ExecStart=/usr/local/sbin/divannameh-update
 TimeoutStartSec=45min
 UMask=0077

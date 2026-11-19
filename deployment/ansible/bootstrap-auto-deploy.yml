@@ -4,6 +4,7 @@
   become: true
   vars:
     divan_root: /opt/divannameh
+    divan_branch: deploy
     divan_repository: https://github.com/dexterMAHO/DivanNameh.git
     divan_use_existing_nginx: false
     divan_nginx_http_port: 18080
@@ -33,6 +34,7 @@
         that:
           - divan_domain is defined
           - divan_domain is match('^[a-zA-Z0-9][a-zA-Z0-9-]*(\\.[a-zA-Z0-9][a-zA-Z0-9-]*)+$')
+          - divan_branch is match('^[A-Za-z0-9][A-Za-z0-9_./-]*$')
           - (divan_workers | int) > 0
           - divan_root is match('^(/[A-Za-z0-9_.-]+)+$')
           - divan_repository is match('^(https://[^/@]+/|ssh://[^/]+/|[^ @/:]+@[^ /:]+:)')
@@ -48,9 +50,14 @@
         - "{{ divan_root }}"
         - "{{ divan_root }}/repository"
 
-    - name: Verify the server can read the deploy branch
+    - name: Validate the Git branch name
       ansible.builtin.command:
-        argv: [timeout, "60", git, ls-remote, --exit-code, --heads, "{{ divan_repository }}", refs/heads/deploy]
+        argv: [git, check-ref-format, --branch, "{{ divan_branch }}"]
+      changed_when: false
+
+    - name: Verify the server can read the selected branch
+      ansible.builtin.command:
+        argv: [timeout, "60", git, ls-remote, --exit-code, --heads, "{{ divan_repository }}", "refs/heads/{{ divan_branch }}"]
       environment:
         GIT_TERMINAL_PROMPT: "0"
         GIT_SSH_COMMAND: ssh -o BatchMode=yes -o StrictHostKeyChecking=yes

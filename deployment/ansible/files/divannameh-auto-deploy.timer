@@ -1,5 +1,5 @@
 [Unit]
-Description=Check the DivanNameh deploy branch every two minutes
+Description=Check the configured DivanNameh branch every two minutes
 
 [Timer]
 OnBootSec=30s

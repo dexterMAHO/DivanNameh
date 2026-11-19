@@ -30,7 +30,7 @@ class AppearanceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('palette', response.context['theme_form'].errors)
         self.user.refresh_from_db()
-        self.assertEqual((self.user.theme, self.user.palette), ('auto', 'paper'))
+        self.assertEqual((self.user.theme, self.user.palette), ('auto', 'museum'))
 
     def test_header_toggle_preserves_palette_and_safe_redirect(self):
         get_user_model().objects.filter(pk=self.user.pk).update(palette='forest')
@@ -47,7 +47,7 @@ class AppearanceTests(TestCase):
             'section': 'theme', 'theme': 'dark', 'palette': 'forest',
         }).status_code, 302)
         self.user.refresh_from_db()
-        self.assertEqual(self.user.palette, 'paper')
+        self.assertEqual(self.user.palette, 'museum')
 
     def test_settings_get_does_not_validate_unsubmitted_photo(self):
         response = self.client.get('/settings/')

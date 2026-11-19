@@ -180,7 +180,7 @@ try {
       return (values[0] + 0.05) / (values[1] + 0.05);
     };
     const checks = [];
-    for (const palette of ['paper', 'ocean', 'forest', 'plum']) {
+    for (const palette of ['museum', 'paper', 'ocean', 'forest', 'plum']) {
       for (const theme of ['light', 'dark']) {
         Object.assign(root.dataset, {palette, theme});
         const styles = getComputedStyle(root);
@@ -302,7 +302,7 @@ try {
     const lum = hex => hex.slice(1).match(/../g).map(x => parseInt(x, 16) / 255).map(x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
     const ratio = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05);
     const checks = [];
-    for (const palette of ['paper', 'ocean', 'forest', 'plum']) for (const theme of ['light', 'dark']) {
+    for (const palette of ['museum', 'paper', 'ocean', 'forest', 'plum']) for (const theme of ['light', 'dark']) {
       Object.assign(root.dataset, {palette, theme});
       await new Promise(requestAnimationFrame);
       const styles = getComputedStyle(root), c = name => styles.getPropertyValue('--color-' + name).trim();

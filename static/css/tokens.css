@@ -270,8 +270,66 @@
 }
 }
 
+/* Museum after hours: bone and beige under lamplight, orchid over slate.
+   Written for the night first — the day variant lightens the same five
+   colours instead of swapping them, so the identity survives either mode. */
+:root[data-palette="museum"] {
+  --color-background: #f2efe8;
+  --color-surface: #fbf9f4;
+  --color-surface-muted: #e5e0d4;
+  --color-foreground: #262b38;
+  --color-muted-foreground: #565d74;
+  --color-primary: #6a4b8c;
+  --color-primary-hover: #543a72;
+  --color-primary-soft: #ece4f4;
+  --color-on-primary: #fbf9f4;
+  --color-feature: #3a4157;
+  --color-on-feature: #f2efe8;
+  --color-feature-muted: #e2d5b7;
+  --color-border: #dcd6c7;
+  --color-control-border: #878375;
+  --color-focus: #4c5578;
+}
+:root[data-palette="museum"][data-theme="dark"] {
+  --color-background: #20242e;
+  --color-surface: #262b38;
+  --color-surface-muted: #333a4b;
+  --color-foreground: #f2efe8;
+  --color-muted-foreground: #c0c5d3;
+  --color-primary: #bfa0d8;
+  --color-primary-hover: #d5bdea;
+  --color-primary-soft: #3a3049;
+  --color-on-primary: #231a2e;
+  --color-feature: #313848;
+  --color-on-feature: #f2efe8;
+  --color-feature-muted: #dcc79b;
+  --color-border: #414859;
+  --color-control-border: #8d93a6;
+  --color-focus: #bfa0d8;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="museum"][data-theme="auto"] {
+  --color-background: #20242e;
+  --color-surface: #262b38;
+  --color-surface-muted: #333a4b;
+  --color-foreground: #f2efe8;
+  --color-muted-foreground: #c0c5d3;
+  --color-primary: #bfa0d8;
+  --color-primary-hover: #d5bdea;
+  --color-primary-soft: #3a3049;
+  --color-on-primary: #231a2e;
+  --color-feature: #313848;
+  --color-on-feature: #f2efe8;
+  --color-feature-muted: #dcc79b;
+  --color-border: #414859;
+  --color-control-border: #8d93a6;
+  --color-focus: #bfa0d8;
+}
+}
+
 /* Palette samples intentionally remain stable while previewing other colors. */
 [data-swatch="paper"] { --swatch-bg: #f4f1e9; --swatch-accent: #824338; --swatch-ink: #343c34; }
 [data-swatch="ocean"] { --swatch-bg: #e1eaf2; --swatch-accent: #235b8e; --swatch-ink: #1f3c54; }
 [data-swatch="forest"] { --swatch-bg: #e0ebdf; --swatch-accent: #306344; --swatch-ink: #294736; }
 [data-swatch="plum"] { --swatch-bg: #ece2ee; --swatch-accent: #784581; --swatch-ink: #4e3456; }
+[data-swatch="museum"] { --swatch-bg: #262b38; --swatch-accent: #bfa0d8; --swatch-ink: #dcc79b; }

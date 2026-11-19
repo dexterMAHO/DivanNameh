@@ -14,9 +14,9 @@ class User(AbstractUser):
     ], default='auto')
 
     palette = models.CharField(max_length=12, choices=[
-        ('paper', 'کاغذ و انار'), ('ocean', 'لاجورد'),
+        ('museum', 'شبِ موزه'), ('paper', 'کاغذ و انار'), ('ocean', 'لاجورد'),
         ('forest', 'سرو'), ('plum', 'ارغوان'),
-    ], default='paper')
+    ], default='museum')
 
     recovery_digest = models.CharField(max_length=64, unique=True, null=True, blank=True, editable=False)
     reading_size = models.CharField(max_length=8, choices=[

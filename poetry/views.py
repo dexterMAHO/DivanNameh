@@ -31,6 +31,7 @@ def dashboard(request):
     return render(request, 'dashboard.html', {
         **study_context(request.user),
         'poem_count': poems.count(), 'recent_poems': poems[:3],
+        'treasury_pick': discover_work(None),
         'item_count': MemorizationItem.objects.filter(owner=request.user).count(),
         'favorite_count': FavoriteVerse.objects.filter(owner=request.user, verse__poem__archived_at__isnull=True).count(),
         'today_count': ReviewLog.objects.filter(item__owner=request.user, reviewed_at__date=timezone.localdate()).count(),

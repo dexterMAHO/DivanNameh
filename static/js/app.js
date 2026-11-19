@@ -203,40 +203,39 @@ if (treasury) {
   });
 }
 
-const themeMenu = document.getElementById('header-theme');
-const themeForm = themeMenu?.querySelector('form');
+const themeForm = document.getElementById('header-theme');
+const themeButton = themeForm?.querySelector('button');
+const updateThemeButton = () => {
+  if (!themeButton) return;
+  const theme = document.documentElement.dataset.theme;
+  const dark = theme === 'dark' || (theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  themeButton.value = dark ? 'light' : 'dark';
+  themeButton.setAttribute('aria-label', dark ? 'تغییر به حالت روشن' : 'تغییر به حالت تاریک');
+};
+updateThemeButton();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeButton);
+new MutationObserver(updateThemeButton).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
 themeForm?.addEventListener('submit', async event => {
-  const button = event.submitter;
-  if (!button) return;
   event.preventDefault();
-  const pending = request(themeForm.action, themeForm, button);
-  const status = themeForm.querySelector('[role="status"]');
-  button.disabled = true;
+  if (themeButton.disabled) return;
+  const root = document.documentElement;
+  const previous = root.dataset.theme;
+  const pending = request(themeForm.action, themeForm, themeButton);
+  root.dataset.theme = themeButton.value;
+  themeButton.disabled = true;
+  const controls = [...document.querySelectorAll('#appearance-form select, #appearance-form input:not([type="hidden"])')];
+  controls.forEach(control => control.disabled = true);
   try {
     const data = await pending;
-    document.documentElement.dataset.theme = data.theme;
-    for (const choice of themeForm.querySelectorAll('button')) {
-      const current = choice.value === data.theme;
-      choice.toggleAttribute('data-current', current);
-      choice.setAttribute('aria-pressed', String(current));
-    }
-    const summary = themeMenu.querySelector('summary');
-    summary.setAttribute('aria-label', 'حالت نمایش، ' + button.textContent);
-    status.textContent = '';
-    themeMenu.open = false;
-    summary.focus({preventScroll: true});
-    showStatus(document.getElementById('theme-feedback'), data.message + ' ' + button.textContent);
+    root.dataset.theme = data.theme;
+    showStatus(document.getElementById('theme-feedback'), data.message);
     document.dispatchEvent(new CustomEvent('theme-saved', {detail: data.theme}));
   } catch (error) {
-    showStatus(status, error.message, true);
+    root.dataset.theme = previous;
+    showStatus(document.getElementById('theme-feedback'), error.message, true);
   } finally {
-    button.disabled = false;
-  }
-});
-themeMenu?.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && themeMenu.open) {
-    themeMenu.open = false;
-    themeMenu.querySelector('summary').focus();
+    themeButton.disabled = false;
+    controls.forEach(control => control.disabled = false);
   }
 });
 for (const button of document.querySelectorAll('[data-copy-field]')) {
@@ -255,32 +254,49 @@ for (const button of document.querySelectorAll('[data-copy-field]')) {
   });
 }
 
-// Preview is temporary; only a successful server form submission persists it.
+// Apply appearance immediately and persist through the existing settings endpoint.
 const appearanceForm = document.getElementById('appearance-form');
 if (appearanceForm) {
   const root = document.documentElement;
-  const saved = {theme: root.dataset.theme, palette: root.dataset.palette};
-  const reset = document.getElementById('appearance-reset');
   const status = document.getElementById('appearance-status');
-  const preview = () => {
-    root.dataset.theme = appearanceForm.elements.theme.value;
-    root.dataset.palette = appearanceForm.elements.palette.value;
-    const changed = root.dataset.theme !== saved.theme || root.dataset.palette !== saved.palette;
-    reset.hidden = !changed;
-    status.textContent = changed ? 'این یک پیش‌نمایش است؛ برای نگهداری انتخاب، «ذخیرهٔ ظاهر» را بزنید.' : '';
-  };
-  appearanceForm.addEventListener('change', preview);
-  reset.addEventListener('click', () => {
-    appearanceForm.elements.theme.value = saved.theme;
-    appearanceForm.elements.palette.value = saved.palette;
-    preview();
+  const controls = [...appearanceForm.querySelectorAll('select, input:not([type="hidden"])')];
+  let saved = {theme: root.dataset.theme, palette: root.dataset.palette};
+  appearanceForm.addEventListener('submit', event => event.preventDefault());
+  appearanceForm.addEventListener('change', async () => {
+    const selected = {theme: appearanceForm.elements.theme.value, palette: appearanceForm.elements.palette.value};
+    const body = new FormData(appearanceForm);
+    Object.assign(root.dataset, selected);
+    controls.forEach(control => control.disabled = true);
+    if (themeButton) themeButton.disabled = true;
+    showStatus(status, 'در حال ذخیرهٔ ظاهر…');
+    try {
+      const response = await fetch(appearanceForm.action, {
+        method: 'POST', body, credentials: 'same-origin',
+        headers: {'X-CSRFToken': body.get('csrfmiddlewaretoken')},
+        signal: AbortSignal.timeout(15000),
+      });
+      const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+      if (!response.ok || !response.redirected ||
+          page.documentElement.dataset.theme !== selected.theme ||
+          page.documentElement.dataset.palette !== selected.palette) {
+        throw new Error('ظاهر ذخیره نشد. دوباره انتخاب کنید.');
+      }
+      saved = selected;
+      showStatus(status, 'ظاهر سایت ذخیره شد.');
+    } catch (error) {
+      Object.assign(root.dataset, saved);
+      appearanceForm.elements.theme.value = saved.theme;
+      appearanceForm.elements.palette.value = saved.palette;
+      showStatus(status, 'ظاهر ذخیره نشد. اتصال را بررسی و دوباره انتخاب کنید.', true);
+    } finally {
+      controls.forEach(control => control.disabled = false);
+      if (themeButton) themeButton.disabled = false;
+    }
   });
   document.addEventListener('theme-saved', event => {
     saved.theme = event.detail;
     appearanceForm.elements.theme.value = event.detail;
-    preview();
   });
-  preview();
 }
 
 // Keep server validation errors discoverable after a full-page form submit.

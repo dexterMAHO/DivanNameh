@@ -32,21 +32,14 @@
         {% include 'components/icon.html' with name='help' %}<span>آموزش</span>
       </a>
       {% if user.is_authenticated %}
-      <details id="header-theme">
-        <summary class="icon-button" aria-label="حالت نمایش، {{ user.get_theme_display }}">
+      <form id="header-theme" action="{% url 'header-theme' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="icon-button" name="theme" value="{% if user.theme == 'dark' %}light{% else %}dark{% endif %}" aria-label="تغییر حالت روشن و تاریک">
           {% include 'components/icon.html' with name='moon' class='theme-moon' %}
           {% include 'components/icon.html' with name='sun' class='theme-sun' %}
-          <span class="visually-hidden">انتخاب حالت نمایش</span>
-        </summary>
-        <form action="{% url 'header-theme' %}" method="post" class="theme-options panel">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button name="theme" value="auto" aria-pressed="{% if user.theme == 'auto' %}true{% else %}false{% endif %}"{% if user.theme == 'auto' %} data-current{% endif %}>مطابق دستگاه</button>
-          <button name="theme" value="light" aria-pressed="{% if user.theme == 'light' %}true{% else %}false{% endif %}"{% if user.theme == 'light' %} data-current{% endif %}>روشن</button>
-          <button name="theme" value="dark" aria-pressed="{% if user.theme == 'dark' %}true{% else %}false{% endif %}"{% if user.theme == 'dark' %} data-current{% endif %}>تاریک</button>
-          <p class="inline-status" role="status"></p>
-        </form>
-      </details>
+        </button>
+      </form>
       <span id="theme-feedback" class="visually-hidden" role="status"></span>
       <a class="button primary masthead-add" href="{% url 'poem-new' %}" aria-label="افزودن شعر">
         {% include 'components/icon.html' with name='plus' %}<span>افزودن شعر</span>

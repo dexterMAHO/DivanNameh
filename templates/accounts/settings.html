@@ -7,7 +7,7 @@
 <div class="settings-grid">
   <section class="panel appearance-panel" aria-labelledby="appearance-heading">
     <h2 id="appearance-heading">ظاهر دفتر</h2>
-    <p class="muted" id="appearance-help">رنگ دلخواهتان را امتحان کنید؛ با ذخیره، انتخاب شما در همهٔ صفحات و دستگاه‌ها اعمال می‌شود.</p>
+    <p class="muted" id="appearance-help">انتخاب شما بلافاصله اعمال و به‌صورت خودکار برای همهٔ صفحات و دستگاه‌ها ذخیره می‌شود.</p>
     <form method="post" id="appearance-form" aria-describedby="appearance-help">
       {% csrf_token %}
       <input type="hidden" name="section" value="theme">
@@ -31,7 +31,6 @@
         <p>هر روز، چند بیت نزدیک‌تر.</p>
         <span class="stamp">رنگ منتخب شما</span>
       </div>
-      <div class="form-actions"><button class="primary">ذخیرهٔ ظاهر</button><button type="button" id="appearance-reset" hidden>برگرداندن پیش‌نمایش</button></div>
       <p class="fine appearance-status" id="appearance-status" role="status" aria-live="polite"></p>
     </form>
   </section>

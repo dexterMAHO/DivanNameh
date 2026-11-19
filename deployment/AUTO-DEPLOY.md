@@ -33,3 +33,23 @@ sudo readlink /opt/divannameh/current
 برای اجرای فوری از `sudo systemctl start divannameh-auto-deploy.service` استفاده کنید. قفل، اجرای هم‌زمان را مهار می‌کند. اگر fetch، build، مایگریشن یا بررسی HTTP خطا بدهد، تایمر در نوبت بعد دوباره تلاش می‌کند و پیوند `current` فقط پس از موفقیت جابه‌جا می‌شود. Compose درجا کانتینرها را عوض می‌کند، بنابراین شکست بعد از این مرحله ممکن است به بازیابی سرویس نیاز داشته باشد. برای برگشت کد، کامیت را روی شاخه با `git revert` برگردانید و push کنید. بازگشت کد schema را برنمی‌گرداند. فضای دیسک و بکاپ دیتابیس را متناسب با دفعات انتشار مدیریت کنید.
 
 کامیت محلی تنها پس از push به مخزن قابل انتشار است. اگر چند push بین دو بررسی برسد، آخرین نسخهٔ شاخه منتشر می‌شود. تغییر شاخه با اجرای دوبارهٔ bootstrap و مقدار جدید `divan_branch` اعمال می‌شود.
+
+## سرور فعال دیوان‌نامه
+
+در ۲۰ نوامبر ۲۰۲۶ دیپلوی خودکار برای `divannameh.rashn.org` روی سرور `141.11.107.166` (SSH پورت `9011`) نصب شد:
+
+- شاخهٔ انتشار: `miniature-frontend`
+- مسیر نصب: `/opt/divannameh`
+- تایمر: `divannameh-auto-deploy.timer`، هر دو دقیقه و پس از راه‌اندازی مجدد سرور
+- پراکسی: Nginx موجود با پورت HTTP داخلی `18080` و HTTPS با Caddy
+- تنظیم شاخه: `DIVAN_DEPLOY_BRANCH` در سرویس systemd
+- تنظیم دامنه و پراکسی: `/opt/divannameh/auto-inventory.json`
+
+برای نصب مجدد با inventory همین سرور:
+
+```bash
+ansible-playbook -i deployment/ansible/inventory.yml deployment/ansible/bootstrap-auto-deploy.yml \
+  -e divan_branch=miniature-frontend -e divan_use_existing_nginx=true
+```
+
+رمزها در مخزن نگهداری نمی‌شوند. پیش از اولین انتشار یک بکاپ PostgreSQL روی سرور در `/opt/divannameh/backups/before-miniature-autodeploy-20261120.dump` ساخته و فهرست آن با `pg_restore --list` بررسی شد.

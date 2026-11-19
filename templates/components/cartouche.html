@@ -1,0 +1,20 @@
+{% comment %}
+A text-bearing cartouche: two ornate caps with a readable field between them.
+
+The field is a real surface with token colours, so whatever sits inside keeps
+its contrast no matter which palette is chosen — the ornament never decides
+whether a label can be read. The caps are fixed; only the field stretches, so
+the frame fits a short label and a long one without distorting the ornament.
+
+  label  the text to frame (required for this form)
+  tone   'quiet' for a label-weight frame, omitted for a heading-weight one
+  tag    heading level to render, default span
+
+Usage: {% include 'components/cartouche.html' with label='متن کامل' tone='quiet' %}
+For arbitrary markup, wrap it in .cartouche yourself and include the caps from
+components/ornament.html.
+{% endcomment %}<span class="cartouche{% if tone %} cartouche-{{ tone }}{% endif %}">
+  {% include 'components/ornament.html' with piece='cap-start' %}
+  <span class="cartouche-field">{{ label }}</span>
+  {% include 'components/ornament.html' with piece='cap-end' %}
+</span>

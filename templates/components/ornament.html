@@ -1,0 +1,89 @@
+{% comment %}
+Tazhib ornaments as components, redrawn rather than traced.
+
+Each piece is inline SVG whose every colour is a token, so an ornament follows
+the reader's palette and night mode instead of carrying its own fixed green or
+lapis. Drawn inline rather than through the icon sprite because a <use> shadow
+tree does not take class rules from the page, and these need several fills.
+
+Vocabulary, shared across the family: lobed (scalloped) outlines, eslimi
+palmettes, khatai flowers with a pollen centre, and pendant finials.
+
+  cap-start / cap-end  ornate ends of a text cartouche
+  crown                sarlowh crest that opens a surface
+  pendant              vertical toranj with its sar- and pa-toranj
+  band                 horizontal arabesque divider
+  plate-top / plate-bottom   bands that close a framed field
+
+Usage: {% include 'components/ornament.html' with piece='crown' %}
+Text-bearing frames are composed in components/cartouche.html.
+{% endcomment %}{% if piece == 'cap-start' or piece == 'cap-end' %}
+<svg class="orn orn-cap orn-cap-{% if piece == 'cap-start' %}start{% else %}end{% endif %}" viewBox="0 0 96 120" aria-hidden="true" focusable="false">
+  <path class="o-body" d="M96 12c-18 0-30 8-36 20-5-10-15-16-26-14-13 2-21 13-20 26-9 2-14 9-14 16s5 14 14 16c-1 13 7 24 20 26 11 2 21-4 26-14 6 12 18 20 36 20Z"/>
+  <path class="o-edge" d="M96 12c-18 0-30 8-36 20-5-10-15-16-26-14-13 2-21 13-20 26-9 2-14 9-14 16s5 14 14 16c-1 13 7 24 20 26 11 2 21-4 26-14 6 12 18 20 36 20"/>
+  <path class="o-vine" d="M86 32c-14 4-22 12-24 22 2 10 10 18 24 22M62 44c-8 2-12 7-12 16s4 14 12 16"/>
+  <g class="o-bloom">
+    <path d="M40 52c4-4 10-4 14 0s4 10 0 14-10 4-14 0-4-10 0-14Z"/>
+    <path d="M20 44c3-3 7-3 10 0s3 7 0 10-7 3-10 0-3-7 0-10ZM20 66c3-3 7-3 10 0s3 7 0 10-7 3-10 0-3-7 0-10Z"/>
+  </g>
+  <circle class="o-pollen" cx="47" cy="59" r="3.4"/>
+  <path class="o-tip" d="M0 48 10 60 0 72Z"/>
+</svg>
+{% elif piece == 'crown' %}
+<svg class="orn orn-crown" viewBox="0 0 320 128" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false">
+  <path class="o-body" d="M160 10c8 16 6 28-4 36 16-10 30-6 36 8 6-16 20-22 34-14 15 9 17 24 8 36 14-2 24 6 26 18 1 8-2 15-8 20H64c-6-5-9-12-8-20 2-12 12-20 26-18-9-12-7-27 8-36 14-8 28-2 34 14 6-14 20-18 36-8-10-8-12-20-4-36Z"/>
+  <path class="o-edge" d="M160 10c8 16 6 28-4 36 16-10 30-6 36 8 6-16 20-22 34-14 15 9 17 24 8 36 14-2 24 6 26 18 1 8-2 15-8 20H64c-6-5-9-12-8-20 2-12 12-20 26-18-9-12-7-27 8-36 14-8 28-2 34 14 6-14 20-18 36-8-10-8-12-20-4-36Z"/>
+  <path class="o-vine" d="M160 48c-10 8-15 20-15 34M160 48c10 8 15 20 15 34M112 68c-7 6-10 14-10 24M208 68c7 6 10 14 10 24"/>
+  <g class="o-bloom">
+    <path d="M151 78c5-5 13-5 18 0s5 13 0 18-13 5-18 0-5-13 0-18Z"/>
+    <path d="M94 88c3-3 9-3 12 0s3 9 0 12-9 3-12 0-3-9 0-12ZM214 88c3-3 9-3 12 0s3 9 0 12-9 3-12 0-3-9 0-12Z"/>
+  </g>
+  <circle class="o-pollen" cx="160" cy="87" r="4.5"/>
+  <path class="o-finial" d="M160 0c4 8 4 14 0 22-4-8-4-14 0-22Z"/>
+  <path class="o-rule" d="M52 122h216"/>
+  <path class="o-rule-fine" d="M70 127h180"/>
+</svg>
+{% elif piece == 'pendant' %}
+<svg class="orn orn-pendant" viewBox="0 0 140 420" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+  <path class="o-stem" d="M70 10v58M70 352v58"/>
+  <path class="o-finial" d="M70 2c4 7 4 12 0 18-4-6-4-11 0-18ZM70 418c-4-7-4-12 0-18 4 6 4 11 0 18Z"/>
+  <path class="o-body" d="M70 68c16 18 26 26 38 30-12 4-22 12-38 30-16-18-26-26-38-30 12-4 22-12 38-30Z"/>
+  <path class="o-edge" d="M70 68c16 18 26 26 38 30-12 4-22 12-38 30-16-18-26-26-38-30 12-4 22-12 38-30Z"/>
+  <path class="o-body" d="M70 290c16 18 26 26 38 30-12 4-22 12-38 30-16-18-26-26-38-30 12-4 22-12 38-30Z"/>
+  <path class="o-edge" d="M70 290c16 18 26 26 38 30-12 4-22 12-38 30-16-18-26-26-38-30 12-4 22-12 38-30Z"/>
+  {# The toranj itself: a lobed almond on its long axis. #}
+  <path class="o-body" d="M70 128c22 26 44 46 60 81-16 35-38 55-60 81-22-26-44-46-60-81 16-35 38-55 60-81Z"/>
+  <path class="o-edge" d="M70 128c22 26 44 46 60 81-16 35-38 55-60 81-22-26-44-46-60-81 16-35 38-55 60-81Z"/>
+  <path class="o-vine" d="M70 156c-16 16-26 34-26 53s10 37 26 53c16-16 26-34 26-53s-10-37-26-53ZM44 209h52M70 156v106"/>
+  <g class="o-bloom">
+    <path d="M60 199c6-6 14-6 20 0s6 14 0 20-14 6-20 0-6-14 0-20Z"/>
+    <path d="M62 166c3-3 9-3 12 0s3 9 0 12-9 3-12 0-3-9 0-12ZM62 240c3-3 9-3 12 0s3 9 0 12-9 3-12 0-3-9 0-12Z"/>
+  </g>
+  <circle class="o-pollen" cx="70" cy="209" r="5"/>
+</svg>
+{% elif piece == 'band' %}
+<svg class="orn orn-band" viewBox="0 0 520 92" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+  <path class="o-body" d="M260 18c16 0 26 10 30 22 8-14 22-20 36-16 16 4 24 18 20 33 14 2 22 10 22 18H152c0-8 8-16 22-18-4-15 4-29 20-33 14-4 28 2 36 16 4-12 14-22 30-22Z"/>
+  <path class="o-edge" d="M260 18c16 0 26 10 30 22 8-14 22-20 36-16 16 4 24 18 20 33 14 2 22 10 22 18H152c0-8 8-16 22-18-4-15 4-29 20-33 14-4 28 2 36 16 4-12 14-22 30-22Z"/>
+  <path class="o-vine" d="M260 40c-10 6-16 16-16 28M260 40c10 6 16 16 16 28M206 56c-6 4-10 10-10 16M314 56c6 4 10 10 10 16"/>
+  <g class="o-bloom"><path d="M252 54c5-5 11-5 16 0s5 11 0 16-11 5-16 0-5-11 0-16Z"/></g>
+  <circle class="o-pollen" cx="260" cy="62" r="4"/>
+  <path class="o-rule" d="M8 70h144M368 70h144"/>
+  <path class="o-rule-fine" d="M8 62h120M392 62h120"/>
+  <path class="o-tip" d="M0 64 12 70 0 76ZM520 64l-12 6 12 6Z"/>
+</svg>
+{% elif piece == 'plate-top' or piece == 'plate-bottom' %}
+{# The deep ornamental band that closes a framed field, top or bottom. #}
+<svg class="orn orn-plate orn-plate-{% if piece == 'plate-top' %}top{% else %}bottom{% endif %}" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  <path class="o-body" d="M0 0h600v74c-26 0-40 14-46 28-10-16-26-22-42-16-8-16-26-24-42-18-10-18-30-26-48-18-12-20-34-28-52-18-18-10-40-2-52 18-18-8-38 0-48 18-16-6-34 2-42 18-16-6-32 0-42 16-6-14-20-28-46-28Z"/>
+  <path class="o-edge" d="M0 74c26 0 40 14 46 28 10-16 26-22 42-16 8-16 26-24 42-18 10-18 30-26 48-18 12-20 34-28 52-18 18-10 40-2 52 18 18-8 38 0 48 18 16-6 34 2 42 18 16-6 32 0 42 16 6-14 20-28 46-28"/>
+  <g class="o-bloom">
+    <path d="M292 30c5-5 11-5 16 0s5 11 0 16-11 5-16 0-5-11 0-16Z"/>
+    <path d="M160 34c4-4 10-4 14 0s4 10 0 14-10 4-14 0-4-10 0-14ZM426 34c4-4 10-4 14 0s4 10 0 14-10 4-14 0-4-10 0-14Z"/>
+    <path d="M86 44c3-3 8-3 11 0s3 8 0 11-8 3-11 0-3-8 0-11ZM503 44c3-3 8-3 11 0s3 8 0 11-8 3-11 0-3-8 0-11Z"/>
+  </g>
+  <path class="o-vine" d="M300 14c-30 10-50 26-58 46M300 14c30 10 50 26 58 46M174 28c-22 8-36 20-42 36M426 28c22 8 36 20 42 36"/>
+  <circle class="o-pollen" cx="300" cy="38" r="5"/>
+  <path class="o-rule-fine" d="M0 10h600"/>
+</svg>
+{% endif %}

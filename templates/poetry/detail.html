@@ -51,9 +51,9 @@
 
 <div class="poem-reading-layout">
   <article class="reading-sheet" data-reading-key="{{ user.pk }}-poem-{{ poem.pk }}" data-copy-credit="{{ poem.display_title }} · {{ poem.poet_name }}{% if poem.source_url %} · {{ poem.source_url }}{% endif %}">
-    {% include 'components/illumination.html' with piece='sarlowh' %}
+    {% include 'components/ornament.html' with piece='crown' %}
     <div class="paper-heading">
-      <span class="section-kicker">متن کامل</span>
+      {% include 'components/cartouche.html' with label='متن کامل' tone='quiet' %}
       <span class="paper-heading-rule" aria-hidden="true"></span>
       <span class="paper-poet">{{ poem.poet_name }}</span>
     </div>
@@ -95,7 +95,7 @@
         </div>
       {% endfor %}
     </div>
-    <p class="paper-end-mark" aria-hidden="true">❧ پایانِ این برگ ❧</p>
+    {% include 'components/ornament.html' with piece='band' %}
   </article>
 
   <aside class="reading-sidebar" aria-label="ابزارهای این شعر">

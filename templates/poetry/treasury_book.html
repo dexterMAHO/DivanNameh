@@ -75,7 +75,7 @@
   {% include 'components/reading_toolbar.html' %}
   {% if rows %}<button type="button" class="button quiet resume-reading" hidden>ادامه از آخرین جای خواندن</button>{% endif %}
   <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem{% endif %}" aria-label="متن اثر" data-reading-key="{{ user.pk }}-treasury-{{ book.slug }}-{{ entry.key }}-{{ book.dataset_digest }}" data-copy-credit="{{ entry.title }} · {{ book.author }}{% if entry.source_url %} · {{ entry.source_url }}{% endif %}">
-    {% include 'components/illumination.html' with piece='sarlowh' %}
+    {% include 'components/ornament.html' with piece='crown' %}
     {% if rows %}
       {% for first, second in rows %}
       <div class="treasury-stanza" id="verse-{{ forloop.counter }}">

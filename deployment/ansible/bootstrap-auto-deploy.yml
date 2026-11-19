@@ -4,7 +4,6 @@
   become: true
   vars:
     divan_root: /opt/divannameh
-    divan_branch: deploy
     divan_repository: https://github.com/dexterMAHO/DivanNameh.git
     divan_use_existing_nginx: false
     divan_nginx_http_port: 18080
@@ -28,6 +27,11 @@
     - name: Stop after installing host dependencies
       ansible.builtin.meta: end_host
       when: divan_prepare_only | default(false) | bool
+
+    - name: Default to the legacy branch for existing inventories
+      ansible.builtin.set_fact:
+        divan_branch: deploy
+      when: divan_branch is not defined
 
     - name: Validate the deployment settings
       ansible.builtin.assert:

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.test import TestCase
-from poetry.models import ExplorePost, ExploreLike, ExploreSave, Poem
+from poetry.models import ExplorePost, ExploreLike, ExploreSave, Poem, FavoriteVerse
 
 
 class ExplorePostsTests(TestCase):
@@ -85,3 +85,53 @@ class ExplorePostsTests(TestCase):
         response = self.client.get('/explore/')
         self.assertContains(response, photo_url)
         self.assertContains(self.client.get(post.get_absolute_url()), photo_url)
+
+    def test_direct_favorites_reuse_personal_poem_and_toggle_independently(self):
+        from poetry.explore_views import _row_key
+        post = ExplorePost.objects.create(author=self.user, title='منتخب', poet_name='شاعر',
+            rows=[['الف', 'ب'], ['ج', 'د']], status='published')
+        url = f'/explore/posts/{post.pk}/action/'
+        payload = {'intent': 'favorite', 'position': 2, 'row_key': _row_key(post.rows[1])}
+        for _ in range(2):
+            response = self.client.post(url, payload, HTTP_ACCEPT='application/json')
+            self.assertTrue(response.json()['favorite'])
+        verse = FavoriteVerse.objects.get(owner=self.user).verse
+        self.assertEqual((verse.hemistich_1, verse.hemistich_2), ('ج', 'د'))
+        self.assertEqual(verse.poem.owner, self.user)
+        self.assertEqual(post.saves.get(user=self.user).poem, verse.poem)
+        self.client.post(url, {'intent': 'save'})
+        self.assertEqual(Poem.objects.filter(owner=self.user).count(), 1)
+        self.assertTrue(self.client.get('/explore/').context['post_page'][0].display_rows[1]['favorite'])
+        self.assertTrue(self.client.get(post.get_absolute_url()).context['post'].display_rows[1]['favorite'])
+        for _ in range(2):
+            response = self.client.post(url, {**payload, 'intent': 'unfavorite'}, HTTP_ACCEPT='application/json')
+            self.assertFalse(response.json()['favorite'])
+        self.assertFalse(FavoriteVerse.objects.filter(owner=self.user).exists())
+        self.assertTrue(Poem.objects.filter(pk=verse.poem_id).exists())
+
+    def test_favorites_validate_row_and_preserve_edited_saved_text(self):
+        from poetry.explore_views import _row_key
+        post = ExplorePost.objects.create(author=self.user, title='منتخب', poet_name='شاعر',
+            rows=[['الف', 'ب']], status='published')
+        url = f'/explore/posts/{post.pk}/action/'
+        payload = {'intent': 'favorite', 'position': 1, 'row_key': _row_key(post.rows[0])}
+        for position in (0, -1, 2, 'invalid'):
+            self.assertEqual(self.client.post(url, {**payload, 'position': position}).status_code, 400)
+        self.assertEqual(self.client.post(url, {**payload, 'row_key': 'stale'}).status_code, 400)
+        self.assertFalse(post.saves.exists())
+        self.client.post(url, {'intent': 'save'})
+        poem = post.saves.get().poem
+        post.rows = [['متن تازه', 'مصرع تازه']]
+        post.save()
+        self.assertEqual(self.client.post(url, payload).status_code, 400)
+        payload['row_key'] = _row_key(post.rows[0])
+        self.client.post(url, payload)
+        self.assertEqual(poem.verses.count(), 2)
+        self.assertEqual(poem.verses.get(position=1).hemistich_1, 'الف')
+        self.assertEqual(FavoriteVerse.objects.get().verse.hemistich_1, 'متن تازه')
+        self.client.logout()
+        self.assertEqual(self.client.post(url, payload, HTTP_ACCEPT='application/json').status_code, 401)
+        self.client.force_login(self.user)
+        post.status = 'pending'
+        post.save()
+        self.assertEqual(self.client.post(url, payload).status_code, 404)

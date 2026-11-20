@@ -313,3 +313,24 @@ if (appearanceForm) {
 const invalidField = document.querySelector('[aria-invalid="true"]:not([data-example])');
 if (invalidField) invalidField.focus();
 else document.querySelector('[data-form-error]')?.focus();
+
+for (const form of document.querySelectorAll('form[data-explore-favorite]')) {
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = form.querySelector('button');
+    if (button.disabled) return;
+    const status = form.querySelector('[role="status"]');
+    button.disabled = true;
+    try {
+      const data = await request(form.getAttribute('action'), form);
+      button.setAttribute('aria-pressed', String(data.favorite));
+      form.elements.intent.value = data.favorite ? 'unfavorite' : 'favorite';
+      showStatus(status, data.message);
+    } catch (error) {
+      showStatus(status, error.message, true);
+      appendLogin(status, error);
+    } finally {
+      button.disabled = false;
+    }
+  });
+}

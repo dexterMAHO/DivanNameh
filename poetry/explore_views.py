@@ -14,8 +14,8 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from django.contrib import messages
 
 from accounts.permissions import action_password_error
-from .http import private
-from .models import ExplorePost, ExploreLike, ExploreSave, ExploreView, Poem, Verse
+from .http import private, success, failure
+from .models import ExplorePost, ExploreLike, ExploreSave, ExploreView, Poem, Verse, FavoriteVerse
 from .services.poem_editor import parse_verses, validate_verses
 
 
@@ -46,6 +46,39 @@ class PostForm(forms.ModelForm):
         return data
 
 
+def _row_key(row):
+    return hashlib.sha256('\0'.join(row).encode()).hexdigest()
+
+
+def _display_rows(posts, user):
+    favorites = {}
+    if user.is_authenticated:
+        for post_id, first, second in ExploreSave.objects.filter(
+            user=user, post__in=posts, poem__owner=user,
+            poem__verses__favorites__owner=user,
+        ).values_list('post_id', 'poem__verses__hemistich_1', 'poem__verses__hemistich_2'):
+            favorites.setdefault(post_id, set()).add((first, second))
+    for post in posts:
+        post.display_rows = [dict(first=row[0], second=row[1], position=i,
+            row_key=_row_key(row), favorite=tuple(row) in favorites.get(post.pk, set()))
+            for i, row in enumerate(post.rows, 1)]
+
+
+def _saved_poem(post, user):
+    saved, _ = ExploreSave.objects.get_or_create(post=post, user=user)
+    if saved.poem_id is None:
+        poem = Poem.objects.create(owner=user, title=post.title, poet_name=post.poet_name, line_layout=post.line_layout)
+        Verse.objects.bulk_create([Verse(poem=poem, position=i, hemistich_1=row[0], hemistich_2=row[1]) for i, row in enumerate(post.rows, 1)])
+        saved.poem = poem
+        saved.save(update_fields=['poem'])
+    else:
+        poem = get_object_or_404(Poem, pk=saved.poem_id, owner=user)
+        if poem.archived_at:
+            poem.archived_at = None
+            poem.save(update_fields=['archived_at', 'updated_at'])
+    return poem
+
+
 @require_GET
 def index(request):
     posts = ExplorePost.objects.filter(status='published').select_related('author').annotate(
@@ -61,6 +94,7 @@ def index(request):
         sort = 'newest'
     posts = posts.order_by(ordering[sort], '-pk')
     page = Paginator(posts, 18).get_page(request.GET.get('page'))
+    _display_rows(list(page), request.user)
     context = {'post_page': page, 'feed_sort': sort, 'feed_query': query}
     context['liked_ids'] = set(ExploreLike.objects.filter(user=request.user, post_id__in=[post.pk for post in page]).values_list('post_id', flat=True)) if request.user.is_authenticated else set()
     context['own_posts'] = ExplorePost.objects.filter(author=request.user).only('pk', 'title', 'status') if request.user.is_authenticated else ()
@@ -103,6 +137,7 @@ def detail(request, pk):
     visitor = hashlib.sha256(identity.encode()).hexdigest()
     if post.status == 'published':
         ExploreView.objects.get_or_create(post=post, visitor=visitor)
+    _display_rows([post], request.user)
     liked = request.user.is_authenticated and post.likes.filter(user=request.user).exists()
     return render(request, 'poetry/explore_post.html', {'post': post, 'liked': liked, 'author_has_photo': ProfilePhoto.objects.filter(user=post.author).exists()})
 
@@ -118,22 +153,36 @@ def action(request, pk):
         ExploreLike.objects.get_or_create(post=post, user=request.user)
     elif intent == 'unlike':
         ExploreLike.objects.filter(post=post, user=request.user).delete()
-    elif intent == 'save':
-        saved, _ = ExploreSave.objects.get_or_create(post=post, user=request.user)
-        if saved.poem_id is None:
-            poem = Poem.objects.create(owner=request.user, title=post.title, poet_name=post.poet_name, line_layout=post.line_layout)
-            Verse.objects.bulk_create([Verse(poem=poem, position=i, hemistich_1=row[0], hemistich_2=row[1]) for i, row in enumerate(post.rows, 1)])
-            saved.poem = poem
-            saved.save(update_fields=['poem'])
+    elif intent in ('favorite', 'unfavorite'):
+        try:
+            position = int(request.POST.get('position', ''))
+        except (ValueError, TypeError):
+            return failure(request, 'ردیف شعر معتبر نیست.')
+        if not 1 <= position <= len(post.rows):
+            return failure(request, 'ردیف شعر معتبر نیست.')
+        row = post.rows[position - 1]
+        if request.POST.get('row_key') != _row_key(row):
+            return failure(request, 'متن پست تغییر کرده است؛ صفحه را تازه کنید.')
+        if intent == 'favorite':
+            poem = _saved_poem(post, request.user)
+            verse = poem.verses.filter(hemistich_1=row[0], hemistich_2=row[1]).first()
+            if verse is None:
+                # Keep the reader's saved text intact when the public post was edited.
+                from django.db.models import Max
+                last = poem.verses.aggregate(last=Max('position'))['last'] or 0
+                verse = Verse.objects.create(poem=poem, position=last + 1, hemistich_1=row[0], hemistich_2=row[1])
+            FavoriteVerse.objects.get_or_create(owner=request.user, verse=verse)
         else:
-            poem = saved.poem
-            if poem.archived_at:
-                poem.archived_at = None
-                poem.save(update_fields=['archived_at', 'updated_at'])
+            FavoriteVerse.objects.filter(owner=request.user,
+                verse__poem__exploresave__post=post, verse__poem__owner=request.user,
+                verse__hemistich_1=row[0], verse__hemistich_2=row[1]).delete()
+        return success(request, 'به شاه‌نشین اشعار اضافه شد.' if intent == 'favorite' else 'از شاه‌نشین اشعار برداشته شد.',
+            post.get_absolute_url() + f'#post-verse-{position}', favorite=intent == 'favorite')
+    elif intent == 'save':
+        poem = _saved_poem(post, request.user)
         messages.success(request, 'شعر به خانه اشعار اضافه شد.')
         return redirect(poem.get_absolute_url())
     else:
-        from .http import failure
         return failure(request, 'عملیات معتبر نیست.')
     return redirect(post.get_absolute_url())
 

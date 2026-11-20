@@ -1,0 +1,11 @@
+{% load persian %}
+{% if post.status == 'published' %}
+<form class="explore-verse-favorite" method="post" action="{% url 'explore-action' post.pk %}" data-explore-favorite>
+  {% csrf_token %}
+  <input type="hidden" name="position" value="{{ row.position }}">
+  <input type="hidden" name="row_key" value="{{ row.row_key }}">
+  <input type="hidden" name="intent" value="{% if row.favorite %}unfavorite{% else %}favorite{% endif %}">
+  <button class="favorite icon-button" aria-pressed="{{ row.favorite|yesno:'true,false' }}" aria-label="شاه‌بیت ردیف {{ row.position|persian }}" title="افزودن یا برداشتن از شاه‌نشین اشعار">{% include 'components/icon.html' with name='star' %}</button>
+  <span class="inline-status" role="status"></span>
+</form>
+{% endif %}

@@ -2046,3 +2046,17 @@ input[type=file]::file-selector-button {
 .post-reading-actions button,.post-reading-actions .button { display:inline-flex; align-items:center; gap:var(--space-2); }
 .post-reading-actions button[aria-pressed=true] .icon { fill:currentColor; }
 @media(max-width:640px) { .writing-hero { padding:var(--space-4); align-items:start; gap:var(--space-3); } .writing-emblem { inline-size:2.5rem; block-size:2.5rem; } .writing-mode-grid { grid-template-columns:minmax(0,1fr); } .post-verse-row { flex-wrap:wrap; } .post-verse-row label { flex-basis:100%; } .writing-submit .primary { inline-size:100%; } }
+
+/* A small gold star accompanies each selectable verse in the public salon. */
+.explore-preview-row { display: flex; align-items: center; gap: var(--space-2); }
+.explore-preview-row > p { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.explore-verse-favorite { position: relative; flex: 0 0 auto; margin: 0; }
+.explore-verse-favorite .icon-button { min-width: 44px; min-height: 44px; }
+.explore-verse-favorite [role="status"]:not(:empty) {
+  position: absolute; z-index: 5; inset-inline-end: 0; top: 100%;
+  width: max-content; max-width: min(240px, 65vw); padding: var(--space-2);
+  border: 1px solid var(--color-border); border-radius: var(--radius-control);
+  background: var(--color-surface); color: var(--color-foreground); font-family: var(--font-body);
+}
+.explore-verse-favorite button[aria-pressed="true"] .icon { fill: currentColor; }
+.post-reading-sheet .explore-verse-favorite { margin-inline-end: var(--space-2); }

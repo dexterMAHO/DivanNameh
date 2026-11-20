@@ -1,3 +1,18 @@
+@font-face {
+  font-family: Parastoo;
+  src: url('../fonts/Parastoo.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Parastoo;
+  src: url('../fonts/Parastoo-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* DivanNameh — دفتر ادبی معاصر.
    Implementation of design-system/divannameh/MASTER.md over tokens.css. */
 
@@ -694,7 +709,7 @@ a.chip:hover { border-color: var(--color-primary); color: var(--color-primary); 
 .poem-card h2 a { text-decoration: none; }
 .poem-card h2 a:hover { color: var(--color-primary); }
 .excerpt {
-  font-family: var(--font-literary);
+  font-family: var(--font-poem);
   font-size: 1.125rem;
   line-height: 2.2;
   color: var(--color-muted-foreground);
@@ -805,7 +820,7 @@ section.poetry-panel, #preview.poetry-panel, #discovery.poetry-panel {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2) var(--space-8);
   padding: var(--space-6) var(--space-8);
-  font-family: var(--font-literary);
+  font-family: var(--font-poem);
   font-size: var(--text-poem);
   line-height: 2.2;
   min-width: 0;
@@ -849,7 +864,7 @@ section.poetry-panel, #preview.poetry-panel, #discovery.poetry-panel {
 
 /* ---------- Review ---------- */
 .cue {
-  font-family: var(--font-literary);
+  font-family: var(--font-poem);
   font-size: var(--text-poem);
   line-height: 2.2;
   margin: var(--space-8) 0;
@@ -1176,7 +1191,7 @@ summary.button::-webkit-details-marker { display: none; }
 .treasury-notice p { margin: 0; }
 .treasury-notice .ornament { margin-bottom: 0; }
 
-.treasury-text { font-family: var(--font-literary); font-size: var(--text-poem); }
+.treasury-text { font-family: var(--font-poem); font-size: var(--text-poem); }
 .treasury-text p { white-space: pre-wrap; overflow-wrap: anywhere; margin-block: var(--space-2); }
 
 @media (max-width: 768px) {
@@ -1372,7 +1387,7 @@ input[type=file]::file-selector-button {
 .palette-swatch i:nth-child(2) { background: var(--swatch-accent); }
 .palette-swatch i:nth-child(3) { background: var(--swatch-ink); }
 .appearance-preview { padding: var(--space-6); border: 1px solid var(--color-border); border-inline-start: 4px solid var(--color-primary); border-radius: var(--radius-card); background: var(--color-background); margin-block-end: var(--space-4); }
-.appearance-preview p { font: 1.5rem/1.8 var(--font-literary); }
+.appearance-preview p { font: 1.5rem/1.8 var(--font-poem); }
 .appearance-status { margin-block: var(--space-3) 0; }
 .appearance-status:empty { display: none; }
 
@@ -1507,12 +1522,12 @@ input[type=file]::file-selector-button {
 
 .treasury-stanza[id] { scroll-margin-block-start: 5rem; }
 .treasury-stanza:target { background: var(--color-primary-soft); }
-.literary-quote, .share-hemistich { font: 1.3rem/2 var(--font-literary); overflow-wrap: anywhere; }
+.literary-quote, .share-hemistich { font: 1.3rem/2 var(--font-poem); overflow-wrap: anywhere; }
 .literary-link + .literary-link { border-block-start: 1px solid var(--color-border); }
 .literary-quote mark { padding-inline: 0.1em; background: var(--color-primary-soft); color: var(--color-foreground); text-decoration: underline; }
 .share-choices { max-block-size: 26rem; overflow: auto; margin-block: var(--space-3); }
 .share-choice { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--space-3); padding: var(--space-2); border-block-end: 1px solid var(--color-border); }
-.share-choice-text { display: block; font-family: var(--font-literary); overflow-wrap: anywhere; }
+.share-choice-text { display: block; font-family: var(--font-poem); overflow-wrap: anywhere; }
 .share-sheet { padding: var(--space-5); }
 .share-verse { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--space-2); padding-block: var(--space-2); }
 .share-position { color: var(--color-muted-foreground); }
@@ -1730,7 +1745,7 @@ input[type=file]::file-selector-button {
 .treasury-pick-author .eyebrow { margin: 0; }
 .treasury-gallery .treasury-pick-card h2 { font-size: 1.25rem; margin-block: var(--space-4); overflow-wrap: anywhere; }
 .treasury-gallery .treasury-pick-card h2 a { text-decoration: none; }
-.treasury-gallery .literary-quote { margin: 0 0 var(--space-4); padding: var(--space-4); border-inline-start: 2px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-primary-soft); font-family: var(--font-literary); line-height: 2.2; overflow-wrap: anywhere; }
+.treasury-gallery .literary-quote { margin: 0 0 var(--space-4); padding: var(--space-4); border-inline-start: 2px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-primary-soft); font-family: var(--font-poem); line-height: 2.2; overflow-wrap: anywhere; }
 .treasury-pick-link { margin-block-start: auto; padding-block-start: var(--space-3); border-block-start: 1px solid var(--color-border); }
 .treasury-gallery .treasury-themes { margin-block: var(--space-6); }
 .treasury-gallery .treasury-theme-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-3); padding: 0; list-style: none; }
@@ -1806,7 +1821,7 @@ input[type=file]::file-selector-button {
 .memory-state { display: inline-flex; align-items: center; min-block-size: 1.75rem; padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); font-size: var(--text-xs); }
 .memory-state.is-ready { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
 .memory-state.is-paused, .memory-state.is-archived { color: var(--color-muted-foreground); }
-.memory-excerpt { font: 1.25rem/2 var(--font-literary); border-inline-start: 2px solid var(--color-border); padding-inline-start: var(--space-3); overflow-wrap: anywhere; }
+.memory-excerpt { font: 1.25rem/2 var(--font-poem); border-inline-start: 2px solid var(--color-border); padding-inline-start: var(--space-3); overflow-wrap: anywhere; }
 .memory-card-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin-block: var(--space-3); }
 .memory-card-metrics span { display: grid; gap: var(--space-1); text-align: center; padding: var(--space-2); border-radius: var(--radius-control); background: var(--color-background); font-size: var(--text-xs); }
 .memory-card-metrics strong { font-size: 1.5rem; color: var(--color-primary); }
@@ -1828,7 +1843,7 @@ input[type=file]::file-selector-button {
 .review-focus-toggle[aria-pressed="true"] { background: var(--color-primary-soft); border-color: var(--color-primary); }
 .review-studio .review-card { border-block-start: 4px solid var(--color-primary); background: radial-gradient(ellipse at top, var(--color-primary-soft), transparent 65%), var(--color-surface); box-shadow: var(--shadow-card); }
 .review-studio .review-card h2 { font-family: var(--font-literary); }
-.review-studio .cue { padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-background); text-align: center; font-family: var(--font-literary); overflow-wrap: anywhere; }
+.review-studio .cue { padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-background); text-align: center; font-family: var(--font-poem); overflow-wrap: anywhere; }
 .review-studio .rating-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
 .review-rating { display: flex; flex-direction: column; justify-content: center; gap: var(--space-2); min-block-size: 5rem; border-block-start: 3px solid var(--color-primary); }
 .review-rating small { font-weight: 400; font-size: var(--text-xs); line-height: 1.7; }
@@ -1954,7 +1969,7 @@ input[type=file]::file-selector-button {
 .explore-social-card h2 a { text-decoration: none; }
 .explore-poet, .explore-byline { font-size: var(--text-xs); color: var(--color-muted-foreground); }
 .explore-poem-preview { max-block-size: 29rem; overflow: hidden; mask-image: linear-gradient(black 80%, transparent); }
-.explore-poem-preview p, .explore-full-poem p { font: 1.25rem/2 var(--font-literary); margin-block: var(--space-3); white-space: pre-wrap; }
+.explore-poem-preview p, .explore-full-poem p { font: 1.25rem/2 var(--font-poem); margin-block: var(--space-3); white-space: pre-wrap; }
 .explore-read-more { display: block; margin-block: var(--space-4); color: var(--color-primary); font-size: var(--text-sm); font-style: italic; }
 .explore-social-card footer { display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: var(--space-3); border-block-start: 1px solid var(--color-border); padding-block-start: var(--space-2); font-size: var(--text-xs); color: var(--color-muted-foreground); }
 .explore-social-card footer form { margin: 0; }

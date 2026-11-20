@@ -1,3 +1,4 @@
+from poetry.services.operation_requests import operation_gate
 import hashlib
 import json
 from collections import defaultdict
@@ -233,7 +234,7 @@ def discover_work(exclude_id, *, poet='', length='', recent=(), keep_id=None):
         line_layout, rows = reading_rows(entry, entry.book, entry_sections(entry))
         if not rows or not matches_length(length, len(rows), line_layout):
             return None
-        return {'entry': entry, 'line_layout': line_layout, 'rows': rows[:4], 'row_count': len(rows)}
+        return {'entry': entry, 'line_layout': line_layout, 'rows': rows[:4], 'full_rows': rows, 'row_count': len(rows)}
 
     if keep := numeric_id(keep_id):
         if result := candidate(works.select_related('book').defer('search_body').filter(pk=keep).first()):
@@ -283,6 +284,7 @@ def work_listing(book, root, params):
 
 @private
 @require_POST
+@operation_gate('حفظ از گنجینه', conditional=True)
 def save_selection(request, slug, key):
     entry = get_object_or_404(TreasuryEntry.objects.select_related('book'),
                               book__slug=slug, key=key, kind='work')

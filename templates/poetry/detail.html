@@ -61,7 +61,7 @@
 {% endif %}
 {% if poem.notes %}<section class="panel"><span class="eyebrow">یادداشت شخصی</span><h2>حاشیهٔ دفتر</h2><div class="notes">{{ poem.notes|linebreaksbr }}</div></section>{% endif %}
 <div class="reading-tools">
-  {% if edit_request.status != 'pending' %}<a class="button quiet" href="{% url 'poem-edit' poem.pk %}">درخواست ویرایش</a>{% endif %}
+  {% if edit_request.status != 'pending' %}<a class="button quiet" href="{% url 'poem-edit' poem.pk %}">ویرایش شعر</a>{% endif %}
   {% if poem.source_url %}<a class="inline-link" href="{{ poem.source_url }}" rel="noopener noreferrer" target="_blank">مشاهدهٔ منبع شعر</a>{% endif %}
   {% if poem.archived_at %}
   <form method="post" action="{% url 'poem-restore' poem.pk %}">
@@ -70,17 +70,11 @@
   {% else %}
   <details class="archive-options">
     <summary>برداشتن از کتابخانه</summary>
-    {% if user.action_password %}
     <p class="fine">شعر به آرشیو منتقل می‌شود و می‌توانید آن را بازگردانید.</p>
     <form method="post" action="{% url 'poem-archive' poem.pk %}">
-      {% csrf_token %}
-      {% include 'components/action_password.html' %}
+      {% csrf_token %}{% include 'components/action_password.html' with operation_required=True %}
       <button>انتقال به آرشیو</button>
     </form>
-    {% else %}
-    <p>برای این کار در تنظیمات حساب رمز عملیات فعال کنید.</p>
-    <a class="button" href="{% url 'settings' %}">تنظیمات حساب</a>
-    {% endif %}
   </details>
   {% endif %}
 </div>

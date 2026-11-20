@@ -427,3 +427,17 @@ class ExploreView(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['post', 'visitor'], name='unique_explore_view')]
+
+
+class OperationRequest(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    path = models.CharField(max_length=500)
+    payload = models.JSONField(default=dict)
+    label = models.CharField(max_length=120)
+    status = models.CharField(max_length=12, default='pending', choices=[('pending', 'در انتظار'), ('approved', 'تأییدشده'), ('rejected', 'ردشده')])
+    created_at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+
+    def __str__(self):
+        return f'{self.owner} · {self.label}'

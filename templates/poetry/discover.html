@@ -28,11 +28,13 @@
 <section id="discovery" class="discovery-result" tabindex="-1" aria-labelledby="personal-discovery-title">
   <div class="discovery-result-top"><span class="chip">از خانه اشعار شما</span>{% include 'components/icon.html' with name='book' %}</div>
   {% if poem %}
+    {{ discovery_copy_rows|json_script:"discovery-personal-copy" }}
     <p class="eyebrow">{{ poem.poet_name }}</p><h2 id="personal-discovery-title">{{ poem.display_title }}</h2>
     <div class="discovery-result-verses">{% for verse in poem.verses.all|slice:':4' %}<div class="discovery-verse-row">{% include 'components/verse.html' %}<form method="post" action="{% if verse.pk in favorite_ids %}{% url 'unfavorite' verse.pk %}{% else %}{% url 'favorite' verse.pk %}{% endif %}" data-discovery-action data-add-url="{% url 'favorite' verse.pk %}" data-remove-url="{% url 'unfavorite' verse.pk %}">{% csrf_token %}<button class="icon-button discovery-favorite" aria-label="نشان شاه‌بیت برای بیت {{ verse.position|persian }}" aria-pressed="{% if verse.pk in favorite_ids %}true{% else %}false{% endif %}" title="نشان شاه‌بیت">{% include 'components/icon.html' with name='star' %}</button></form></div>{% endfor %}</div>
+<div class="discovery-result-footer"><a class="inline-link" href="{{ poem.get_absolute_url }}">خواندن کامل شعر {% include 'components/icon.html' with name='arrow' %}</a><a class="button primary" href="{% querystring source=source exclude_id=poem.pk keep_work=treasury_pick.entry.pk keep_poem=None treasury_exclude=None %}#discovery">{% include 'components/icon.html' with name='repeat' %} شعر دیگری از خانه</a><button type="button" data-discovery-copy class="button">{% include 'components/icon.html' with name='copy' %} کپی شعر</button></div>
     <div class="discovery-save-bar"><span class="fine">{% include 'components/icon.html' with name='check' %} در خانه اشعار شماست</span>{% if in_memory %}<a class="button" href="{% url 'memorize' %}">{% include 'components/icon.html' with name='brain' %} در فهرست حفظ</a>{% else %}<form method="post" action="{% url 'item-new' %}" data-discovery-action>{% csrf_token %}<input type="hidden" name="poem_id" value="{{ poem.pk }}"><input type="hidden" name="scope" value="full">{% include 'components/action_password.html' %}<button data-save-once>{% include 'components/icon.html' with name='brain' %} افزودن به حفظ</button></form>{% endif %}</div>
-    <p class="inline-status discovery-action-status" role="status" aria-live="polite"></p>
-    <div class="discovery-result-footer"><a class="inline-link" href="{{ poem.get_absolute_url }}">خواندن کامل شعر {% include 'components/icon.html' with name='arrow' %}</a><a class="button primary" href="{% querystring source=source exclude_id=poem.pk keep_work=treasury_pick.entry.pk keep_poem=None treasury_exclude=None %}#discovery">{% include 'components/icon.html' with name='repeat' %} شعر دیگری از خانه</a></div>
+    <p class="inline-status discovery-copy-status" role="status"></p><textarea class="discovery-copy-fallback" aria-label="متن شعر برای کپی" readonly hidden></textarea><p class="inline-status discovery-action-status" role="status" aria-live="polite"></p>
+
   {% else %}<h2 id="personal-discovery-title">{% if filtered %}شعری با این فیلترها در خانه پیدا نشد.{% else %}هنوز شعری برای کشف ندارید.{% endif %}</h2><a class="button" href="{% url 'poems' %}">دیدن خانه اشعار</a>{% endif %}
 </section>
 {% endif %}
@@ -40,6 +42,7 @@
 <section id="treasury-discovery" class="discovery-result" tabindex="-1" aria-labelledby="treasury-discovery-title">
   <div class="discovery-result-top"><span class="chip">از گنجینهٔ فارسی</span>{% include 'components/icon.html' with name='compass' %}</div>
   {% if treasury_pick %}
+    {{ treasury_pick.full_rows|json_script:"discovery-treasury-copy" }}
     <div class="discovery-result-author">{% include 'components/poet_portrait.html' with book=treasury_pick.entry.book size='tiny' decorative=True %}<p class="eyebrow">{{ treasury_pick.entry.book.author }}</p><span class="fine">{{ treasury_pick.row_count|persian }} {% if treasury_pick.line_layout %}سطر{% else %}بیت{% endif %}</span></div>
     <h2 id="treasury-discovery-title">{{ treasury_pick.entry.title }}</h2>
     <div class="discovery-result-verses">
@@ -48,15 +51,15 @@
       {% if user.is_authenticated %}<form method="post" action="{% url 'treasury-save' treasury_pick.entry.book.slug treasury_pick.entry.key %}" data-discovery-action>{% csrf_token %}<input type="hidden" name="from_discovery" value="1"><button class="icon-button discovery-favorite" name="action" value="{% if forloop.counter in treasury_favorites %}unfavorite{% else %}favorite{% endif %}:{{ forloop.counter }}" aria-label="نشان شاه‌بیت برای ردیف {{ forloop.counter|persian }}" aria-pressed="{% if forloop.counter in treasury_favorites %}true{% else %}false{% endif %}" title="نشان شاه‌بیت">{% include 'components/icon.html' with name='star' %}</button></form>{% endif %}</div>
     {% endfor %}
     </div>
+<div class="discovery-result-footer"><a class="inline-link" href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل اثر {% include 'components/icon.html' with name='arrow' %}</a><a class="button primary" href="{% querystring source=source treasury_exclude=treasury_pick.entry.pk keep_poem=poem.pk keep_work=None exclude_id=None %}#treasury-discovery">{% include 'components/icon.html' with name='repeat' %} شعر دیگری از گنجینه</a><button type="button" data-discovery-copy class="button">{% include 'components/icon.html' with name='copy' %} کپی شعر</button></div>
     {% if user.is_authenticated %}
     <form class="discovery-save-bar" method="post" action="{% url 'treasury-save' treasury_pick.entry.book.slug treasury_pick.entry.key %}" data-discovery-action>{% csrf_token %}<input type="hidden" name="from_discovery" value="1">
       <div class="discovery-save-buttons"><button name="action" value="library-all" data-save-once>{% include 'components/icon.html' with name='plus' %} افزودن به خانه اشعار</button><button name="action" value="memorize" data-save-once>{% include 'components/icon.html' with name='brain' %} افزودن به فهرست حفظ</button></div>
       {% include 'components/action_password.html' with operation_optional=True %}
-      {% if user.action_password %}<p class="fine">برای افزودن به حفظ، رمز عملیات را وارد کنید.</p>{% endif %}
     </form><p class="fine">ستارهٔ کنار هر بیت، آن را به شاه‌نشین می‌افزاید. افزودن به خانه یا حفظ، تمام شعر را ذخیره می‌کند.</p>
     {% else %}<p class="fine"><a href="{% url 'login' %}?next={{ request.get_full_path|urlencode:'' }}">برای افزودن شعر، شاه‌بیت و کارت حفظ وارد شوید.</a></p>{% endif %}
-    <p class="inline-status discovery-action-status" role="status" aria-live="polite"></p>
-    <div class="discovery-result-footer"><a class="inline-link" href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل اثر {% include 'components/icon.html' with name='arrow' %}</a><a class="button primary" href="{% querystring source=source treasury_exclude=treasury_pick.entry.pk keep_poem=poem.pk keep_work=None exclude_id=None %}#treasury-discovery">{% include 'components/icon.html' with name='repeat' %} شعر دیگری از گنجینه</a></div>
+    <p class="inline-status discovery-copy-status" role="status"></p><textarea class="discovery-copy-fallback" aria-label="متن شعر برای کپی" readonly hidden></textarea><p class="inline-status discovery-action-status" role="status" aria-live="polite"></p>
+
   {% else %}<h2 id="treasury-discovery-title">شعر قابل خواندنی با این انتخاب پیدا نشد.</h2><p>نام یا طول دیگری را امتحان کنید.</p><a class="button" href="{% url 'treasury-works' %}">جست‌وجوی آثار گنجینه</a>{% endif %}
 </section>
 {% endif %}

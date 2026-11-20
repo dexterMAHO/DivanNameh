@@ -111,6 +111,9 @@ def publish(request, pk=None):
         initial['text'] = '\n'.join(first + (' | ' + second if second else '') for first, second in post.rows)
     form = PostForm(request.POST if request.method == 'POST' else None, instance=post, initial=initial)
     if request.method == 'POST' and form.is_valid():
+        if request.POST.get('operation_mode') == 'password' and not request.user.is_superuser and (not request.user.action_password or action_password_error(request)):
+            form.add_error(None, 'رمز عملیات درست نیست؛ دوباره تلاش کنید.')
+            return render(request, 'poetry/explore_publish.html', {'form': form, 'post': post, 'rows': form.cleaned_data['rows']})
         post = form.save(commit=False)
         post.author = request.user
         post.rows = form.cleaned_data['rows']

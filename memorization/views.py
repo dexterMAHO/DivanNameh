@@ -1,3 +1,4 @@
+from poetry.services.operation_requests import operation_gate
 import uuid
 from collections import defaultdict
 from datetime import timedelta
@@ -90,6 +91,7 @@ def stats(request):
 
 @private
 @require_POST
+@operation_gate('افزودن به حفظ')
 def add_item(request):
     def invalid(message, status=400, code='invalid', errors=None):
         poem_id = request.POST.get('poem_id', '')

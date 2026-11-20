@@ -1,0 +1,9 @@
+<dialog id="operation-dialog" aria-labelledby="operation-title" aria-describedby="operation-description">
+  <div class="operation-dialog-heading"><span class="writing-emblem" aria-hidden="true">{% include 'components/icon.html' with name='lock' %}</span><h2 id="operation-title">تأیید عملیات</h2><button class="icon-button" type="button" data-operation-cancel aria-label="بستن">×</button></div>
+  <p id="operation-description">برای ادامه رمز عملیات را وارد کنید یا درخواست را برای بررسی مدیر بفرستید.</p>
+  <form id="operation-confirm">
+    <label for="operation-password">رمز عملیات</label><input id="operation-password" type="password" autocomplete="current-password" maxlength="128">
+    <p id="operation-no-password" class="fine" hidden>هنوز رمز عملیات ندارید؛ می‌توانید درخواست را برای مدیر بفرستید.</p>
+    <div class="operation-dialog-actions"><button class="primary" value="password">تأیید با رمز</button><button value="request" formnovalidate>ارسال درخواست به مدیر</button></div>
+  </form>
+</dialog>

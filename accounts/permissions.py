@@ -1,5 +1,7 @@
 def action_password_error(request, *, required=False):
     """Return a message when this request needs the reader's operation password."""
+    if getattr(request, '_operation_approved', False) or request.user.is_superuser:
+        return ''
     user = request.user
     if not user.action_password:
         return 'برای برداشتن شعر از کتابخانه، در تنظیمات حساب رمز عملیات بسازید.' if required else ''

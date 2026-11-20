@@ -2060,3 +2060,18 @@ input[type=file]::file-selector-button {
 }
 .explore-verse-favorite button[aria-pressed="true"] .icon { fill: currentColor; }
 .post-reading-sheet .explore-verse-favorite { margin-inline-end: var(--space-2); }
+
+#operation-dialog { width: min(30rem, calc(100% - 2rem)); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); color: var(--color-foreground); box-shadow: 0 24px 80px #0005; }
+#operation-dialog::backdrop { background: #0008; backdrop-filter: blur(5px); }
+.operation-dialog-heading { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-4); }
+.operation-dialog-heading h2 { flex: 1; margin: 0; font-size: 1.5rem; }
+.operation-dialog-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-4); }
+.discovery-result-footer [data-discovery-copy] { display: inline-flex; gap: var(--space-2); align-items: center; }
+.discovery-copy-status:empty { display: none; }
+@media (max-width: 768px) {
+  .verse:not(.verse-line) { font-size: min(var(--text-poem), 1.12rem); padding-inline: var(--space-3); }
+  .verse.verse-fit { font-size: var(--verse-fit-size, 1.12rem); }
+  .verse-fit .hemistich { white-space: nowrap; overflow-x: auto; overflow-wrap: normal; scrollbar-width: thin; }
+  .discovery-result-footer { margin-block: var(--space-3); padding-block-start: var(--space-3); }
+  .discovery-result-footer .primary { order: -1; }
+}

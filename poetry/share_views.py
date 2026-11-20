@@ -1,3 +1,4 @@
+from poetry.services.operation_requests import operation_gate
 import hashlib
 import json
 from urllib.parse import urlsplit
@@ -203,6 +204,7 @@ def share_card(request, token):
 @private
 @never_cache
 @require_http_methods(['GET', 'POST'])
+@operation_gate('حفظ شعر اشتراکی', conditional=True)
 def save_received(request, token):
     share = live_share(token)
     action = request.POST.get('action') if request.method == 'POST' else request.GET.get('action', 'library')

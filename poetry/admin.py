@@ -161,3 +161,32 @@ class ExplorePostAdmin(admin.ModelAdmin):
     def reject_posts(self, request, queryset):
         if request.user.is_superuser:
             queryset.update(status='rejected')
+
+
+from .models import OperationRequest
+from .services.operation_requests import decide_operation
+
+
+@admin.register(OperationRequest)
+class OperationRequestAdmin(ReadOnlySuperuserAdmin):
+    list_display = ('owner', 'label', 'status', 'created_at', 'decided_by')
+    list_filter = ('status',)
+    readonly_fields = ('owner', 'label', 'path', 'payload', 'status', 'created_at', 'decided_at', 'decided_by')
+    actions = ['approve_operations', 'reject_operations']
+
+    def _decide(self, request, queryset, approve):
+        if not request.user.is_superuser:
+            return
+        for operation in queryset.filter(status='pending'):
+            try:
+                decide_operation(operation.pk, request.user, approve=approve)
+            except (ValidationError, IntegrityError) as error:
+                self.message_user(request, str(error), messages.ERROR)
+
+    @admin.action(permissions=['view'], description='تأیید و اجرای درخواست‌ها')
+    def approve_operations(self, request, queryset):
+        self._decide(request, queryset, True)
+
+    @admin.action(permissions=['view'], description='رد درخواست‌ها')
+    def reject_operations(self, request, queryset):
+        self._decide(request, queryset, False)

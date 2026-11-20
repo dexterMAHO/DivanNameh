@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <script src="{% static 'js/custom-theme.js' %}"></script>
   <script type="module" src="{% static 'js/app.js' %}"></script>
+  <script type="module" src="{% static 'js/operation-dialog.js' %}"></script>
+  <script type="module" src="{% static 'js/verse-fit.js' %}"></script>
   {% block scripts %}{% endblock %}
 </head>
 <body{% if not user.is_authenticated %} class="guest"{% endif %}>
@@ -91,4 +93,4 @@
     </div>
   </div>
 </div>
-</body></html>
+{% if user.is_authenticated %}{% include 'components/operation_dialog.html' %}{% endif %}</body></html>

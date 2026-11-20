@@ -65,9 +65,9 @@
     <button type="button" id="preview-button" hidden>پیش‌نمایش شعر</button>
     <section id="preview" class="poetry-panel" tabindex="-1" aria-label="پیش‌نمایش شعر" hidden></section>
   </section>
-  {% if poem and user.action_password %}<section class="panel writing-section">{% include 'components/action_password.html' %}</section>{% endif %}
+  {% if poem %}{% include 'components/action_password.html' with operation_required=True %}{% endif %}
   <div class="form-actions writing-submit">
-    <button class="primary" type="submit">{% if poem %}ارسال برای تأیید مدیر{% else %}ذخیرهٔ شعر در دفتر{% endif %}</button>
+    <button class="primary" type="submit">{% if poem %}ثبت ویرایش{% else %}ذخیرهٔ شعر در دفتر{% endif %}</button>
     <a class="inline-link" href="{% if poem %}{{ poem.get_absolute_url }}{% else %}{% url 'poems' %}{% endif %}">انصراف</a>
   </div>
 </form>

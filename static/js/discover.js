@@ -27,7 +27,7 @@ for (const form of document.querySelectorAll('[data-discovery-action]')) {
       if (data.remaining_due_count !== undefined) {
         document.querySelectorAll('.count').forEach(count => count.textContent = data.remaining_due_count.toLocaleString('fa-IR'));
       }
-      if (button.hasAttribute('data-save-once')) {
+      if (button.hasAttribute('data-save-once') && !data.pending_approval) {
         button.dataset.saved = 'true';
         button.append(' ✓');
       }
@@ -49,6 +49,27 @@ for (const form of document.querySelectorAll('[data-discovery-action]')) {
     } finally {
       buttons.forEach(control => control.disabled = control.dataset.saved === 'true');
       delete form.dataset.busy;
+    }
+  });
+}
+
+for (const button of document.querySelectorAll('[data-discovery-copy]')) {
+  button.addEventListener('click', async () => {
+    const section = button.closest('.discovery-result');
+    const rows = JSON.parse(section.querySelector('script[type="application/json"]').textContent);
+    const text = rows.map(row => row.filter(Boolean).join('\n')).join('\n\n');
+    const status = section.querySelector('.discovery-copy-status');
+    const fallback = section.querySelector('.discovery-copy-fallback');
+    fallback.hidden = true;
+    try {
+      await navigator.clipboard.writeText(text);
+      status.textContent = 'متن شعر کپی شد.';
+    } catch {
+      fallback.value = text;
+      fallback.hidden = false;
+      fallback.focus();
+      fallback.select();
+      status.textContent = 'متن آماده است؛ آن را از کادر کپی کنید.';
     }
   });
 }

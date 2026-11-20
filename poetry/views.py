@@ -1,3 +1,4 @@
+from poetry.services.operation_requests import operation_gate
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -155,6 +156,7 @@ def poem_detail(request, pk):
 
 @private
 @require_http_methods(['GET', 'POST'])
+@operation_gate('ویرایش شعر', review=True)
 def poem_edit(request, pk=None):
     poem = get_object_or_404(Poem, pk=pk, owner=request.user) if pk else None
     if poem and request.method == 'GET' and poem.edit_requests.filter(status='pending').exists():
@@ -199,6 +201,7 @@ def poem_edit(request, pk=None):
 
 @private
 @require_POST
+@operation_gate('آرشیو شعر')
 def archive(request, pk, restore=False):
     with transaction.atomic():
         poem = get_object_or_404(Poem.objects.select_for_update(), pk=pk, owner=request.user)
@@ -281,6 +284,7 @@ def tag_merge(request):
 
 @private
 @require_POST
+@operation_gate('تغییر موضوع', review=True)
 def assign_tags(request, pk):
     poem = get_object_or_404(Poem, pk=pk, owner=request.user)
     ids = request.POST.getlist('tags')
@@ -389,6 +393,7 @@ def discover(request):
         favorite_ids = set(FavoriteVerse.objects.filter(owner=request.user, verse__poem=poem).values_list('verse_id', flat=True))
         in_memory = MemorizationItem.objects.filter(owner=request.user, poem=poem, scope='full').exists()
     return render(request, 'poetry/discover.html', {
+        'discovery_copy_rows': list(poem.verses.values_list('hemistich_1', 'hemistich_2')) if poem else [],
         'poet_suggestions': sorted(authors), 'length_choices': LENGTH_CHOICES,
         'favorite_ids': favorite_ids, 'in_memory': in_memory, 'treasury_favorites': treasury_favorites,
         'poem': poem, 'treasury_pick': treasury, 'source': source, 'poet': poet, 'topic': topic, 'length': length,

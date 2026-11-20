@@ -48,6 +48,7 @@ urlpatterns = [
     path('collections/', collection_views.collections, name='collections'),
     path('collections/<int:pk>/', collection_views.collection_detail, name='collection-detail'),
     path('poets/', p.poets, name='poets'),
+    path('poets/profile/', p.poet_profile, name='poet-profile'),
     path('treasury/', treasury_views.index, name='treasury'),
     path('shares/', share_views.my_shares, name='my-shares'),
     path('shares/<uuid:token>/created/', share_views.created, name='share-created'),

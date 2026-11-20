@@ -15,7 +15,7 @@
   </div>
   <div class="actions house-shortcuts">
     <a href="{% url 'tags' %}">{% include 'components/icon.html' with name='tag' %}موضوع‌ها</a>
-    <a href="{% url 'poets' %}">{% include 'components/icon.html' with name='pen' %}شاعران دفتر</a>
+    <a href="{% url 'poets' %}">{% include 'components/icon.html' with name='pen' %}شاعرنشین</a>
     <a href="{% url 'collections' %}">{% include 'components/icon.html' with name='book' %}مجموعه‌ها</a>
     <a href="{% url 'library-transfer' %}">{% include 'components/icon.html' with name='arrow' %}ورود و خروج فایل</a>
     <a href="{% url 'edit-history' %}">{% include 'components/icon.html' with name='repeat' %}درخواست‌های ویرایش</a>
@@ -45,7 +45,7 @@
       </fieldset>
     </details>
   {% endif %}
-  <button>جست‌وجو</button>
+  <button type="submit" class="icon-button" aria-label="جست‌وجوی اشعار" title="جست‌وجوی اشعار">{% include 'components/icon.html' with name='search' %}</button>
 </form>
 {% if query or tag or poet or active_topics %}
 <p class="filter-summary">نتایج {% if query %}«{{ query }}»{% endif %}{% if poet %} · {{ poet }}{% endif %}{% if tag %} · {{ tag.name }}{% endif %}

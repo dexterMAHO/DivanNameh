@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Exists, OuterRef, Q, Subquery
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -92,7 +92,27 @@ def poem_list(request, slug=None):
 def poets(request):
     groups = (Poem.objects.filter(owner=request.user, archived_at__isnull=True)
               .values('poet_name').annotate(poem_count=Count('pk')).order_by('poet_name'))
-    return render(request, 'poetry/poets.html', {'page': Paginator(groups, 24).get_page(request.GET.get('page'))})
+    page = Paginator(groups, 24).get_page(request.GET.get('page'))
+    profiles = {search_text(book.author): book for book in TreasuryBook.objects.all()}
+    for poet in page:
+        poet['profile'] = profiles.get(search_text(poet['poet_name']))
+    return render(request, 'poetry/poets.html', {'page': page})
+
+
+@private
+@require_GET
+def poet_profile(request):
+    name = request.GET.get('name', '').strip()[:160]
+    poems = Poem.objects.filter(owner=request.user, archived_at__isnull=True, poet_name=name)
+    if not poems.exists():
+        raise Http404('شاعری با این نام در دفتر شما پیدا نشد.')
+    profile = next((book for book in TreasuryBook.objects.all() if search_text(book.author) == search_text(name)), None)
+    return render(request, 'poetry/poet_profile.html', {
+        'poet_name': name, 'profile': profile, 'poem_count': poems.count(),
+        'favorite_count': FavoriteVerse.objects.filter(owner=request.user, verse__poem__in=poems).count(),
+        'memory_count': MemorizationItem.objects.filter(owner=request.user, poem__in=poems).values('poem_id').distinct().count(),
+        'page': Paginator(poems.prefetch_related('verses', 'tags'), 12).get_page(request.GET.get('page')),
+    })
 
 
 @private

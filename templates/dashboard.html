@@ -19,13 +19,23 @@
   <a class="button primary" href="{% url 'discover' %}?source=treasury">کشف شعر {% include 'components/icon.html' with name='arrow' %}</a>
 </section>
 {% if treasury_pick %}
-<section class="poetry-panel" aria-labelledby="dashboard-random-poem">
-  <p class="eyebrow">{{ treasury_pick.entry.book.author }}</p>
+<section class="dashboard-discovery" aria-labelledby="dashboard-random-poem">
+  <div class="discovery-author">
+    {% include 'components/poet_portrait.html' with book=treasury_pick.entry.book decorative=True %}
+    <div><span class="discovery-kicker">برگی به انتخاب گنجینه</span><p>{{ treasury_pick.entry.book.author }}</p></div>
+    <span class="discovery-seal" aria-hidden="true">{% include 'components/icon.html' with name='compass' %}</span>
+  </div>
   <h2 id="dashboard-random-poem"><a href="{{ treasury_pick.entry.get_absolute_url }}">{{ treasury_pick.entry.title }}</a></h2>
-  {% for first, second in treasury_pick.rows %}
-    {% include 'components/verse_text.html' with position=forloop.counter line_layout=treasury_pick.line_layout %}
-  {% endfor %}
-  <a class="inline-link" href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل شعر {% include 'components/icon.html' with name='arrow' %}</a>
+  <div class="discovery-reading">
+    <span class="discovery-quote" aria-hidden="true">«</span>
+    {% for first, second in treasury_pick.rows %}
+      {% include 'components/verse_text.html' with position=forloop.counter line_layout=treasury_pick.line_layout %}
+    {% endfor %}
+  </div>
+  <div class="discovery-footer">
+    <span>{% include 'components/icon.html' with name='book' %}از گنجینهٔ شعر فارسی</span>
+    <a class="button primary" href="{{ treasury_pick.entry.get_absolute_url }}">خواندن کامل شعر {% include 'components/icon.html' with name='arrow' %}</a>
+  </div>
 </section>
 {% endif %}
 <section class="stats" aria-label="آمار دفتر"><a href="{% url 'poems' %}"><span class="stat-icon">{% include 'components/icon.html' with name='book' %}</span><span class="stat-label">شعر در کتابخانه</span><strong>{{ poem_count|persian }}</strong>{% include 'components/icon.html' with name='arrow' %}</a><a href="{% url 'memorize' %}"><span class="stat-icon">{% include 'components/icon.html' with name='repeat' %}</span><span class="stat-label">کارت در فهرست حفظ</span><strong>{{ item_count|persian }}</strong>{% include 'components/icon.html' with name='arrow' %}</a><a href="{% url 'favorites' %}"><span class="stat-icon">{% include 'components/icon.html' with name='star' %}</span><span class="stat-label">شاه‌بیت برگزیده</span><strong>{{ favorite_count|persian }}</strong>{% include 'components/icon.html' with name='arrow' %}</a></section>

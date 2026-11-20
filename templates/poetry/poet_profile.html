@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load persian %}
+{% block title %}{{ poet_name }} | شاعرنشین{% endblock %}
+{% block content %}
+<a class="inline-link" href="{% url 'poets' %}">بازگشت به شاعرنشین</a>
+<header class="poet-profile-hero">
+  <div class="poet-profile-art">{% if profile %}{% include 'components/poet_portrait.html' with book=profile size='large' %}{% else %}<span class="poet-profile-monogram" aria-hidden="true">{{ poet_name|first }}</span>{% endif %}</div>
+  <div><span class="eyebrow">شاعرنشین · پروفایل شاعر</span><h1>{{ poet_name }}</h1>
+    {% if profile.life_span %}<p class="muted">{{ profile.life_span|persian }}</p>{% endif %}
+    {% if profile.birth_place %}<p class="fine">زادگاه: {{ profile.birth_place }}</p>{% endif %}
+    <div class="poet-profile-metrics"><span><strong>{{ poem_count|persian }}</strong> شعر در خانه</span><span><strong>{{ favorite_count|persian }}</strong> شاه‌بیت</span><span><strong>{{ memory_count|persian }}</strong> شعر در فهرست حفظ</span></div>
+  </div>
+</header>
+{% if profile.biography %}<section class="panel poet-biography"><h2>دربارهٔ {{ poet_name }}</h2>{{ profile.biography|linebreaks }}{% if profile.biography_source %}<a href="{{ profile.biography_source }}" target="_blank" rel="noopener noreferrer">منبع زندگی‌نامه</a>{% endif %}</section>{% endif %}
+{% if profile.portrait_credit %}<p class="fine">تصویر: {% if profile.portrait_source %}<a href="{{ profile.portrait_source }}" target="_blank" rel="noopener noreferrer">{{ profile.portrait_credit }}</a>{% else %}{{ profile.portrait_credit }}{% endif %}</p>{% endif %}
+<div class="section-heading"><h2>شعرهای {{ poet_name }} در دفتر شما</h2><a href="{% url 'poems' %}?poet={{ poet_name|urlencode:'' }}">همهٔ شعرها</a></div>
+<div class="card-grid">{% for poem in page %}{% include 'components/dashboard_poem_card.html' %}{% endfor %}</div>
+{% include 'components/pagination.html' %}
+{% endblock %}

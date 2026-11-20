@@ -1610,11 +1610,101 @@ input[type=file]::file-selector-button {
 /* Header learning and settings controls. */
 .masthead .header-help { gap: var(--space-2); padding-inline: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
 .header-help > .icon { inline-size: 1.5rem; block-size: 1.5rem; }
-.masthead .header-settings { display: grid; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-primary); }
+.masthead .header-settings { display: grid; place-items: center; border: 0; border-radius: 0; background: transparent; color: var(--color-primary); }
 .header-settings > .icon { inline-size: 1.5rem; block-size: 1.5rem; }
-.header-settings[aria-current], .header-settings:hover { background: var(--color-primary-soft); border-color: var(--color-primary); }
+.masthead .header-settings:is([aria-current], :hover) { background: transparent; color: var(--color-foreground); }
 @keyframes header-gear-turn { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: no-preference) {
   .header-settings:is(:hover, :focus-visible) > .icon { animation: header-gear-turn 2.4s linear infinite; }
 }
 @media (max-width: 480px) { .masthead .header-help { padding-inline: var(--space-2); } }
+
+/* Dashboard discovery: an illustrated page from the treasury. */
+.dashboard-discovery { position: relative; margin-block: var(--space-6); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: radial-gradient(ellipse at top left, var(--color-primary-soft), transparent 65%), var(--color-surface); box-shadow: var(--shadow-card); overflow: hidden; }
+.dashboard-discovery::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 5px; background: var(--color-primary); }
+.discovery-author { display: flex; align-items: center; gap: var(--space-3); }
+.discovery-author .poet-frame { inline-size: 3.75rem; block-size: 4.5rem; flex: none; border-radius: 1.5rem 1.5rem var(--radius-control) var(--radius-control); }
+.discovery-author > div { min-inline-size: 0; }
+.discovery-author p { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.discovery-kicker { font-size: var(--text-xs); color: var(--color-muted-foreground); }
+.discovery-seal { display: grid; place-items: center; flex: none; inline-size: 3rem; block-size: 3rem; margin-inline-start: auto; border: 1px dashed var(--color-primary); border-radius: 50%; color: var(--color-primary); background: var(--color-primary-soft); }
+.dashboard-discovery h2 { margin-block: var(--space-4); font-family: var(--font-literary); overflow-wrap: anywhere; }
+.dashboard-discovery h2 a { text-decoration: none; }
+.discovery-reading { position: relative; padding: var(--space-6) var(--space-4) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-background); }
+.discovery-quote { position: absolute; inset-block-start: 0; inset-inline-start: var(--space-3); font: 3rem/1 var(--font-literary); color: var(--color-primary); }
+.discovery-reading .verse { border-block-end-style: dashed; }
+.discovery-reading .verse:last-child { border-block-end: 0; }
+.discovery-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-3); padding-block-start: var(--space-4); }
+.discovery-footer > span { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--color-muted-foreground); }
+.mobile-shortcuts .icon { display: none; }
+@media (max-width: 768px) {
+  .masthead { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; padding: var(--space-4) var(--space-3) var(--space-3); gap: var(--space-3); background: var(--color-surface); box-shadow: 0 3px 12px var(--color-primary-soft); }
+  .masthead .brand { justify-content: center; }
+  .masthead .brand-logo { inline-size: 8rem; }
+  body .masthead .masthead-actions { display: flex; flex-wrap: wrap; justify-content: center; inline-size: 100%; max-inline-size: 100%; margin: 0; padding-block: var(--space-3); border-block: 1px solid var(--color-border); gap: var(--space-2); }
+  .masthead-actions > .header-tool, .masthead-actions > #nav-toggle, .masthead-actions #header-theme > button { border: 1px solid var(--color-border); background: var(--color-background); border-radius: var(--radius-control); min-inline-size: 2.75rem; min-block-size: 2.75rem; }
+  .masthead-actions .header-help { padding-inline: var(--space-2); }
+  .masthead-actions .header-help span { display: none; }
+  .masthead-actions .masthead-add { min-inline-size: 2.75rem; padding-inline: var(--space-2); }
+  .masthead-actions .masthead-add > span { display: none; }
+  .masthead .mobile-shortcuts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); inline-size: 100%; min-inline-size: 0; gap: var(--space-2); }
+  .masthead .mobile-shortcuts a { display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; gap: var(--space-1); min-inline-size: 0; min-block-size: 4.25rem; padding: var(--space-2) 2px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-background); color: var(--color-muted-foreground); font-size: .75rem; font-weight: 600; text-align: center; overflow-wrap: anywhere; }
+  .mobile-shortcuts a .icon { display: block; inline-size: 1.25rem; block-size: 1.25rem; flex: none; color: var(--color-primary); }
+  .masthead .mobile-shortcuts a:is([aria-current="page"], :hover) { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); }
+  .mobile-shortcuts .count { position: absolute; inset-block-start: 2px; inset-inline-end: 2px; min-inline-size: 1rem; border-radius: var(--radius-pill); background: var(--color-primary); color: var(--color-surface); font-size: .625rem; }
+  .dashboard-discovery { padding: var(--space-4); }
+  .discovery-reading { padding-inline: var(--space-2); }
+  .discovery-footer > .button { inline-size: 100%; justify-content: center; }
+}
+
+/* Poet quarter: portrait galleries and personal poet profiles. */
+.poet-quarter-heading { display: grid; justify-items: center; text-align: center; gap: var(--space-3); padding-block: var(--space-6) var(--space-8); }
+.poet-quarter-heading h1, .poet-quarter-heading p { margin: 0; }
+.poet-quarter-heading h1 { font: 700 2.75rem/1.5 var(--font-literary); }
+.poet-quarter-heading p { color: var(--color-muted-foreground); }
+.poet-quarter-mark { display: grid; place-items: center; inline-size: 3rem; block-size: 3rem; background: var(--color-primary-soft); color: var(--color-primary); border-radius: 50%; }
+.poet-profile-card { display: flex; flex-direction: column; align-items: center; min-inline-size: 0; padding: var(--space-6); text-align: center; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: radial-gradient(ellipse at top, var(--color-primary-soft), transparent 70%), var(--color-surface); box-shadow: var(--shadow-card); }
+.poet-profile-art { position: relative; display: grid; place-items: center; padding: var(--space-4); }
+.poet-profile-art::before { content: ''; position: absolute; inset: 0; border: 1px dashed var(--color-primary); border-radius: 50% 50% 1rem 1rem; opacity: .5; pointer-events: none; }
+.poet-profile-art .poet-frame, .poet-profile-monogram { inline-size: 8rem; block-size: 10rem; border-radius: 50% 50% var(--radius-control) var(--radius-control); }
+.poet-profile-monogram { display: grid; place-items: center; background: var(--color-primary-soft); color: var(--color-primary); font: 4rem var(--font-literary); }
+.poet-profile-count { position: absolute; inset-block-end: 0; padding: var(--space-1) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-primary); font-size: var(--text-sm); font-weight: 700; }
+.poet-profile-card h2 { font: 700 1.75rem/1.6 var(--font-literary); margin-block: var(--space-4) var(--space-1); overflow-wrap: anywhere; }
+.poet-profile-card h2 a { text-decoration: none; }
+.poet-profile-years { margin: 0; font-size: var(--text-xs); color: var(--color-muted-foreground); }
+.poet-profile-summary { color: var(--color-muted-foreground); font-size: var(--text-sm); line-height: 1.9; }
+.poet-profile-link { margin-block-start: auto; border-block-start: 1px solid var(--color-border); padding-block-start: var(--space-3); inline-size: 100%; justify-content: center; }
+.poet-profile-hero { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-6); margin-block: var(--space-4) var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: linear-gradient(135deg, var(--color-primary-soft), var(--color-surface)); }
+.poet-profile-hero > div { min-inline-size: 0; }
+.poet-profile-hero h1 { font-family: var(--font-literary); overflow-wrap: anywhere; }
+.poet-profile-metrics { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.poet-profile-metrics > span { padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); font-size: var(--text-sm); }
+.poet-profile-metrics strong { color: var(--color-primary); font-size: 1.5rem; }
+.poet-biography { line-height: 2; margin-block-end: var(--space-6); }
+@media (max-width: 768px) { .poet-profile-hero { flex-direction: column; text-align: center; padding: var(--space-4); } .poet-profile-metrics { justify-content: center; } }
+
+/* Topics studio: index cards for the personal collection. */
+.topics-heading { display: grid; justify-items: center; text-align: center; gap: var(--space-3); padding-block: var(--space-6); }
+.topics-heading h1, .topics-heading p { margin: 0; }
+.topics-heading h1 { font-family: var(--font-literary); font-size: clamp(2rem, 4vw, 2.75rem); }
+.topics-heading p { color: var(--color-muted-foreground); }
+.topics-emblem { display: inline-grid; place-items: center; inline-size: 3.25rem; block-size: 3.25rem; background: var(--color-primary-soft); border: 1px solid var(--color-border); color: var(--color-primary); border-radius: var(--radius-card); }
+.topics-heading-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: var(--space-4); }
+.topics-create { margin-block: var(--space-4) var(--space-6); border-inline-start: 4px solid var(--color-primary); background: linear-gradient(120deg, var(--color-primary-soft), var(--color-surface)); }
+.topics-create button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
+.topics-merge { border-style: dashed; margin-block-end: var(--space-6); }
+.topics-grid { margin-block-start: var(--space-6); }
+.topics-grid .topic-card { border-block-start: 4px solid var(--color-primary); border-start-start-radius: 2rem; background: radial-gradient(ellipse at top right, var(--color-primary-soft), transparent 70%), var(--color-surface); }
+.topic-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.topic-card-symbol { display: grid; place-items: center; inline-size: 3rem; block-size: 3rem; border-radius: var(--radius-card); background: var(--color-primary-soft); color: var(--color-primary); transform: rotate(-8deg); }
+.topic-card-index { font: 2.5rem var(--font-literary); color: var(--color-primary); opacity: .45; }
+.topic-card h2 { margin-block: var(--space-4); overflow-wrap: anywhere; }
+.topic-card h2 a { text-decoration: none; }
+.topic-poem-count { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-background); text-decoration: none; font-size: var(--text-sm); }
+.topic-poem-count strong { font-size: 2rem; color: var(--color-primary); }
+.topic-poem-count .icon { margin-inline-start: auto; }
+.topic-card details { padding-block-start: var(--space-3); border-block-start: 1px dashed var(--color-border); margin-block-start: var(--space-4); }
+.topic-card summary .icon { vertical-align: middle; color: var(--color-primary); }
+.topic-card > form { margin-block-start: auto; }
+.topic-card .topic-delete { font-size: var(--text-sm); }
+.topics-empty { grid-column: 1 / -1; }

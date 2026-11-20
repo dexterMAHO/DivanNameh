@@ -3,9 +3,9 @@
 <p class="nav-label">دفتر شما</p>
 <a href="{% url 'dashboard' %}" {% if route == 'dashboard' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='grid' %}<span>پیشخوان</span></a>
 <a href="{% url 'poems' %}" {% if route == 'poems' or route == 'poem-detail' or route == 'poem-edit' or route == 'poem-new' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>خانه اشعار</span></a>
-<a href="{% url 'favorites' %}" {% if route == 'favorites' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='star' %}<span>شاه‌بیت‌ها</span></a>
+<a href="{% url 'favorites' %}" {% if route == 'favorites' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='star' %}<span>شاه‌نشین اشعار</span></a>
 <a href="{% url 'tags' %}" {% if route == 'tags' or route == 'tag-detail' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='tag' %}<span>موضوع‌های دفتر</span></a>
-<a href="{% url 'poets' %}" {% if route == 'poets' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='pen' %}<span>شاعران کتابخانه</span></a>
+<a href="{% url 'poets' %}" {% if route == 'poets' or route == 'poet-profile' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='pen' %}<span>شاعرنشین</span></a>
 <a href="{% url 'treasury' %}" {% if route == 'treasury' or route == 'treasury-book' or route == 'treasury-entry' or route == 'treasury-works' or route == 'treasury-trace' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='book' %}<span>گنجینهٔ فارسی</span></a>
 <p class="nav-label">همراه با شعر</p>
 <a href="{% url 'review' %}" {% if route == 'review' %}aria-current="page"{% endif %}>{% include 'components/icon.html' with name='repeat' %}<span>مرور امروز</span><span class="count">{{ due_count|persian }}</span></a>

@@ -64,7 +64,8 @@ class PublicTreasuryShareTests(TestCase):
         self.assertNotContains(page, 'id="showcase"')
         self.assertNotContains(page, 'name="public_turn"')
         explore = self.client.get(reverse('explore'))
-        self.assertContains(explore, 'name="public_poet"')
+        self.assertNotContains(explore, 'منتخب‌های گنجینه')
+        self.assertNotContains(explore, 'name="public_poet"')
         self.assertNotContains(explore, 'name="public_turn"')
         self.assertNotIn('treasury_pick', explore.context)
         chosen = self.client.get(reverse('explore'), {
@@ -72,8 +73,8 @@ class PublicTreasuryShareTests(TestCase):
         })
         entry = TreasuryPick.objects.get(entry__key='poem-9590').entry
         self.assertEqual(chosen.status_code, 200)
-        self.assertTrue(chosen.context['picks'])
-        self.assertTrue(all(pick.entry.book.slug == 'saadi' for pick, _ in chosen.context['picks']))
+        self.assertNotIn('picks', chosen.context)
+        self.assertContains(chosen, 'شعرجویی')
         random_page = self.client.get(reverse('discover'))
         self.assertContains(random_page, '<h1>کشف شعر</h1>', html=True)
         self.assertNotIn('picks', random_page.context)

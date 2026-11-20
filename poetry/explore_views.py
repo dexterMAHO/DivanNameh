@@ -11,7 +11,6 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from django.contrib import messages
 
 from accounts.permissions import action_password_error
-from .editorial_views import showcase
 from .http import private
 from .models import ExplorePost, ExploreLike, ExploreSave, ExploreView, Poem, Verse
 from .services.poem_editor import parse_verses
@@ -49,8 +48,9 @@ def index(request):
     if sort not in ordering:
         sort = 'newest'
     posts = posts.order_by(ordering[sort], '-pk')
-    context = showcase(request, explore=True)
-    context.update({'post_page': Paginator(posts, 18).get_page(request.GET.get('page')), 'feed_sort': sort, 'feed_query': query})
+    page = Paginator(posts, 18).get_page(request.GET.get('page'))
+    context = {'post_page': page, 'feed_sort': sort, 'feed_query': query}
+    context['liked_ids'] = set(ExploreLike.objects.filter(user=request.user, post_id__in=[post.pk for post in page]).values_list('post_id', flat=True)) if request.user.is_authenticated else set()
     context['pending_posts'] = ExplorePost.objects.filter(author=request.user, status='pending').count() if request.user.is_authenticated else 0
     return render(request, 'poetry/explore.html', context)
 

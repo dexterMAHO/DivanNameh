@@ -1968,3 +1968,51 @@ input[type=file]::file-selector-button {
 .explore-curated .treasury-pick-card { display: inline-block; inline-size: 100%; break-inside: avoid; text-align: center; background: var(--poem-card-bg); }
 @media (max-width: 1100px) { .explore-masonry, .explore-curated .card-grid { columns: 2; } }
 @media (max-width: 640px) { .explore-masonry, .explore-curated .card-grid { columns: 1; } .explore-social-card { padding: var(--space-4); } }
+
+/* Explore salon: an editorial reading wall, using each active palette. */
+.salon-header { text-align: center; padding-block: var(--space-6); }
+.salon-kicker { display: flex; align-items: center; justify-content: center; gap: var(--space-3); color: var(--color-muted-foreground); font-size: var(--text-xs); }
+.salon-kicker > span { inline-size: 2.5rem; block-size: 1px; background: var(--color-border); }
+.salon-header h1 { font: 700 clamp(3rem, 7vw, 4.5rem)/1.5 var(--font-literary); margin-block: var(--space-3) 0; }
+.salon-header > p { margin: 0; color: var(--color-muted-foreground); }
+.salon-header-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-block-start: var(--space-6); padding-block: var(--space-4); border-block: 1px solid var(--color-border); }
+.salon-total { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--color-muted-foreground); }
+.salon-total strong { color: var(--color-primary); font: 2rem/1 var(--font-literary); }
+.salon-publish { display: inline-flex; align-items: center; gap: var(--space-2); border-radius: var(--radius-pill); }
+.salon-filter { padding: var(--space-4); margin-block-end: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 1rem; }
+.salon-search { display: flex; align-items: center; gap: var(--space-3); padding-inline-start: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-background); }
+.salon-search > .icon { flex: none; color: var(--color-primary); }
+.salon-search input { flex: 1; min-inline-size: 0; border: 0; background: transparent; }
+.salon-search button { border-block: 0; border-inline-end: 0; background: var(--color-primary-soft); }
+.salon-sort { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--space-2); margin-block-start: var(--space-3); }
+.salon-sort button { display: flex; justify-content: center; align-items: center; gap: var(--space-2); border-color: transparent; background: transparent; font-size: var(--text-sm); font-weight: 400; }
+.salon-sort button[aria-pressed=true] { background: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary); font-weight: 700; }
+.explore-salon .salon-poem { position: relative; padding: var(--space-4) var(--space-6); border-radius: .8rem; background: linear-gradient(165deg, color-mix(in srgb, var(--color-primary) 7%, var(--color-surface)), var(--color-surface)); }
+.salon-poem::before { content: ''; position: absolute; inset-inline: 24%; inset-block-start: 0; block-size: 2px; background: linear-gradient(90deg,transparent,var(--color-primary),transparent); }
+.salon-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); color: var(--color-muted-foreground); }
+.salon-form { font-size: .7rem; letter-spacing: .02em; }
+.salon-card-number { font: 1.5rem var(--font-literary); opacity: .5; }
+.salon-card-title { margin-block: var(--space-4); }
+.salon-quill { display: inline-block; color: var(--color-primary); opacity: .65; margin-block-end: var(--space-2); }
+.salon-poem h2 { font-size: 1.75rem; }
+.salon-poem .explore-poet { margin-block: var(--space-2); }
+.salon-poem .explore-poem-preview { position: relative; max-block-size: 30rem; padding-block-start: var(--space-4); }
+.salon-poem .explore-poem-preview p { font-size: 1.2rem; line-height: 2; margin-block: var(--space-4); }
+.salon-quote { position: absolute; inset-inline: 0; inset-block-start: -.75rem; font: 2rem var(--font-literary); color: var(--color-primary); opacity: .35; }
+.salon-poem .explore-read-more { display: inline-flex; align-items: center; gap: var(--space-2); font-style: normal; text-decoration: none; font-size: var(--text-xs); margin-block: var(--space-4); }
+.salon-poem footer { justify-content: start; gap: var(--space-2); padding-block: var(--space-2); }
+.salon-poem footer a { min-block-size: 2.75rem; text-decoration: none; }
+.salon-poem footer .salon-open { margin-inline-start: auto; color: var(--color-primary); }
+.salon-publisher { display: flex; align-items: center; gap: var(--space-2); padding-block-start: var(--space-3); border-block-start: 1px dashed var(--color-border); font-size: .7rem; color: var(--color-muted-foreground); text-align: start; }
+.salon-publisher > span:nth-child(2) { flex: 1; min-inline-size: 0; overflow-wrap: anywhere; }
+.salon-avatar { display: grid; place-items: center; flex: none; inline-size: 1.75rem; block-size: 1.75rem; border: 1px solid var(--color-border); background: var(--color-primary-soft); color: var(--color-primary); border-radius: 50%; font-family: var(--font-literary); }
+.salon-publisher time { white-space: nowrap; font-size: .65rem; }
+.salon-empty { column-span: all; display: grid; justify-items: center; gap: var(--space-3); text-align: center; padding: var(--space-12) var(--space-6); border: 1px dashed var(--color-border); border-radius: 1rem; background: radial-gradient(ellipse at top,var(--color-primary-soft),transparent 75%),var(--color-surface); }
+.salon-empty h2,.salon-empty p { margin: 0; }
+.salon-empty p { color: var(--color-muted-foreground); max-inline-size: 32rem; }
+.salon-empty-art { display: grid; place-items: center; inline-size: 5rem; block-size: 5rem; margin-block-end: var(--space-4); border: 1px solid var(--color-primary); border-radius: 1.5rem; transform: rotate(-8deg); background: var(--color-primary-soft); color: var(--color-primary); }
+.salon-empty-art .icon { inline-size: 2rem; block-size: 2rem; transform: rotate(8deg); }
+.salon-end { display: flex; justify-content: center; align-items: center; gap: var(--space-4); color: var(--color-muted-foreground); padding-block: var(--space-8); }
+.salon-end span { inline-size: 5rem; block-size: 1px; background: var(--color-border); }
+.explore-salon .pagination { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); }
+@media (max-width:640px) { .salon-sort { grid-template-columns:repeat(2,minmax(0,1fr)); } .salon-header-bottom { justify-content:center; } .salon-publish { inline-size:100%; justify-content:center; } .salon-filter { padding:var(--space-3); } .explore-salon .salon-poem { padding-inline:var(--space-4); } }

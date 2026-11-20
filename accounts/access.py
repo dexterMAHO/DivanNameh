@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
@@ -14,7 +14,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
-from .forms import UsernameAccessForm
+from .forms import ReaderLoginForm, UsernameAccessForm
 from .models import User
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,8 @@ def username_access(request, signup=False):
     human_check_enabled = settings.READER_HUMAN_CHECK_ENABLED
     site_key = turnstile_site_key() if human_check_enabled else ''
     target = safe_next(request)
-    form = UsernameAccessForm(request.POST if request.method == 'POST' else None)
+    form_class = UsernameAccessForm if signup else ReaderLoginForm
+    form = form_class(request.POST if request.method == 'POST' else None)
     if site_key or not human_check_enabled:
         del form.fields['human_answer']
     if request.method == 'POST' and form.is_valid():
@@ -92,6 +93,8 @@ def username_access(request, signup=False):
                     return redirect(target or 'dashboard')
             else:
                 user = readers().filter(username=username).first()
+                if user is None and form.cleaned_data.get('password'):
+                    user = authenticate(request, username=username, password=form.cleaned_data['password'])
                 if user is not None:
                     login(request, user)
                     return redirect(target or 'dashboard')

@@ -8,6 +8,7 @@
     {{ form.non_field_errors }}
     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
     <div>{{ form.username.as_field_group }}</div>
+    {% if not signup %}<details class="manager-login"{% if form.is_bound %} open{% endif %}><summary>ورود با حساب مدیر</summary>{{ form.password.as_field_group }}</details>{% endif %}
     {% if human_check_enabled %}
     {% if site_key %}
     <div class="cf-turnstile" data-sitekey="{{ site_key }}" data-action="reader-access"></div>

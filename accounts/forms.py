@@ -16,6 +16,12 @@ class UsernameAccessForm(forms.Form):
     human_answer = forms.IntegerField(label='حاصل جمع', required=False)
 
 
+class ReaderLoginForm(UsernameAccessForm):
+    password = forms.CharField(label='رمز حساب مدیر', required=False, max_length=128,
+                               widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
+                               help_text='فقط برای حساب مدیر لازم است؛ کاربران عادی با نام کاربری وارد می‌شوند.')
+
+
 class ThemeForm(forms.ModelForm):
     class Meta:
         model = User

@@ -110,3 +110,19 @@ class SignupErrorTests(TestCase):
         response = self.client.post('/signup/', {'username': 'second-reader'})
         self.assertRedirects(response, '/')
         self.assertEqual(get_user_model().objects.count(), 2)
+
+
+@override_settings(READER_HUMAN_CHECK_ENABLED=False)
+class ManagerReaderLoginTests(TestCase):
+    def test_superuser_can_use_personal_library_with_password(self):
+        user = get_user_model().objects.create_superuser('manager-reader', password='manager-password-314')
+        response = self.client.post('/login/', {'username': user.username, 'password': 'manager-password-314', 'next': '/poems/'})
+        self.assertRedirects(response, '/poems/')
+        self.assertEqual(self.client.get('/admin/').status_code, 200)
+        self.assertEqual(self.client.get('/settings/').status_code, 200)
+
+    def test_superuser_password_is_required(self):
+        user = get_user_model().objects.create_superuser('manager-reader', password='manager-password-314')
+        for password in ('', 'incorrect'):
+            self.client.post('/login/', {'username': user.username, 'password': password})
+            self.assertNotIn('_auth_user_id', self.client.session)

@@ -2,16 +2,17 @@
 {% load persian %}
 {% block title %}{{ lesson.title }} · آموزش{% endblock %}
 {% block content %}
+<div class="guide-academy guide-lesson-page">
 <nav class="breadcrumb" aria-label="مسیر آموزش"><a href="{% url 'guide' %}">فهرست آموزش</a></nav>
-<header class="page-heading compact">
-  <div><p class="eyebrow">درس {{ number|persian }} از {{ total|persian }}{% if done %} · کامل شده{% endif %}</p><h1>{{ lesson.title }}</h1><p>{{ lesson.objective }}</p></div>
+<header class="page-heading compact academy-lesson-hero">
+  <span class="academy-lesson-icon" aria-hidden="true">{% include 'components/icon.html' with name=lesson.icon %}</span><div><p class="eyebrow">درس {{ number|persian }} از {{ total|persian }}{% if done %} · کامل شده{% endif %}</p><h1>{{ lesson.title }}</h1><p>{{ lesson.objective }}</p></div>
 </header>
 <section class="panel guide-instructions">
-  <h2>مراحل انجام</h2>
+  <div class="academy-instructions-heading"><h2>قدم‌های این درس</h2><span class="chip">{{ lesson.steps|length|persian }} قدم</span></div>
   <ol>
     {% for step in lesson.steps %}<li>{{ step }}</li>{% endfor %}
   </ol>
-  <a class="button" href="{% url lesson.route %}">{{ lesson.action }}</a>
+  <a class="button primary academy-try" href="{% url lesson.route %}">{{ lesson.action }}</a>
 </section>
 <nav class="guide-navigation actions" aria-label="ناوبری درس">
   {% if previous %}<a class="button" href="{% url 'guide-lesson' previous.slug %}">درس قبلی</a>{% endif %}
@@ -21,4 +22,5 @@
   </form>
   {% if following %}<a class="text-button" href="{% url 'guide-lesson' following.slug %}">رفتن به درس بعدی</a>{% endif %}
 </nav>
+</div>
 {% endblock %}

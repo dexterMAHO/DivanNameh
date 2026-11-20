@@ -2,29 +2,19 @@
 {% load persian %}
 {% block title %}آموزش دیوان‌نامه{% endblock %}
 {% block content %}
-<header class="page-heading compact">
-  <div><h1>آموزش دیوان‌نامه</h1><p>مسیری که همین حالا به آن نیاز دارید انتخاب کنید یا درس‌ها را به‌ترتیب پیش ببرید.</p></div>
-</header>
-<section class="panel guide-progress" aria-labelledby="guide-progress-label">
-  <div>
-    <label id="guide-progress-label" for="guide-progress">پیشرفت آموزش</label>
-    <progress id="guide-progress" max="{{ total }}" value="{{ completed|length }}"></progress>
-    <p class="fine">{{ completed|length|persian }} از {{ total|persian }} درس کامل شده در این نشست</p>
-  </div>
-  {% if next_lesson %}
-  <a class="button primary" href="{% url 'guide-lesson' next_lesson.slug %}">{% if completed %}ادامهٔ آموزش{% else %}شروع آموزش{% endif %}</a>
-  {% endif %}
+<div class="guide-academy">
+<header class="academy-hero"><span class="academy-emblem" aria-hidden="true">{% include 'components/icon.html' with name='learning' %}</span><span class="eyebrow">از نخستین بیت تا یک دفتر ماندگار</span><h1>آموزش دیوان‌نامه</h1><p>مسیری که همین حالا به آن نیاز دارید انتخاب کنید یا درس‌ها را به‌ترتیب پیش ببرید.</p><span class="chip">{{ total|persian }} درس کاربردی · قدم‌به‌قدم</span></header>
+<section class="panel guide-progress academy-progress" aria-labelledby="guide-progress-label">
+  <div><label id="guide-progress-label" for="guide-progress">مسیر یادگیری شما</label><progress id="guide-progress" max="{{ total }}" value="{{ completed|length }}"></progress><p class="fine">{{ completed|length|persian }} از {{ total|persian }} درس کامل شده در این نشست</p></div>
+  {% if next_lesson %}<a class="button primary" href="{% url 'guide-lesson' next_lesson.slug %}">{% if completed %}ادامهٔ آموزش{% else %}شروع آموزش{% endif %} {% include 'components/icon.html' with name='arrow' %}</a>{% else %}<span class="academy-finished">{% include 'components/icon.html' with name='check' %} همهٔ درس‌ها کامل شد</span>{% endif %}
 </section>
 <ol class="guide-lessons card-grid" role="list">
-  {% for lesson in lessons %}
-  <li class="panel">
-    <div class="section-heading">
-      <span class="discovery-icon">{% include 'components/icon.html' with name=lesson.icon %}</span>
-      {% if lesson.slug in completed %}<span class="chip">کامل شده</span>{% endif %}
-    </div>
-    <h2><a href="{% url 'guide-lesson' lesson.slug %}">{{ lesson.title }}</a></h2>
-    <p>{{ lesson.objective }}</p>
-  </li>
-  {% endfor %}
+  {% for lesson in lessons %}<li class="panel academy-lesson{% if lesson.slug in completed %} is-complete{% endif %}">
+    <div class="academy-card-top"><span class="academy-lesson-icon" aria-hidden="true">{% include 'components/icon.html' with name=lesson.icon %}</span><span class="academy-lesson-number">{{ forloop.counter|persian }}</span></div>
+    <span class="academy-status">{% if lesson.slug in completed %}{% include 'components/icon.html' with name='check' %} کامل شده{% else %}آمادهٔ یادگیری{% endif %}</span>
+    <h2><a href="{% url 'guide-lesson' lesson.slug %}">{{ lesson.title }}</a></h2><p>{{ lesson.objective }}</p>
+    <a class="inline-link academy-lesson-link" href="{% url 'guide-lesson' lesson.slug %}">{% if lesson.slug in completed %}مرور دوبارهٔ درس{% else %}باز کردن درس{% endif %} {% include 'components/icon.html' with name='arrow' %}</a>
+  </li>{% endfor %}
 </ol>
+</div>
 {% endblock %}

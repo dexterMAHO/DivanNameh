@@ -2,11 +2,15 @@
 {% load persian %}
 {% block title %}تنظیمات حساب{% endblock %}
 {% block content %}
-<header class="page-heading compact"><div><span class="eyebrow">دفتر، به سلیقهٔ شما</span><h1>تنظیمات حساب</h1><p>ظاهر دفتر و تنظیمات ورودتان را از اینجا مدیریت کنید.</p></div></header>
-<p><a href="{% url 'my-shares' %}">اشتراک‌های من</a></p>
+<div class="settings-studio">
+<header class="settings-hero">
+  <div class="settings-hero-identity">{% include 'components/avatar.html' %}<div><span class="eyebrow">دفتر، به سلیقهٔ شما</span><h1>تنظیمات حساب</h1><p>{{ user.display_name }}، اینجا دفترتان را شخصی کنید.</p></div></div>
+  <a class="button" href="{% url 'my-shares' %}">{% include 'components/icon.html' with name='share' %} اشتراک‌های من</a>
+</header>
+<nav class="settings-shortcuts" aria-label="بخش‌های تنظیمات"><a href="#appearance-heading">{% include 'components/icon.html' with name='sun' %} ظاهر دفتر</a><a href="#reading-preferences">{% include 'components/icon.html' with name='book' %} خواندن</a><a href="#profile-settings">{% include 'components/icon.html' with name='user' %} پروفایل</a><a href="#password-settings">{% include 'components/icon.html' with name='lock' %} امنیت</a></nav>
 <div class="settings-grid">
   <section class="panel appearance-panel" aria-labelledby="appearance-heading">
-    <h2 id="appearance-heading">ظاهر دفتر</h2>
+    <div class="settings-section-heading"><span class="settings-section-icon" aria-hidden="true">{% include 'components/icon.html' with name='sun' %}</span><div><span class="eyebrow">رنگی از سلیقهٔ شما</span><h2 id="appearance-heading">ظاهر دفتر</h2></div></div>
     <p class="muted" id="appearance-help">انتخاب شما بلافاصله اعمال و به‌صورت خودکار برای همهٔ صفحات و دستگاه‌ها ذخیره می‌شود.</p>
     <form method="post" id="appearance-form" aria-describedby="appearance-help">
       {% csrf_token %}
@@ -26,6 +30,10 @@
           {% endfor %}
         </div>
       </fieldset>
+      <fieldset class="custom-palette-editor" id="custom-palette-editor"{% if user.palette != 'custom' %} hidden{% endif %}>
+        <legend>پالت شخصی شما</legend><p class="fine">دو رنگ دلخواهتان را انتخاب کنید؛ رنگ سوم و کنتراست متن برای خوانایی به‌صورت خودکار تنظیم می‌شوند.</p>
+        <div class="custom-color-grid"><div>{{ theme_form.custom_primary.as_field_group }}</div><div>{{ theme_form.custom_accent.as_field_group }}</div><div class="custom-auto-color"><span aria-hidden="true"></span><strong>رنگ متن</strong><small>هماهنگ با حالت نمایش</small></div></div>
+      </fieldset>
       <div class="appearance-preview" aria-label="نمونهٔ ظاهر دفتر">
         <span class="eyebrow">پیش‌نمایش دفتر شما</span>
         <p>هر روز، چند بیت نزدیک‌تر.</p>
@@ -36,7 +44,7 @@
   </section>
 
   <section class="panel" id="reading-preferences">
-    <h2>خواندن شعر</h2>
+    <div class="settings-section-heading"><span class="settings-section-icon" aria-hidden="true">{% include 'components/icon.html' with name='book' %}</span><div><span class="eyebrow">خواندن، به شیوهٔ دلخواهتان</span><h2>خواندن شعر</h2></div></div>
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="section" value="reading">
@@ -47,7 +55,7 @@
 
   {% if not user.is_staff and not user.is_superuser %}
   <section class="panel">
-    <h2>بازیابی حساب</h2>
+    <div class="settings-section-heading"><span class="settings-section-icon" aria-hidden="true">{% include 'components/icon.html' with name='bookmark' %}</span><div><span class="eyebrow">راه بازگشت به دفتر</span><h2>بازیابی حساب</h2></div></div>
     <p>کد بازیابی را جایی امن، جدا از این مرورگر، نگه دارید. هر کد یک بار قابل استفاده است. ساخت کد تازه، کد قبلی را باطل می‌کند.</p>
     {% if recovery_code %}
       <label for="issued-recovery-code">کد بازیابی</label>
@@ -61,8 +69,8 @@
     </form>
   </section>
   {% endif %}
-  <section class="panel">
-    <h2>عکس پروفایل</h2>
+  <section class="panel" id="profile-settings">
+    <div class="settings-section-heading"><span class="settings-section-icon" aria-hidden="true">{% include 'components/icon.html' with name='user' %}</span><div><span class="eyebrow">چهرهٔ شما در دفتر</span><h2>عکس پروفایل</h2></div></div>
     {% include 'components/avatar.html' %}
     <p class="muted">JPG، PNG یا WebP تا ۱ مگابایت و حداکثر ۴۰۹۶ پیکسل در هر ضلع</p>
     <form method="post" enctype="multipart/form-data">
@@ -77,8 +85,8 @@
     </form>
     {% endif %}
   </section>
-  <section class="panel">
-    <h2>رمز عملیات</h2>
+  <section class="panel" id="password-settings">
+    <div class="settings-section-heading"><span class="settings-section-icon" aria-hidden="true">{% include 'components/icon.html' with name='lock' %}</span><div><span class="eyebrow">حفاظت از تغییرات مهم</span><h2>رمز عملیات</h2></div></div>
     <p class="muted">برای برداشتن شعر از کتابخانه ابتدا رمز عملیات را فعال کنید. پس از فعال‌سازی، برای درخواست ویرایش و افزودن شعر به فهرست حفظ نیز همین رمز را وارد می‌کنید.</p>
     <p class="fine">رمزی با حداقل ۸ نویسه انتخاب کنید که رایج، فقط عدد یا شبیه نام کاربری نباشد.</p>
     <form method="post">
@@ -90,4 +98,5 @@
   </section>
 </div>
 <p class="fine"><a href="{% url 'design-system' %}">مرجع اجزای رابط و نمونهٔ حالت‌ها</a></p>
+</div>
 {% endblock %}

@@ -1866,3 +1866,80 @@ input[type=file]::file-selector-button {
   .review-studio .practice-mode > label { flex: 1; min-inline-size: 0; margin: 0; }
   .review-studio.is-focused .review-journey { display: none; }
 }
+
+/* Settings studio and two-color personal palettes. */
+.settings-hero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: linear-gradient(135deg, var(--color-primary-soft), var(--color-surface)); }
+.settings-hero-identity { display: flex; align-items: center; gap: var(--space-4); min-inline-size: 0; }
+.settings-hero-identity > div { min-inline-size: 0; }
+.settings-hero h1 { margin: 0; font-size: clamp(1.75rem, 4vw, 2.5rem); }
+.settings-hero p { margin: var(--space-2) 0 0; color: var(--color-muted-foreground); overflow-wrap: anywhere; }
+.settings-hero .avatar { inline-size: 4.5rem; block-size: 4.5rem; border: 2px solid var(--color-primary); box-shadow: 0 0 0 5px var(--color-primary-soft); }
+.settings-hero > .button { display: inline-flex; align-items: center; gap: var(--space-2); }
+.settings-shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); margin-block: var(--space-6); }
+.settings-shortcuts a { display: flex; justify-content: center; align-items: center; gap: var(--space-2); padding: var(--space-3); min-block-size: 3rem; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); text-decoration: none; font-size: var(--text-sm); }
+.settings-shortcuts a .icon { color: var(--color-primary); }
+.settings-shortcuts a:hover { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.settings-studio .settings-grid > .panel { border-block-start: 3px solid var(--color-primary); background: linear-gradient(155deg, var(--color-primary-soft), transparent 35%), var(--color-surface); scroll-margin-block-start: var(--space-6); }
+.settings-section-heading { display: flex; align-items: center; gap: var(--space-3); margin-block-end: var(--space-4); }
+.settings-section-heading > div { min-inline-size: 0; }
+.settings-section-heading h2 { margin: 0; }
+.settings-section-heading .eyebrow { font-size: var(--text-xs); }
+.settings-section-icon { display: grid; place-items: center; flex: none; inline-size: 3rem; block-size: 3rem; border-radius: var(--radius-card); border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-primary); }
+.settings-studio #profile-settings > .avatar { inline-size: 5rem; block-size: 5rem; margin-block: var(--space-4); border-color: var(--color-primary); }
+.settings-studio .appearance-preview { position: relative; background: radial-gradient(ellipse at top right, var(--color-primary-soft), transparent 80%), var(--color-background); }
+.settings-studio .appearance-preview p { color: var(--color-primary); }
+.custom-palette-editor { border: 1px dashed var(--color-primary); border-radius: var(--radius-card); padding: var(--space-4); margin-block-end: var(--space-4); background: var(--color-background); }
+.custom-palette-editor[hidden] { display: none; }
+.custom-palette-editor legend { padding-inline: var(--space-2); font-weight: 700; color: var(--color-primary); }
+.custom-color-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.custom-color-grid > div { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); min-inline-size: 0; }
+.custom-color-grid label { margin: 0; font-size: var(--text-sm); font-weight: 700; }
+.custom-color-grid input[type=color] { inline-size: 100%; block-size: 3rem; padding: 3px; cursor: pointer; border-radius: var(--radius-control); }
+.custom-auto-color > span { display: block; block-size: 3rem; background: var(--color-foreground); border-radius: var(--radius-control); order: 1; }
+.custom-auto-color strong { font-size: var(--text-sm); }
+.custom-auto-color small { order: 2; font-size: var(--text-xs); color: var(--color-muted-foreground); }
+[data-swatch="custom"] { --swatch-bg: var(--custom-accent-seed, #3a4157); --swatch-accent: var(--custom-primary-seed, #6a4b8c); --swatch-ink: var(--color-foreground); }
+
+/* Learning academy: numbered lesson cards and a step-by-step reading path. */
+.academy-hero { display: grid; justify-items: center; gap: var(--space-3); text-align: center; padding: var(--space-8) var(--space-4); margin-block-end: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: radial-gradient(ellipse at top, var(--color-primary-soft), transparent 75%), var(--color-surface); }
+.academy-hero h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); }
+.academy-hero p { max-inline-size: 45rem; margin: 0; color: var(--color-muted-foreground); }
+.academy-emblem { display: grid; place-items: center; inline-size: 4rem; block-size: 4rem; border: 1px solid var(--color-primary); border-radius: 1.5rem; background: var(--color-primary-soft); color: var(--color-primary); transform: rotate(-6deg); }
+.academy-emblem .icon { inline-size: 2rem; block-size: 2rem; transform: rotate(6deg); }
+.guide-academy .academy-progress { border-inline-start: 4px solid var(--color-primary); background: var(--color-primary-soft); }
+.academy-progress > div { flex: 1; min-inline-size: min(100%, 15rem); }
+.academy-progress progress { inline-size: 100%; max-inline-size: 30rem; block-size: .65rem; }
+.academy-progress label { font-weight: 700; }
+.academy-progress .button, .academy-finished { display: inline-flex; align-items: center; gap: var(--space-2); }
+.guide-academy .academy-lesson { display: flex; flex-direction: column; border-block-start: 3px solid var(--color-border); background: radial-gradient(ellipse at top right, var(--color-primary-soft), transparent 65%), var(--color-surface); }
+.guide-academy .academy-lesson.is-complete { border-block-start-color: var(--color-primary); }
+.academy-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.academy-lesson-icon { display: grid; place-items: center; flex: none; inline-size: 3rem; block-size: 3rem; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-primary-soft); color: var(--color-primary); }
+.academy-lesson-number { color: var(--color-primary); opacity: .55; font: 2.75rem var(--font-literary); }
+.academy-status { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--color-muted-foreground); margin-block-start: var(--space-3); }
+.is-complete .academy-status { color: var(--color-primary); }
+.academy-lesson h2 { font-size: 1.375rem; }
+.academy-lesson h2 a { text-decoration: none; }
+.academy-lesson > p { color: var(--color-muted-foreground); font-size: var(--text-sm); }
+.academy-lesson-link { margin-block-start: auto; padding-block-start: var(--space-3); border-block-start: 1px dashed var(--color-border); }
+.guide-lesson-page .academy-lesson-hero { align-items: center; justify-content: start; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: linear-gradient(135deg, var(--color-primary-soft), var(--color-surface)); }
+.academy-instructions-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); }
+.academy-instructions-heading h2 { margin: 0; }
+.guide-academy .guide-instructions ol { list-style: none; padding: 0; counter-reset: lesson-step; margin-block: var(--space-6); }
+.guide-academy .guide-instructions li { counter-increment: lesson-step; position: relative; padding: var(--space-4); padding-inline-start: 4rem; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-background); line-height: 2; }
+.guide-academy .guide-instructions li::before { content: counter(lesson-step, persian); position: absolute; inset-inline-start: var(--space-4); inset-block-start: var(--space-4); display: grid; place-items: center; inline-size: 2rem; block-size: 2rem; border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
+.academy-try { display: inline-flex; align-items: center; gap: var(--space-2); }
+.guide-academy .guide-navigation { flex-wrap: wrap; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); }
+.guide-navigation form { margin: 0; }
+@media (max-width: 768px) {
+  .settings-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+  .settings-hero { padding: var(--space-4); }
+  .settings-hero-identity { gap: var(--space-3); }
+  .settings-hero .avatar { inline-size: 3.25rem; block-size: 3.25rem; }
+  .custom-color-grid { gap: var(--space-2); }
+  .custom-color-grid > div { padding: var(--space-2); }
+  .guide-lesson-page .academy-lesson-hero { flex-direction: row; align-items: start; gap: var(--space-3); padding: var(--space-4); }
+  .guide-lesson-page .academy-lesson-hero > div { flex: 1; min-inline-size: 0; }
+  .guide-navigation .button, .guide-navigation form { inline-size: 100%; }
+  .guide-navigation form button { inline-size: 100%; }
+}

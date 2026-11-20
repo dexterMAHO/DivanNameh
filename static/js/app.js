@@ -260,10 +260,15 @@ if (appearanceForm) {
   const root = document.documentElement;
   const status = document.getElementById('appearance-status');
   const controls = [...appearanceForm.querySelectorAll('select, input:not([type="hidden"])')];
-  let saved = {theme: root.dataset.theme, palette: root.dataset.palette};
+  let saved = {theme: root.dataset.theme, palette: root.dataset.palette,
+    customPrimary: root.dataset.customPrimary, customAccent: root.dataset.customAccent};
+  const customEditor = document.getElementById('custom-palette-editor');
+  const updateEditor = () => { if (customEditor) customEditor.hidden = appearanceForm.elements.palette.value !== 'custom'; };
   appearanceForm.addEventListener('submit', event => event.preventDefault());
   appearanceForm.addEventListener('change', async () => {
-    const selected = {theme: appearanceForm.elements.theme.value, palette: appearanceForm.elements.palette.value};
+    const selected = {theme: appearanceForm.elements.theme.value, palette: appearanceForm.elements.palette.value,
+      customPrimary: appearanceForm.elements.custom_primary.value, customAccent: appearanceForm.elements.custom_accent.value};
+    updateEditor();
     const body = new FormData(appearanceForm);
     Object.assign(root.dataset, selected);
     controls.forEach(control => control.disabled = true);
@@ -278,7 +283,9 @@ if (appearanceForm) {
       const page = new DOMParser().parseFromString(await response.text(), 'text/html');
       if (!response.ok || !response.redirected ||
           page.documentElement.dataset.theme !== selected.theme ||
-          page.documentElement.dataset.palette !== selected.palette) {
+          page.documentElement.dataset.palette !== selected.palette ||
+          page.documentElement.dataset.customPrimary !== selected.customPrimary ||
+          page.documentElement.dataset.customAccent !== selected.customAccent) {
         throw new Error('ظاهر ذخیره نشد. دوباره انتخاب کنید.');
       }
       saved = selected;
@@ -287,6 +294,9 @@ if (appearanceForm) {
       Object.assign(root.dataset, saved);
       appearanceForm.elements.theme.value = saved.theme;
       appearanceForm.elements.palette.value = saved.palette;
+      appearanceForm.elements.custom_primary.value = saved.customPrimary;
+      appearanceForm.elements.custom_accent.value = saved.customAccent;
+      updateEditor();
       showStatus(status, 'ظاهر ذخیره نشد. اتصال را بررسی و دوباره انتخاب کنید.', true);
     } finally {
       controls.forEach(control => control.disabled = false);

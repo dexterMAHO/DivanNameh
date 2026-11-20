@@ -25,9 +25,20 @@ class ThemeForm(forms.ModelForm):
 
 class AppearanceForm(ThemeForm):
     class Meta(ThemeForm.Meta):
-        fields = ['theme', 'palette']
-        labels = {'theme': 'حالت نمایش', 'palette': 'پالت رنگی'}
-        widgets = {'palette': forms.RadioSelect}
+        fields = ['theme', 'palette', 'custom_primary', 'custom_accent']
+        labels = {'theme': 'حالت نمایش', 'palette': 'پالت رنگی', 'custom_primary': 'رنگ اصلی', 'custom_accent': 'رنگ مکمل'}
+        widgets = {'palette': forms.RadioSelect, 'custom_primary': forms.TextInput(attrs={'type': 'color'}), 'custom_accent': forms.TextInput(attrs={'type': 'color'})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ('custom_primary', 'custom_accent'):
+            self.fields[name].required = False
+
+    def clean_custom_primary(self):
+        return (self.cleaned_data.get('custom_primary') or self.instance.custom_primary).lower()
+
+    def clean_custom_accent(self):
+        return (self.cleaned_data.get('custom_accent') or self.instance.custom_accent).lower()
 
 
 class ActionPasswordForm(forms.Form):

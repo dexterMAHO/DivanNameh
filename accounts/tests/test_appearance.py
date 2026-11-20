@@ -53,3 +53,33 @@ class AppearanceTests(TestCase):
         response = self.client.get('/settings/')
         self.assertFalse(response.context['photo_form'].is_bound)
         self.assertNotContains(response, 'aria-invalid="true"')
+
+    def test_custom_palette_persists_across_pages_and_header_toggle(self):
+        response = self.client.post('/settings/', {
+            'section': 'theme', 'theme': 'auto', 'palette': 'custom',
+            'custom_primary': '#AA3366', 'custom_accent': '#225577',
+        }, follow=True)
+        self.user.refresh_from_db()
+        self.assertEqual((self.user.palette, self.user.custom_primary, self.user.custom_accent), ('custom', '#aa3366', '#225577'))
+        self.assertContains(response, 'data-custom-primary="#aa3366"')
+        self.assertContains(self.client.get('/poems/'), 'data-custom-accent="#225577"')
+        self.client.post('/settings/theme/', {'theme': 'dark'})
+        self.user.refresh_from_db()
+        self.assertEqual((self.user.palette, self.user.custom_primary, self.user.custom_accent), ('custom', '#aa3366', '#225577'))
+
+    def test_custom_colors_reject_invalid_values_without_partial_save(self):
+        for color in ('red', '#fff', '" style="color:red', '#12zz34'):
+            with self.subTest(color=color):
+                response = self.client.post('/settings/', {
+                    'section': 'theme', 'theme': 'dark', 'palette': 'custom',
+                    'custom_primary': color, 'custom_accent': '#123456',
+                })
+                self.assertIn('custom_primary', response.context['theme_form'].errors)
+                self.user.refresh_from_db()
+                self.assertEqual((self.user.palette, self.user.theme), ('museum', 'auto'))
+
+    def test_ready_palette_retains_previously_selected_custom_colors(self):
+        get_user_model().objects.filter(pk=self.user.pk).update(custom_primary='#abcdef', custom_accent='#123456')
+        self.client.post('/settings/', {'section': 'theme', 'theme': 'light', 'palette': 'ocean'})
+        self.user.refresh_from_db()
+        self.assertEqual((self.user.custom_primary, self.user.custom_accent), ('#abcdef', '#123456'))

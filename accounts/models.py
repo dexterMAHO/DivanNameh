@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.hashers import check_password
 from django.db import models
+from django.core.validators import RegexValidator
 
 
 class User(AbstractUser):
@@ -15,8 +16,11 @@ class User(AbstractUser):
 
     palette = models.CharField(max_length=12, choices=[
         ('museum', 'شبِ موزه'), ('paper', 'کاغذ و انار'), ('ocean', 'لاجورد'),
-        ('forest', 'سرو'), ('plum', 'ارغوان'),
+        ('forest', 'سرو'), ('plum', 'ارغوان'), ('custom', 'تم شخصی'),
     ], default='museum')
+
+    custom_primary = models.CharField(max_length=7, default='#6a4b8c', db_default='#6a4b8c', validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$', 'یک رنگ معتبر انتخاب کنید.')])
+    custom_accent = models.CharField(max_length=7, default='#3a4157', db_default='#3a4157', validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$', 'یک رنگ معتبر انتخاب کنید.')])
 
     recovery_digest = models.CharField(max_length=64, unique=True, null=True, blank=True, editable=False)
     reading_size = models.CharField(max_length=8, choices=[

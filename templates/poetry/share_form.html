@@ -19,7 +19,7 @@
         {% for position, first, second in data.rows %}
         <label class="share-choice">
           <input type="checkbox" name="verse" value="{{ position }}" {% if selection == 'selected' and position in chosen %}checked{% endif %}>
-          <span><span class="fine">بیت {{ position|persian }}</span><span class="share-choice-text">{{ first }}{% if second %}<br>{{ second }}{% endif %}</span></span>
+          <span><span class="fine">بیت {{ position|persian }}</span><span class="share-choice-text poem-line">{{ first }}{% if second %}<br>{{ second }}{% endif %}</span></span>
         </label>
         {% endfor %}
       </div>

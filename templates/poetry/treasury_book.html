@@ -134,7 +134,7 @@
     {% for link, here, other, row, url in literary_links %}
     <article class="literary-link">
       <h3>{{ link.get_kind_display }} · <a href="#verse-{{ here }}">بیت {{ here|persian }}</a></h3>
-      <blockquote class="literary-quote">{{ row.0 }}<br>{{ row.1 }}</blockquote>
+      <blockquote class="literary-quote poem-line">{{ row.0 }}<br>{{ row.1 }}</blockquote>
       <p>{{ link.explanation }}</p>
       <a href="{{ url }}">{{ other.entry.book.author }} · رفتن به بیت</a>
       {% if link.source_url %} · <a href="{{ link.source_url }}" rel="nofollow noopener">منبع ارتباط</a>{% endif %}

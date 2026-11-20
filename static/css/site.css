@@ -1,18 +1,3 @@
-@font-face {
-  font-family: Parastoo;
-  src: url('../fonts/Parastoo.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: Parastoo;
-  src: url('../fonts/Parastoo-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* DivanNameh — دفتر ادبی معاصر.
    Implementation of design-system/divannameh/MASTER.md over tokens.css. */
 
@@ -26,6 +11,18 @@
   font-family: Naskh;
   src: url('../fonts/NotoNaskhArabic.woff2') format('woff2');
   font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mirza;
+  src: url('../fonts/Mirza.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mirza;
+  src: url('../fonts/Mirza-Bold.woff2') format('woff2');
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -714,7 +711,6 @@ a.chip:hover { border-color: var(--color-primary); color: var(--color-primary); 
   line-height: 2.2;
   color: var(--color-muted-foreground);
   margin: var(--space-2) 0;
-  overflow-wrap: break-word;
 }
 
 /* Recent poems on the dashboard. */
@@ -826,9 +822,21 @@ section.poetry-panel, #preview.poetry-panel, #discovery.poetry-panel {
   min-width: 0;
   transition: background var(--duration-surface) var(--ease-out);
 }
-.hemistich { white-space: pre-wrap; overflow-wrap: anywhere; text-align: start; }
+.hemistich { text-align: start; }
 .hemistich + .hemistich { text-align: end; }
 .hemistich:only-of-type { grid-column: 1 / -1; text-align: center; }
+
+/* No hemistich is ever shown on two lines: poetry lines refuse to break, and
+   js/verse-fit.js shrinks each verse until its longest line fits the column. */
+.hemistich, .cue, .poem-line {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  overflow-x: clip;
+  overflow-clip-margin: .35em;
+}
+/* A line too long for even the smallest type keeps a way to reach its end. */
+[data-verse-overflow] { overflow: auto hidden; scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
 .verse-number {
   position: absolute;
   inset-inline-start: var(--space-2);
@@ -1231,8 +1239,6 @@ summary.button::-webkit-details-marker { display: none; }
   justify-self: start;
   max-inline-size: 100%;
   border-block-end: 1px solid var(--color-border);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 .treasury-text .verse-number {
   inset-inline-start: 0;
@@ -1522,12 +1528,12 @@ input[type=file]::file-selector-button {
 
 .treasury-stanza[id] { scroll-margin-block-start: 5rem; }
 .treasury-stanza:target { background: var(--color-primary-soft); }
-.literary-quote, .share-hemistich { font: 1.3rem/2 var(--font-poem); overflow-wrap: anywhere; }
+.literary-quote, .share-hemistich { font: 1.3rem/2 var(--font-poem); }
 .literary-link + .literary-link { border-block-start: 1px solid var(--color-border); }
 .literary-quote mark { padding-inline: 0.1em; background: var(--color-primary-soft); color: var(--color-foreground); text-decoration: underline; }
 .share-choices { max-block-size: 26rem; overflow: auto; margin-block: var(--space-3); }
 .share-choice { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--space-3); padding: var(--space-2); border-block-end: 1px solid var(--color-border); }
-.share-choice-text { display: block; font-family: var(--font-poem); overflow-wrap: anywhere; }
+.share-choice-text { display: block; font-family: var(--font-poem); }
 .share-sheet { padding: var(--space-5); }
 .share-verse { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--space-2); padding-block: var(--space-2); }
 .share-position { color: var(--color-muted-foreground); }
@@ -1610,7 +1616,7 @@ input[type=file]::file-selector-button {
 .palace-verse { padding-block: var(--space-3); margin-block-end: var(--space-4); }
 .palace-verse .verse { grid-template-columns: minmax(0, 1fr); text-align: center; border: 0; padding: var(--space-4) 0; gap: var(--space-2); }
 .palace-verse .verse-number { display: none; }
-.palace-verse .hemistich { text-align: center; overflow-wrap: anywhere; }
+.palace-verse .hemistich { text-align: center; }
 .palace-ornament { display: block; inline-size: 45%; block-size: 1px; margin-inline: auto; background: linear-gradient(90deg, transparent, var(--color-primary), transparent); position: relative; }
 .palace-ornament::after { content: ''; position: absolute; inset-inline-start: calc(50% - 3px); inset-block-start: -3px; inline-size: 7px; block-size: 7px; transform: rotate(45deg); background: var(--color-primary); }
 .palace-card .tags { margin-block-end: var(--space-4); }
@@ -1745,7 +1751,7 @@ input[type=file]::file-selector-button {
 .treasury-pick-author .eyebrow { margin: 0; }
 .treasury-gallery .treasury-pick-card h2 { font-size: 1.25rem; margin-block: var(--space-4); overflow-wrap: anywhere; }
 .treasury-gallery .treasury-pick-card h2 a { text-decoration: none; }
-.treasury-gallery .literary-quote { margin: 0 0 var(--space-4); padding: var(--space-4); border-inline-start: 2px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-primary-soft); font-family: var(--font-poem); line-height: 2.2; overflow-wrap: anywhere; }
+.treasury-gallery .literary-quote { margin: 0 0 var(--space-4); padding: var(--space-4); border-inline-start: 2px solid var(--color-primary); border-radius: var(--radius-control); background: var(--color-primary-soft); font-family: var(--font-poem); line-height: 2.2; }
 .treasury-pick-link { margin-block-start: auto; padding-block-start: var(--space-3); border-block-start: 1px solid var(--color-border); }
 .treasury-gallery .treasury-themes { margin-block: var(--space-6); }
 .treasury-gallery .treasury-theme-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-3); padding: 0; list-style: none; }
@@ -1821,7 +1827,7 @@ input[type=file]::file-selector-button {
 .memory-state { display: inline-flex; align-items: center; min-block-size: 1.75rem; padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); font-size: var(--text-xs); }
 .memory-state.is-ready { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
 .memory-state.is-paused, .memory-state.is-archived { color: var(--color-muted-foreground); }
-.memory-excerpt { font: 1.25rem/2 var(--font-poem); border-inline-start: 2px solid var(--color-border); padding-inline-start: var(--space-3); overflow-wrap: anywhere; }
+.memory-excerpt { font: 1.25rem/2 var(--font-poem); border-inline-start: 2px solid var(--color-border); padding-inline-start: var(--space-3); }
 .memory-card-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin-block: var(--space-3); }
 .memory-card-metrics span { display: grid; gap: var(--space-1); text-align: center; padding: var(--space-2); border-radius: var(--radius-control); background: var(--color-background); font-size: var(--text-xs); }
 .memory-card-metrics strong { font-size: 1.5rem; color: var(--color-primary); }
@@ -1843,7 +1849,7 @@ input[type=file]::file-selector-button {
 .review-focus-toggle[aria-pressed="true"] { background: var(--color-primary-soft); border-color: var(--color-primary); }
 .review-studio .review-card { border-block-start: 4px solid var(--color-primary); background: radial-gradient(ellipse at top, var(--color-primary-soft), transparent 65%), var(--color-surface); box-shadow: var(--shadow-card); }
 .review-studio .review-card h2 { font-family: var(--font-literary); }
-.review-studio .cue { padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-background); text-align: center; font-family: var(--font-poem); overflow-wrap: anywhere; }
+.review-studio .cue { padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-background); text-align: center; font-family: var(--font-poem); }
 .review-studio .rating-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
 .review-rating { display: flex; flex-direction: column; justify-content: center; gap: var(--space-2); min-block-size: 5rem; border-block-start: 3px solid var(--color-primary); }
 .review-rating small { font-weight: 400; font-size: var(--text-xs); line-height: 1.7; }
@@ -1969,7 +1975,7 @@ input[type=file]::file-selector-button {
 .explore-social-card h2 a { text-decoration: none; }
 .explore-poet, .explore-byline { font-size: var(--text-xs); color: var(--color-muted-foreground); }
 .explore-poem-preview { max-block-size: 29rem; overflow: hidden; mask-image: linear-gradient(black 80%, transparent); }
-.explore-poem-preview p, .explore-full-poem p { font: 1.25rem/2 var(--font-poem); margin-block: var(--space-3); white-space: pre-wrap; }
+.explore-poem-preview p, .explore-full-poem p { font: 1.25rem/2 var(--font-poem); margin-block: var(--space-3); }
 .explore-read-more { display: block; margin-block: var(--space-4); color: var(--color-primary); font-size: var(--text-sm); font-style: italic; }
 .explore-social-card footer { display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: var(--space-3); border-block-start: 1px solid var(--color-border); padding-block-start: var(--space-2); font-size: var(--text-xs); color: var(--color-muted-foreground); }
 .explore-social-card footer form { margin: 0; }
@@ -2064,7 +2070,7 @@ input[type=file]::file-selector-button {
 
 /* A small gold star accompanies each selectable verse in the public salon. */
 .explore-preview-row { display: flex; align-items: center; gap: var(--space-2); }
-.explore-preview-row > p { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.explore-preview-row > p { flex: 1; min-width: 0; }
 .explore-verse-favorite { position: relative; flex: 0 0 auto; margin: 0; }
 .explore-verse-favorite .icon-button { min-width: 44px; min-height: 44px; }
 .explore-verse-favorite [role="status"]:not(:empty) {
@@ -2084,9 +2090,9 @@ input[type=file]::file-selector-button {
 .discovery-result-footer [data-discovery-copy] { display: inline-flex; gap: var(--space-2); align-items: center; }
 .discovery-copy-status:empty { display: none; }
 @media (max-width: 768px) {
-  .verse:not(.verse-line) { font-size: min(var(--text-poem), 1.12rem); padding-inline: var(--space-3); }
-  .verse.verse-fit { font-size: var(--verse-fit-size, 1.12rem); }
-  .verse-fit .hemistich { white-space: nowrap; overflow-x: auto; overflow-wrap: normal; scrollbar-width: thin; }
+  .verse:not(.verse-line) { font-size: min(var(--text-poem), 1.12rem); padding-inline: var(--space-3); padding-inline-start: 1.75rem; }
+  .verse-number { inset-inline-start: 0; }
+  [data-reading-numbers="no"] .verse:not(.verse-line) { padding-inline-start: var(--space-3); }
   .discovery-result-footer { margin-block: var(--space-3); padding-block-start: var(--space-3); }
   .discovery-result-footer .primary { order: -1; }
 }

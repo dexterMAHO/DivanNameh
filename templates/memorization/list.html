@@ -29,7 +29,7 @@
       <p class="eyebrow">{{ item.poem.poet_name }} · {{ item.scope_label|persian }}</p>
       <h2><a href="{{ item.poem.get_absolute_url }}">{{ item.poem.display_title }}</a></h2>
       <span class="memory-state {% if item.poem.archived_at %}is-archived{% elif item.status == 'paused' %}is-paused{% elif item.due_at <= study_now %}is-ready{% endif %}">{% if item.poem.archived_at %}آرشیو{% elif item.status == 'paused' %}متوقف{% elif item.due_at <= study_now %}وقت مرور است{% else %}تا دیدار بعدی{% endif %}</span>
-      {% with first=item.start_verse|default:item.poem.excerpt_verse %}{% if first %}<p class="memory-excerpt">{{ first.hemistich_1|truncatechars:100 }}</p>{% endif %}{% endwith %}
+      {% with first=item.start_verse|default:item.poem.excerpt_verse %}{% if first %}<p class="memory-excerpt poem-line">{{ first.hemistich_1|truncatechars:100 }}</p>{% endif %}{% endwith %}
       <div class="memory-card-metrics"><span><strong>{{ item.review_count|persian }}</strong> مرور ثبت‌شده</span><span><strong>{{ item.streak|persian }}</strong> یادآوری پیاپی</span><span><strong>{{ item.interval_days|persian }}</strong> روز فاصله</span></div>
       {% if item.poem.archived_at %}
         <p class="fine">شعر آرشیو شده و از صف مرور خارج است. <a href="{{ item.poem.get_absolute_url }}">دیدن شعر و بازگردانی</a></p>

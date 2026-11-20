@@ -148,10 +148,13 @@ if (treasury) {
   const update = () => {
     const count = selected().length;
     clear.hidden = !count;
-    treasury.querySelector('button[value="memorize"]').textContent =
-      count ? 'حفظ ' + digits.format(count) + ' ردیف انتخابی' : 'حفظ کل اثر';
-    treasury.querySelector('button[value="library"]').textContent =
-      count ? 'ذخیرهٔ ' + digits.format(count) + ' ردیف انتخابی' : 'ذخیرهٔ گزیده';
+    // A published work offers a share link in place of the saving button.
+    const relabel = (value, chosen, whole) => {
+      const button = treasury.querySelector(`button[value="${value}"]`);
+      if (button) button.textContent = count ? chosen : whole;
+    };
+    relabel('memorize', 'حفظ ' + digits.format(count) + ' ردیف انتخابی', 'حفظ کل اثر');
+    relabel('library', 'ذخیرهٔ ' + digits.format(count) + ' ردیف انتخابی', 'ذخیرهٔ گزیده');
     showStatus(feedback, count ? digits.format(count) + ' ردیف انتخاب شده' : '');
   };
   treasury.addEventListener('change', event => {

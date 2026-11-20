@@ -6,9 +6,9 @@
     <div class="share-verse" data-shared-position="{{ position }}">
       <span class="share-position">{{ position|persian }}</span>
       {% if snapshot.mode == 'practice' and not revealed %}
-        <p class="share-hemistich">{{ first }}</p>
+        <p class="share-hemistich poem-line">{{ first }}</p>
       {% else %}
-        <div class="share-hemistich">{{ first }}{% if second %}<br>{{ second }}{% endif %}</div>
+        <div class="share-hemistich poem-line">{{ first }}{% if second %}<br>{{ second }}{% endif %}</div>
       {% endif %}
     </div>
   {% endfor %}

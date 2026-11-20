@@ -18,7 +18,7 @@
   <article class="panel treasury-pick-card">
     <div class="treasury-pick-author">{% include 'components/poet_portrait.html' with book=pick.entry.book size='tiny' decorative=True %}<p class="eyebrow">{{ pick.entry.book.author }}</p></div>
     <h2><a href="{{ pick.entry.get_absolute_url }}">{{ pick.entry.title }}</a></h2>
-    {% if sample %}<blockquote class="literary-quote">{{ sample.0 }}<br>{{ sample.1 }}</blockquote>{% endif %}
+    {% if sample %}<blockquote class="literary-quote poem-line">{{ sample.0 }}<br>{{ sample.1 }}</blockquote>{% endif %}
     <a class="inline-link treasury-pick-link" href="{{ pick.entry.get_absolute_url }}">خواندن اثر {% include 'components/icon.html' with name='arrow' %}</a>
   </article>
   {% empty %}

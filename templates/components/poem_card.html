@@ -6,7 +6,7 @@
   </div>
   {% if card_heading == 'h3' %}<h3>{% else %}<h2>{% endif %}<a href="{{ poem.get_absolute_url }}{% if request.resolver_match.url_name == 'poems' or request.resolver_match.url_name == 'tag-detail' %}?from={{ request.get_full_path|urlencode:'' }}{% endif %}">{{ poem.display_title }}</a>{% if card_heading == 'h3' %}</h3>{% else %}</h2>{% endif %}
   {% with first=poem.excerpt_verse %}
-    <p class="excerpt">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>
+    <p class="excerpt poem-line">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>
   {% endwith %}
   {% if poem.tags.all %}<div class="tags">{% for tag in poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}
 </article>

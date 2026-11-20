@@ -46,10 +46,11 @@ UI UX Pro Max، مخزن `nextlevelbuilder/ui-ux-pro-max-skill`، commit `6ae86f
 ## تایپوگرافی
 
 - متن و کنترل: Vazirmatn، fallback Tahoma/sans-serif، اندازهٔ پایه 16px و line-height 1.8.
-- تیتر/شعر/لوگو: Noto Naskh Arabic، fallback Tahoma/serif. فونت محلی، font-display:swap.
+- تیتر/لوگو: Noto Naskh Arabic، fallback Tahoma/serif. متن شعر: Mirza، fallback Noto Naskh Arabic. فونت محلی، font-display:swap.
 - متادیتا 12px، برچسب 14px، بدنه 16px، متن شعر clamp(20px, 2vw, 26px)، تیتر صفحه clamp(30px, 3.4vw, 46px).
 - متن شعر line-height 2.2؛ از justify و letter-spacing برای حروف فارسی استفاده نشود.
-- عنوان‌ها balanced، متن کاربر wrap، حداقل عرض فرزندان grid/flex صفر. نیم‌فاصله و محتوا بدون دستکاری.
+- هیچ بیت یا مصرعی در دو خط نمایش داده نمی‌شود: هر سطر شعر nowrap است و `js/verse-fit.js` اندازهٔ همان بیت را تا جاشدن کم می‌کند؛ کف 9px و پایین‌تر از آن سطر به‌جای شکستن، می‌لغزد.
+- عنوان‌ها balanced، متن کاربر wrap (به‌جز سطرهای شعر)، حداقل عرض فرزندان grid/flex صفر. نیم‌فاصله و محتوا بدون دستکاری.
 
 ## هندسه و فاصله
 

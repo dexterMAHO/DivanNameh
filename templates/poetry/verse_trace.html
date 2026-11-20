@@ -14,7 +14,7 @@
   <article class="panel">
     <h2><a href="{{ result.url }}">{{ result.entry.title }}</a></h2>
     <p>{{ result.entry.book.author }}{% if result.position %} · بیت {{ result.position|persian }}{% endif %}</p>
-    {% if result.position %}<blockquote class="literary-quote">{{ result.first }}<br>{{ result.second }}</blockquote><a href="{{ result.url }}">رسیدن به بیت در متن کامل</a>{% endif %}
+    {% if result.position %}<blockquote class="literary-quote poem-line">{{ result.first }}<br>{{ result.second }}</blockquote><a href="{{ result.url }}">رسیدن به بیت در متن کامل</a>{% endif %}
   </article>
   {% empty %}<p>نتیجه‌ای پیدا نشد. بخشی کوتاه‌تر از بیت یا نام شاعر را امتحان کنید.</p>{% endfor %}
 </div>

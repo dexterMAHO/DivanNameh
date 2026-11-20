@@ -9,7 +9,7 @@
   <div class="dashboard-poem-excerpt">
     <span class="dashboard-poem-quote" aria-hidden="true">«</span>
     {% with first=poem.excerpt_verse %}
-      {% if first %}<p class="excerpt">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>{% else %}<p class="muted">هنوز بیتی ثبت نشده است.</p>{% endif %}
+      {% if first %}<p class="excerpt poem-line">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>{% else %}<p class="muted">هنوز بیتی ثبت نشده است.</p>{% endif %}
     {% endwith %}
   </div>
   {% if poem.tags.all %}<div class="tags">{% for tag in poem.tags.all|slice:':3' %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}

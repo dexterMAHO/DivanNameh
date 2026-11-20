@@ -96,13 +96,51 @@ try {
   const open = async path => {
     await send('Page.navigate', {url: base + path});
     await until(() => evaluate('location.pathname + location.search === ' + JSON.stringify(path) +
-      ' && document.readyState === "complete" && Boolean(document.querySelector("h1"))'), 'page ' + path);
+      ' && document.readyState === "complete" && Boolean(document.querySelector("h1, h2"))'), 'page ' + path);
   };
   const viewport = (width, height = 780) => send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false});
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Network.enable');
   await send('Network.setCookie', {name: 'sessionid', value: fixture.session, url: base, httpOnly: true});
+
+  // Three frames give js/verse-fit.js time to measure, shrink and confirm.
+  await send('Page.addScriptToEvaluateOnNewDocument', {source:
+    'window.settled = () => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => done(true)))));'});
+  // Every hemistich, cue and preview line must occupy exactly one line box.
+  const wrapped = async label => {
+    const lines = await evaluate(`document.fonts.ready.then(() => settled()).then(() => {
+      const broken = [];
+      let counted = 0;
+      for (const block of document.querySelectorAll('.verse, .cue, .poem-line')) {
+        const hemistichs = block.getElementsByClassName('hemistich');
+        for (const box of hemistichs.length ? [...hemistichs] : [block]) {
+          const children = [...box.childNodes];
+          const bounds = [];
+          let start = 0;
+          for (let index = 0; index <= children.length; index++) {
+            if (index === children.length || children[index].nodeName === 'BR') {
+              if (index > start) bounds.push([start, index]);
+              start = index + 1;
+            }
+          }
+          for (const [from, to] of bounds) {
+            const range = document.createRange();
+            range.setStart(box, from);
+            range.setEnd(box, to);
+            const rects = [...range.getClientRects()].filter(rect => rect.width > 0.5 && rect.height > 0.5);
+            if (!rects.length) continue;
+            counted++;
+            const rows = rects.map(rect => Math.round(rect.top));
+            if (Math.max(...rows) - Math.min(...rows) > 2) broken.push(range.toString().slice(0, 60));
+          }
+        }
+      }
+      return {counted, broken};
+    })`);
+    assert.deepEqual(lines.broken, [], 'poetry lines wrapped at ' + label);
+    return lines.counted;
+  };
 
   const paths = ['/', '/poems/', '/poems/?archived=1', fixture.poem, fixture.free, fixture.long, '/poems/new/', '/topics/', '/favorites/',
     '/collections/', '/poems/transfer/', '/poems/edits/', '/treasury/', encodeURI('/treasury/works/?q=آزمایش'),
@@ -115,9 +153,19 @@ try {
     }
   }
 
+  let poetryLines = 0;
+  for (const width of [320, 390, 768, 1280]) {
+    await viewport(width);
+    for (const path of [fixture.poem, fixture.free, fixture.long, fixture.work, '/favorites/', '/poems/', '/explore/', '/review/']) {
+      await open(path);
+      poetryLines += await wrapped(path + ' at ' + width);
+    }
+  }
+  console.log('Poetry lines kept on one line:', poetryLines);
+
   await viewport(320);
   await open('/');
-  assert.equal(await evaluate("document.querySelector('.discovery-strip a').pathname"), '/explore/');
+  assert.equal(await evaluate("document.querySelector('.discovery-strip a').pathname"), '/discover/');
   assert.equal(await evaluate("document.querySelector('.header-tool[title]').pathname"), '/treasury/works/');
   assert.equal(await evaluate("document.querySelector('.header-help').pathname"), '/guide/');
   for (const theme of ['light', 'dark']) {
@@ -222,11 +270,16 @@ try {
   await viewport(320);
   await send('Emulation.setCPUThrottlingRate', {rate: 4});
   await open(fixture.work);
-  const reading = await evaluate(`document.fonts.ready.then(() => {
+  const reading = await evaluate(`document.fonts.ready.then(() => settled()).then(() => {
     const verse = document.querySelector('.treasury-text .hemistich');
+    const range = document.createRange();
+    range.selectNodeContents(verse);
+    const rows = [...range.getClientRects()].map(rect => Math.round(rect.top));
     return {
       font: parseFloat(getComputedStyle(verse).fontSize),
+      oneLine: Math.max(...rows) - Math.min(...rows) <= 2,
       fits: verse.scrollWidth <= verse.clientWidth,
+      reachable: verse.scrollWidth <= verse.clientWidth || verse.hasAttribute('data-verse-overflow'),
       firstVerseVisible: verse.getBoundingClientRect().top < innerHeight,
       rows: document.querySelectorAll('.treasury-stanza').length,
       nodes: document.getElementsByTagName('*').length,
@@ -234,9 +287,11 @@ try {
     };
   })`);
   assert.equal(reading.rows, 500);
-  assert.equal(reading.fits, true);
+  assert.equal(reading.oneLine, true);
   assert.equal(reading.firstVerseVisible, true);
-  assert.ok(reading.font >= 20, JSON.stringify(reading));
+  // A 72 character hemistich on a 320 px screen shrinks to the 9 px floor; past it the line scrolls, never wraps.
+  assert.equal(reading.reachable, true, JSON.stringify(reading));
+  assert.ok(reading.font >= 9 && reading.font <= 20, JSON.stringify(reading));
   console.log('320 px, 500 rows, Chrome CPU ×4:', reading);
   await screenshot('treasury-320');
   await evaluate('document.querySelector(".treasury-bookmark").click()');

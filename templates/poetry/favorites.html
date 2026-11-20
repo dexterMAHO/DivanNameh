@@ -1,25 +1,42 @@
 {% extends 'base.html' %}
 {% load persian %}
-{% block title %}شاه‌بیت‌ها{% endblock %}
+{% block title %}شاه‌نشین اشعار{% endblock %}
 {% block content %}
-<header class="page-heading compact">
-  <div><h1>شاه‌بیت‌های دفتر</h1><p>{{ page.paginator.count|persian }} بیت برگزیده</p></div>
-  <a href="{% url 'collections' %}">مجموعه‌های شخصی</a>
-</header>
-{% for favorite in page %}
-  <article class="panel">
-    <h2><a href="{{ favorite.verse.poem.get_absolute_url }}">{{ favorite.verse.poem.display_title }} · {{ favorite.verse.poem.poet_name }}</a></h2>
-    {% include 'components/verse.html' with verse=favorite.verse %}
-    <a href="{% url 'share-library' favorite.verse.poem_id %}?verse={{ favorite.verse.position }}">اشتراک این بیت</a>
-    <form method="post" action="{% url 'unfavorite' favorite.verse.pk %}">
-      {% csrf_token %}
-      <input type="hidden" name="return_to_favorites" value="1">
-      <input type="hidden" name="page" value="{{ page.number }}">
-      <button class="text-button">برداشتن نشان شاه‌بیت</button>
-    </form>
-  </article>
-{% empty %}
-  <section class="empty"><h2>هنوز شاه‌بیتی ندارید.</h2><p>برای ثبت شاه‌بیت، ستارهٔ کنار آن را در صفحهٔ شعر بزنید.</p><a href="{% url 'poems' %}">کتابخانه</a></section>
-{% endfor %}
-{% include 'components/pagination.html' %}
+<div class="favorites-palace">
+  <header class="palace-heading">
+    <h1>شاه‌نشین اشعار</h1>
+    <div class="palace-count"><strong>{{ page.paginator.count|persian }}</strong><span>شاه در این سراست</span></div>
+    <a class="palace-collections" href="{% url 'collections' %}" aria-label="مجموعه‌های شخصی" title="مجموعه‌های شخصی">{% include 'components/icon.html' with name='book' %}<span>مجموعه‌های شخصی</span></a>
+  </header>
+  <div class="palace-grid">
+  {% for favorite in page %}
+    <article class="palace-card">
+      <div class="palace-card-heading">
+        <span class="palace-star" aria-hidden="true">{% include 'components/icon.html' with name='star' %}</span>
+        <span class="palace-poet">{{ favorite.verse.poem.poet_name }}</span>
+        <span class="palace-verse-number">{% if favorite.verse.poem.line_layout %}سطر{% else %}بیت{% endif %} {{ favorite.verse.position|persian }}</span>
+      </div>
+      <h2><a href="{{ favorite.verse.poem.get_absolute_url }}">{{ favorite.verse.poem.display_title }}</a></h2>
+      <div class="palace-verse">
+        <span class="palace-ornament" aria-hidden="true"></span>
+        {% include 'components/verse.html' with verse=favorite.verse %}
+        <span class="palace-ornament" aria-hidden="true"></span>
+      </div>
+      {% if favorite.verse.poem.tags.all %}<div class="tags">{% for tag in favorite.verse.poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}
+      <div class="palace-card-actions">
+        <a class="palace-share" href="{% url 'share-library' favorite.verse.poem_id %}?verse={{ favorite.verse.position }}">{% include 'components/icon.html' with name='share' %}اشتراک این بیت</a>
+        <form method="post" action="{% url 'unfavorite' favorite.verse.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="return_to_favorites" value="1">
+          <input type="hidden" name="page" value="{{ page.number }}">
+          <button class="palace-remove" aria-label="برداشتن نشان شاه‌بیت از {{ favorite.verse.poem.display_title }}" title="برداشتن نشان شاه‌بیت">{% include 'components/icon.html' with name='star' %}<span>برداشتن نشان</span></button>
+        </form>
+      </div>
+    </article>
+  {% empty %}
+    <section class="empty"><h2>هنوز شاه‌بیتی ندارید.</h2><p>برای ثبت شاه‌بیت، ستارهٔ کنار آن را در صفحهٔ شعر بزنید.</p><a href="{% url 'poems' %}">خانه اشعار</a></section>
+  {% endfor %}
+  </div>
+  {% include 'components/pagination.html' %}
+</div>
 {% endblock %}

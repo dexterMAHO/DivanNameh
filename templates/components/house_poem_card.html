@@ -1,9 +1,12 @@
-{% load persian %}
+{% load persian static %}
 <article class="poem-card house-poem-card">
-  <div class="house-card-top"><span class="house-poet-seal" aria-hidden="true">{{ poem.poet_name|first }}</span><span>{{ poem.poet_name }}</span><span class="house-verse-count">{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span></div>
+  <div class="house-card-top"><span class="house-poet-seal">{% if poem.poet_portrait %}<img src="{% static poem.poet_portrait %}" alt="تصویر {{ poem.poet_name }}" width="64" height="64" loading="lazy" decoding="async">{% else %}<span aria-hidden="true">{{ poem.poet_name|first }}</span>{% endif %}</span><span>{{ poem.poet_name }}</span><span class="house-verse-count">{{ poem.verses.all|length|persian }} {% if poem.line_layout %}سطر{% else %}بیت{% endif %}</span></div>
   <h2><a href="{{ poem.get_absolute_url }}?from={{ request.get_full_path|urlencode:'' }}">{{ poem.display_title }}</a></h2>
   <div class="house-poem-window">
-    <span class="house-window-star" aria-hidden="true">{% include 'components/icon.html' with name='star' %}</span>
+    <div class="house-card-badges">
+      <span class="house-window-star{% if poem.has_favorite %} is-favorite{% endif %}" role="img" aria-label="{% if poem.has_favorite %}دارای شاه‌بیت برگزیده{% else %}بدون شاه‌بیت برگزیده{% endif %}">{% include 'components/icon.html' with name='star' %}</span>
+      {% if poem.in_memorization %}<span class="house-memory-badge" role="img" aria-label="در فهرست حفظ" title="در فهرست حفظ">{% include 'components/icon.html' with name='brain' %}</span>{% endif %}
+    </div>
     {% with first=poem.excerpt_verse %}
     {% if first %}<p class="excerpt">{{ first.hemistich_1 }}{% if first.hemistich_2 %}<br>{{ first.hemistich_2 }}{% endif %}</p>{% else %}<p class="muted">هنوز بیتی ثبت نشده است.</p>{% endif %}
     {% endwith %}

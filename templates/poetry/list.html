@@ -4,7 +4,6 @@
 {% block content %}
 <div class="poem-house">
 <header class="house-heading">
-  <span class="house-heading-icon" aria-hidden="true">{% include 'components/icon.html' with name='book' %}</span>
   <h1>خانه اشعار</h1>
   {% if tag %}<p class="muted">شعرهای «{{ tag.name }}»</p>{% elif poet %}<p class="muted">شعرهای «{{ poet }}»</p>{% elif archived %}<p class="muted">آرشیو اشعار</p>{% endif %}
   <div class="house-count"><span>خانه</span><strong>{{ page.paginator.count|persian }}</strong><span>شعر</span></div>
@@ -67,6 +66,6 @@
     </section>
   {% endfor %}
 </div>
-{% include 'components/pagination.html' %}
+{% include 'components/house_pagination.html' %}
 </div>
 {% endblock %}

@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, OuterRef, Q, Subquery
+from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST, require_GET, require_http
 from accounts.permissions import action_password_error
 from memorization.models import MemorizationItem, ReviewLog
 from memorization.views import study_context
-from .models import Poem, PoemEditRequest, Tag, TreasuryEntry, Verse, FavoriteVerse
+from .models import Poem, PoemEditRequest, Tag, TreasuryBook, TreasuryEntry, Verse, FavoriteVerse
 from .editorial_views import showcase
 from .forms import PoemForm, TagForm
 from .http import private, success, failure, wants_json
@@ -68,8 +68,19 @@ def poem_list(request, slug=None):
     orders = {'title': ('title', 'pk'), 'poet': ('poet_name', 'pk'), 'oldest': ('created_at', 'pk')}
     if sort in orders:
         poems = poems.order_by(*orders[sort])
+    poems = poems.annotate(
+        in_memorization=Exists(MemorizationItem.objects.filter(owner=request.user, poem_id=OuterRef('pk'))),
+        has_favorite=Exists(FavoriteVerse.objects.filter(owner=request.user, verse__poem_id=OuterRef('pk'))),
+    )
+    page = Paginator(poems, 20).get_page(request.GET.get('page'))
+    portraits = list(TreasuryBook.objects.exclude(portrait='').only('slug', 'author', 'portrait'))
+    by_slug = {book.slug: book for book in portraits}
+    by_author = {search_text(book.author): book for book in portraits}
+    for poem in page:
+        book = by_slug.get(poem.treasury_book_slug) or by_author.get(search_text(poem.poet_name))
+        poem.poet_portrait = book.portrait if book else ''
     return render(request, 'poetry/list.html', {
-        'page': Paginator(poems, 20).get_page(request.GET.get('page')),
+        'page': page,
         'tag': tag, 'archived': archived, 'poet': poet, 'query': query, 'sort': sort,
         'active_topics': active_topics, 'active_topic_slugs': {topic.slug for topic in active_topics},
         'topic_choices': topic_choices,

@@ -1557,3 +1557,64 @@ input[type=file]::file-selector-button {
   .house-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .house-shortcuts a { overflow-wrap: anywhere; }
 }
+
+/* Portrait cards with a fixed reading frame. */
+.house-poem-card { box-shadow: inset 0 0 0 5px var(--color-surface), inset 0 0 0 6px var(--color-border); padding: var(--space-6); }
+.house-poem-card .house-poet-seal { inline-size: 4rem; block-size: 4rem; flex: none; overflow: hidden; border: 2px solid var(--color-primary); box-shadow: 0 0 0 4px var(--color-primary-soft); }
+.house-poet-seal img { inline-size: 100%; block-size: 100%; object-fit: cover; object-position: center 25%; }
+.house-card-top > span:nth-child(2) { font-weight: 700; color: var(--color-foreground); overflow-wrap: anywhere; }
+.house-poem-window { block-size: 16rem; min-block-size: 0; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-3); background: radial-gradient(ellipse at top, var(--color-primary-soft), transparent 75%), var(--color-background); box-shadow: inset 0 -4px 0 var(--color-primary-soft); }
+.house-poem-window .excerpt { overflow-y: auto; min-block-size: 0; margin: 0; padding-inline: var(--space-2); scrollbar-gutter: stable; align-self: stretch; }
+.house-card-badges { display: flex; justify-content: center; align-items: center; gap: var(--space-3); }
+.house-card-badges > span { display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: 50%; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-primary); }
+.house-window-star.is-favorite .icon { fill: currentColor; }
+.house-memory-badge { box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.poem-house .house-pagination { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4); margin-block: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-card); }
+.house-pagination > a, .house-pagination > .house-page-disabled { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-block-size: 3rem; padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); }
+.house-pagination .house-page-disabled { color: var(--color-muted-foreground); opacity: .6; }
+.house-page-current { display: flex; align-items: center; gap: var(--space-2); border-radius: var(--radius-control); padding: var(--space-2) var(--space-4); background: var(--color-primary-soft); color: var(--color-primary); }
+.house-page-current strong { font-size: 1.5rem; }
+.house-page-previous { transform: rotate(180deg); }
+
+/* Favorites: framed jewels, distinct from the manuscript house. */
+.palace-heading { display: grid; justify-items: center; text-align: center; gap: var(--space-4); padding-block: var(--space-6); margin-block-end: var(--space-6); }
+.palace-heading h1 { margin: 0; font: 700 clamp(2rem, 5vw, 3rem)/1.6 var(--font-literary); }
+.palace-count { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-6); border: 1px solid var(--color-primary); outline: 1px solid var(--color-border); outline-offset: 4px; border-radius: var(--radius-control); background: var(--color-primary-soft); color: var(--color-primary); }
+.palace-count strong { font: 700 2.5rem/1.3 var(--font-literary); }
+.palace-collections { display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: 2.75rem; padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); text-decoration: none; font-size: var(--text-sm); }
+.palace-collections .icon { color: var(--color-primary); }
+.palace-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); }
+.palace-card { display: flex; flex-direction: column; min-inline-size: 0; position: relative; padding: var(--space-6); border: 1px solid var(--color-primary); border-radius: var(--radius-card); background: radial-gradient(ellipse at top right, var(--color-primary-soft), transparent 65%), var(--color-surface); box-shadow: inset 0 0 0 5px var(--color-surface), inset 0 0 0 6px var(--color-border); }
+.palace-card-heading { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); }
+.palace-star { display: grid; place-items: center; inline-size: 2.75rem; block-size: 2.75rem; color: var(--color-primary); background: var(--color-primary-soft); border: 1px solid var(--color-primary); border-radius: 30%; transform: rotate(45deg); }
+.palace-star .icon { transform: rotate(-45deg); fill: currentColor; }
+.palace-poet { font-weight: 700; overflow-wrap: anywhere; }
+.palace-verse-number { margin-inline-start: auto; font-size: var(--text-xs); color: var(--color-muted-foreground); }
+.palace-card h2 { font-size: 1.125rem; margin-block: var(--space-4); overflow-wrap: anywhere; }
+.palace-card h2 a { text-decoration: none; }
+.palace-verse { padding-block: var(--space-3); margin-block-end: var(--space-4); }
+.palace-verse .verse { grid-template-columns: minmax(0, 1fr); text-align: center; border: 0; padding: var(--space-4) 0; gap: var(--space-2); }
+.palace-verse .verse-number { display: none; }
+.palace-verse .hemistich { text-align: center; overflow-wrap: anywhere; }
+.palace-ornament { display: block; inline-size: 45%; block-size: 1px; margin-inline: auto; background: linear-gradient(90deg, transparent, var(--color-primary), transparent); position: relative; }
+.palace-ornament::after { content: ''; position: absolute; inset-inline-start: calc(50% - 3px); inset-block-start: -3px; inline-size: 7px; block-size: 7px; transform: rotate(45deg); background: var(--color-primary); }
+.palace-card .tags { margin-block-end: var(--space-4); }
+.palace-card-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); border-block-start: 1px solid var(--color-border); padding-block-start: var(--space-4); margin-block-start: auto; }
+.palace-card-actions form { margin: 0; }
+.palace-share, .palace-remove { display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: 2.75rem; font-size: var(--text-sm); }
+.palace-share { text-decoration: none; }
+.palace-remove { background: var(--color-surface); color: var(--color-muted-foreground); }
+.palace-remove .icon { fill: var(--color-primary); color: var(--color-primary); }
+@media (max-width: 768px) { .palace-grid { grid-template-columns: minmax(0, 1fr); } .palace-card { padding: var(--space-4); } }
+
+/* Header learning and settings controls. */
+.masthead .header-help { gap: var(--space-2); padding-inline: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
+.header-help > .icon { inline-size: 1.5rem; block-size: 1.5rem; }
+.masthead .header-settings { display: grid; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-primary); }
+.header-settings > .icon { inline-size: 1.5rem; block-size: 1.5rem; }
+.header-settings[aria-current], .header-settings:hover { background: var(--color-primary-soft); border-color: var(--color-primary); }
+@keyframes header-gear-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: no-preference) {
+  .header-settings:is(:hover, :focus-visible) > .icon { animation: header-gear-turn 2.4s linear infinite; }
+}
+@media (max-width: 480px) { .masthead .header-help { padding-inline: var(--space-2); } }

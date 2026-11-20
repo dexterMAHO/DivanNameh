@@ -1,27 +1,28 @@
 {% extends 'base.html' %}
 {% load persian %}
-{% block title %}کتابخانهٔ اشعار{% endblock %}
+{% block title %}خانه اشعار{% endblock %}
 {% block content %}
-<header class="page-heading">
-  <div>
-    <h1>{% if tag %}شعرهای «{{ tag.name }}»{% elif poet %}شعرهای «{{ poet }}»{% elif archived %}آرشیو اشعار{% else %}کتابخانهٔ اشعار{% endif %}</h1>
-    <p class="muted">{{ page.paginator.count|persian }} شعر</p>
-  </div>
+<div class="poem-house">
+<header class="house-heading">
+  <span class="house-heading-icon" aria-hidden="true">{% include 'components/icon.html' with name='book' %}</span>
+  <h1>خانه اشعار</h1>
+  {% if tag %}<p class="muted">شعرهای «{{ tag.name }}»</p>{% elif poet %}<p class="muted">شعرهای «{{ poet }}»</p>{% elif archived %}<p class="muted">آرشیو اشعار</p>{% endif %}
+  <div class="house-count"><span>خانه</span><strong>{{ page.paginator.count|persian }}</strong><span>شعر</span></div>
 </header>
-<nav class="toolbar" aria-label="بخش‌های کتابخانه">
+<nav class="toolbar house-toolbar" aria-label="بخش‌های خانه اشعار">
   <div class="tabs">
     <a href="{% querystring archived=None page=None %}" {% if not archived %}aria-current="page"{% endif %}>شعرهای فعال</a>
     <a href="{% querystring archived=1 page=None %}" {% if archived %}aria-current="page"{% endif %}>آرشیو</a>
   </div>
-  <div class="actions">
-    <a href="{% url 'tags' %}">موضوع‌ها</a>
-    <a href="{% url 'poets' %}">شاعران دفتر</a>
-    <a href="{% url 'collections' %}">مجموعه‌ها</a>
-    <a href="{% url 'library-transfer' %}">ورود و خروج فایل</a>
-    <a href="{% url 'edit-history' %}">درخواست‌های ویرایش</a>
+  <div class="actions house-shortcuts">
+    <a href="{% url 'tags' %}">{% include 'components/icon.html' with name='tag' %}موضوع‌ها</a>
+    <a href="{% url 'poets' %}">{% include 'components/icon.html' with name='pen' %}شاعران دفتر</a>
+    <a href="{% url 'collections' %}">{% include 'components/icon.html' with name='book' %}مجموعه‌ها</a>
+    <a href="{% url 'library-transfer' %}">{% include 'components/icon.html' with name='arrow' %}ورود و خروج فایل</a>
+    <a href="{% url 'edit-history' %}">{% include 'components/icon.html' with name='repeat' %}درخواست‌های ویرایش</a>
   </div>
 </nav>
-<form class="panel inline-form" method="get">
+<form class="panel inline-form house-search" method="get">
   {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
   {% if poet %}<input type="hidden" name="poet" value="{{ poet }}">{% endif %}
   <div>
@@ -55,7 +56,7 @@
 {% endif %}
 <div class="card-grid">
   {% for poem in page %}
-    {% include 'components/poem_card.html' %}
+    {% include 'components/house_poem_card.html' %}
   {% empty %}
     <section class="empty">
       <h2>شعری در این نما پیدا نشد.</h2>
@@ -67,4 +68,5 @@
   {% endfor %}
 </div>
 {% include 'components/pagination.html' %}
+</div>
 {% endblock %}

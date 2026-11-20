@@ -1528,3 +1528,32 @@ input[type=file]::file-selector-button {
 .guide-instructions ol { padding-inline-start: var(--space-6); }
 .guide-instructions li + li { margin-block-start: var(--space-3); }
 .guide-navigation { margin-block-start: var(--space-4); }
+
+/* Poem house: manuscript leaves and arched reading windows. */
+.house-heading { display: grid; justify-items: center; gap: var(--space-3); text-align: center; padding-block: var(--space-6); }
+.house-heading h1, .house-heading p { margin: 0; }
+.house-heading-icon { display: grid; place-items: center; inline-size: 3.5rem; block-size: 3.5rem; border-radius: 50%; color: var(--color-primary); background: var(--color-primary-soft); }
+.house-heading h1 { font-family: var(--font-literary); font-size: clamp(2rem, 5vw, 3rem); }
+.house-count { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-6); border: 1px solid var(--color-primary); border-radius: var(--radius-card); background: var(--color-primary-soft); color: var(--color-primary); }
+.house-count strong { font-size: 2.25rem; line-height: 1.4; }
+.house-toolbar { flex-wrap: wrap; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); }
+.house-shortcuts { flex-wrap: wrap; gap: var(--space-2); }
+.house-shortcuts a { display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: 2.75rem; padding: var(--space-2) var(--space-3); text-decoration: none; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-background); font-size: var(--text-sm); }
+.house-shortcuts a .icon { color: var(--color-primary); }
+.house-shortcuts a:is(:hover, :focus-visible) { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.house-search { margin-block: var(--space-4) var(--space-6); border-inline-start: 3px solid var(--color-primary); }
+.house-poem-card { position: relative; border-radius: 2rem var(--radius-card) var(--radius-card) var(--radius-card); border-block-start: 3px solid var(--color-primary); background: linear-gradient(90deg, transparent calc(100% - 12px), var(--color-primary-soft) 0), var(--color-surface); }
+.house-card-top { display: flex; align-items: center; gap: var(--space-2); color: var(--color-muted-foreground); font-size: var(--text-sm); flex-wrap: wrap; }
+.house-poet-seal { display: grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border: 1px solid var(--color-primary); border-radius: 50%; color: var(--color-primary); background: var(--color-primary-soft); font: 1.5rem var(--font-literary); }
+.house-verse-count { margin-inline-start: auto; font-size: var(--text-xs); }
+.house-poem-card h2 { margin-block: var(--space-4); overflow-wrap: anywhere; }
+.house-poem-window { display: grid; align-content: center; position: relative; min-block-size: 12rem; padding: var(--space-6) var(--space-4); margin-block: var(--space-2) var(--space-4); border: 1px solid var(--color-border); border-radius: 50% 50% var(--radius-card) var(--radius-card) / 3rem 3rem var(--radius-card) var(--radius-card); background: var(--color-background); text-align: center; }
+.house-window-star { color: var(--color-primary); font-size: 1.5rem; }
+.house-poem-window .excerpt { color: var(--color-foreground); }
+.house-card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-block-start: auto; padding-block-start: var(--space-4); border-block-start: 1px dashed var(--color-border); font-size: var(--text-xs); color: var(--color-muted-foreground); }
+.house-poem-card .tags { margin-block-end: var(--space-4); }
+@media (max-width: 768px) {
+  .house-toolbar, .house-shortcuts { inline-size: 100%; }
+  .house-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .house-shortcuts a { overflow-wrap: anywhere; }
+}

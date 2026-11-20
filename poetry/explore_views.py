@@ -1,11 +1,14 @@
 import hashlib
 import secrets
+from django.db.models import Q
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
+from django.http import HttpResponse
+from accounts.models import ProfilePhoto
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.contrib import messages
@@ -13,11 +16,12 @@ from django.contrib import messages
 from accounts.permissions import action_password_error
 from .http import private
 from .models import ExplorePost, ExploreLike, ExploreSave, ExploreView, Poem, Verse
-from .services.poem_editor import parse_verses
+from .services.poem_editor import parse_verses, validate_verses
 
 
 class PostForm(forms.ModelForm):
-    text = forms.CharField(label='متن شعر', max_length=100000, widget=forms.Textarea(attrs={'rows': 10}), help_text='هر خط یک بیت؛ دو مصرع را با | جدا کنید. برای شعر نو هر خط یک سطر است.')
+    input_mode = forms.ChoiceField(label='روش ورود متن', required=False, choices=[('lines','هر خط یک بیت؛ جداکنندهٔ |'), ('pairs','هر دو خط یک بیت'), ('structured','ورود بیت به بیت')])
+    text = forms.CharField(label='متن شعر', required=False, max_length=100000, widget=forms.Textarea(attrs={'rows': 10}), help_text='هر خط یک بیت؛ دو مصرع را با | جدا کنید. برای شعر نو هر خط یک سطر است.')
     action_password = forms.CharField(label='رمز عملیات (اختیاری)', max_length=128, required=False, widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}), help_text='بدون رمز معتبر، پست برای تأیید مدیر ارسال می‌شود.')
 
     class Meta:
@@ -27,17 +31,25 @@ class PostForm(forms.ModelForm):
 
     def clean(self):
         data = super().clean()
-        if data.get('text'):
-            try:
-                data['rows'] = parse_verses(data['text'], 'lines', line_layout=data.get('line_layout', False))
-            except ValidationError as error:
-                self.add_error('text', error)
+        mode = data.get('input_mode') or 'lines'
+        try:
+            if mode == 'structured':
+                firsts = self.data.getlist('hemistich_1')
+                seconds = self.data.getlist('hemistich_2')
+                if len(firsts) != len(seconds):
+                    raise ValidationError('مصرع‌های هر ردیف را کامل کنید.')
+                data['rows'] = validate_verses([(first, '' if data.get('line_layout') else second) for first, second in zip(firsts, seconds)])
+            else:
+                data['rows'] = parse_verses(data.get('text', ''), mode, line_layout=data.get('line_layout', False))
+        except ValidationError as error:
+            self.add_error(None, error)
         return data
 
 
 @require_GET
 def index(request):
     posts = ExplorePost.objects.filter(status='published').select_related('author').annotate(
+        author_has_photo=Exists(ProfilePhoto.objects.filter(user_id=OuterRef('author_id'))),
         like_count=Count('likes', distinct=True), save_count=Count('saves', distinct=True), view_count=Count('views', distinct=True))
     query = request.GET.get('q', '').strip()[:120]
     if query:
@@ -51,14 +63,19 @@ def index(request):
     page = Paginator(posts, 18).get_page(request.GET.get('page'))
     context = {'post_page': page, 'feed_sort': sort, 'feed_query': query}
     context['liked_ids'] = set(ExploreLike.objects.filter(user=request.user, post_id__in=[post.pk for post in page]).values_list('post_id', flat=True)) if request.user.is_authenticated else set()
+    context['own_posts'] = ExplorePost.objects.filter(author=request.user).only('pk', 'title', 'status') if request.user.is_authenticated else ()
     context['pending_posts'] = ExplorePost.objects.filter(author=request.user, status='pending').count() if request.user.is_authenticated else 0
     return render(request, 'poetry/explore.html', context)
 
 
 @private
 @require_http_methods(['GET', 'POST'])
-def publish(request):
-    form = PostForm(request.POST if request.method == 'POST' else None)
+def publish(request, pk=None):
+    post = get_object_or_404(ExplorePost, pk=pk, author=request.user) if pk else None
+    initial = {'input_mode': 'lines'}
+    if post:
+        initial['text'] = '\n'.join(first + (' | ' + second if second else '') for first, second in post.rows)
+    form = PostForm(request.POST if request.method == 'POST' else None, instance=post, initial=initial)
     if request.method == 'POST' and form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -68,19 +85,26 @@ def publish(request):
         post.save()
         messages.success(request, 'شعر منتشر شد.' if post.status == 'published' else 'شعر برای تأیید مدیر ارسال شد.')
         return redirect('explore')
-    return render(request, 'poetry/explore_publish.html', {'form': form})
+    rows = post.rows if post else [('', '')]
+    if request.method == 'POST' and request.POST.get('input_mode') == 'structured':
+        rows = list(zip(request.POST.getlist('hemistich_1'), request.POST.getlist('hemistich_2'))) or [('', '')]
+    return render(request, 'poetry/explore_publish.html', {'form': form, 'post': post, 'rows': rows})
 
 
 @require_GET
 def detail(request, pk):
-    post = get_object_or_404(ExplorePost.objects.select_related('author'), pk=pk, status='published')
+    visible = Q(status='published')
+    if request.user.is_authenticated:
+        visible |= Q(author=request.user)
+    post = get_object_or_404(ExplorePost.objects.select_related('author').filter(visible), pk=pk)
     if not request.session.get('explore_visitor'):
         request.session['explore_visitor'] = secrets.token_hex(24)
     identity = f'user:{request.user.pk}' if request.user.is_authenticated else request.session['explore_visitor']
     visitor = hashlib.sha256(identity.encode()).hexdigest()
-    ExploreView.objects.get_or_create(post=post, visitor=visitor)
+    if post.status == 'published':
+        ExploreView.objects.get_or_create(post=post, visitor=visitor)
     liked = request.user.is_authenticated and post.likes.filter(user=request.user).exists()
-    return render(request, 'poetry/explore_post.html', {'post': post, 'liked': liked})
+    return render(request, 'poetry/explore_post.html', {'post': post, 'liked': liked, 'author_has_photo': ProfilePhoto.objects.filter(user=post.author).exists()})
 
 
 @private
@@ -112,3 +136,15 @@ def action(request, pk):
         from .http import failure
         return failure(request, 'عملیات معتبر نیست.')
     return redirect(post.get_absolute_url())
+
+
+@require_GET
+def author_photo(request, pk):
+    photos = ProfilePhoto.objects.filter(user_id=pk)
+    if not request.user.is_authenticated or request.user.pk != pk:
+        photos = photos.filter(user__explore_posts__status='published').distinct()
+    photo = get_object_or_404(photos)
+    response = HttpResponse(bytes(photo.image), content_type='image/webp')
+    response['Cache-Control'] = 'private, no-store'
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response

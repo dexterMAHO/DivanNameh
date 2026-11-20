@@ -3,12 +3,13 @@
 {% block title %}{% if poem %}ویرایش شعر{% else %}افزودن شعر{% endif %}{% endblock %}
 {% block scripts %}<script type="module" src="{% static 'js/editor.js' %}"></script>{% endblock %}
 {% block content %}
+<div class="writing-studio">
 <nav class="breadcrumb" aria-label="مسیر کتابخانه">
-  <a href="{% url 'poems' %}">کتابخانه</a>
+  <a href="{% url 'poems' %}">خانه اشعار</a>
   {% if poem %}<span aria-hidden="true">/</span><a href="{{ poem.get_absolute_url }}">{{ poem.display_title }}</a>{% endif %}
 </nav>
-<div class="page-heading compact">
-  <h1>{% if poem %}ویرایش شعر{% else %}افزودن شعر{% endif %}</h1>
+<div class="writing-hero"><span class="writing-emblem" aria-hidden="true">{% include 'components/icon.html' with name='pen' %}</span><div><span class="eyebrow">هر شعر، یک برگ تازه در دفتر شما</span>
+  <h1>{% if poem %}ویرایش شعر{% else %}افزودن شعر{% endif %}</h1><p class="muted">شناسنامه را کامل کنید، روش ورود را انتخاب کنید و شعر را در دفتر نگه دارید.</p></div>
 </div>
 {% if poem %}<p class="notice">ویرایش پس از تأیید مدیر اعمال می‌شود. ترتیب ردیف‌های موجود ثابت است.</p>{% endif %}
 <form method="post" id="poem-editor" class="editor" data-draft-key="poem-draft-{{ user.pk }}-{{ poem.pk|default:'new' }}" data-revision="{{ revision }}" data-minimum="{{ original_count|default:0 }}">
@@ -26,8 +27,8 @@
     </div>
     <p id="draft-status" class="inline-status" role="status"></p>
   </details>
-  <section class="panel">
-    <h2>شناسنامهٔ شعر</h2>
+  <section class="panel writing-section">
+    <h2><span>۱</span> شناسنامهٔ شعر</h2>
     <div class="form-grid">
       <div>{{ form.poet_name.as_field_group }}</div>
       <div>{{ form.title.as_field_group }}</div>
@@ -38,8 +39,8 @@
     <div class="tag-options">{{ form.tags.as_field_group }}</div>
     {{ form.notes.as_field_group }}
   </section>
-  <section class="panel">
-    <h2>متن شعر</h2>
+  <section class="panel writing-section">
+    <h2><span>۲</span> متن و چیدمان شعر</h2>
     <input type="hidden" name="layout_control" value="1">
     {{ form.line_layout.as_field_group }}
     {{ form.input_mode.as_field_group }}
@@ -64,10 +65,11 @@
     <button type="button" id="preview-button" hidden>پیش‌نمایش شعر</button>
     <section id="preview" class="poetry-panel" tabindex="-1" aria-label="پیش‌نمایش شعر" hidden></section>
   </section>
-  {% if poem and user.action_password %}<section class="panel">{% include 'components/action_password.html' %}</section>{% endif %}
-  <div class="form-actions">
+  {% if poem and user.action_password %}<section class="panel writing-section">{% include 'components/action_password.html' %}</section>{% endif %}
+  <div class="form-actions writing-submit">
     <button class="primary" type="submit">{% if poem %}ارسال برای تأیید مدیر{% else %}ذخیرهٔ شعر در دفتر{% endif %}</button>
     <a class="inline-link" href="{% if poem %}{{ poem.get_absolute_url }}{% else %}{% url 'poems' %}{% endif %}">انصراف</a>
   </div>
 </form>
+</div>
 {% endblock %}

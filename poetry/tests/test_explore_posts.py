@@ -14,7 +14,10 @@ class ExplorePostsTests(TestCase):
         self.client.post('/explore/publish/', self.payload)
         pending = ExplorePost.objects.get()
         self.assertEqual(pending.status, 'pending')
+        self.assertEqual(self.client.get(pending.get_absolute_url()).status_code, 200)
+        self.client.logout()
         self.assertEqual(self.client.get(pending.get_absolute_url()).status_code, 404)
+        self.client.force_login(self.user)
         self.client.post('/explore/publish/', {**self.payload, 'action_password': 'wrong'})
         self.assertFalse(ExplorePost.objects.filter(status='published').exists())
         self.client.post('/explore/publish/', {**self.payload, 'action_password': 'test-action-123'})
@@ -50,3 +53,35 @@ class ExplorePostsTests(TestCase):
         self.assertEqual(self.client.get('/explore/').status_code, 200)
         self.assertEqual(self.client.post(f'/explore/posts/{first.pk}/action/', {'intent': 'save'}).status_code, 302)
         self.assertEqual(self.client.get('/explore/publish/').status_code, 302)
+
+    def test_input_modes_and_author_only_edit(self):
+        self.client.post('/explore/publish/', {**self.payload, 'input_mode': 'pairs', 'text': 'یک\nدو\nسه\nچهار', 'action_password': 'test-action-123'})
+        post = ExplorePost.objects.get()
+        self.assertEqual(post.rows, [['یک', 'دو'], ['سه', 'چهار']])
+        url = f'/explore/posts/{post.pk}/edit/'
+        self.client.post(url, {**self.payload, 'title': 'ویرایش', 'input_mode': 'structured', 'hemistich_1': ['اول'], 'hemistich_2': ['دوم']})
+        post.refresh_from_db()
+        self.assertEqual(post.title, 'ویرایش')
+        self.assertEqual(post.rows, [['اول', 'دوم']])
+        self.assertEqual(post.status, 'pending')
+        self.client.post(url, {**self.payload, 'action_password': 'test-action-123'})
+        post.refresh_from_db()
+        self.assertEqual(post.status, 'published')
+        other = get_user_model().objects.create_user('other-poster')
+        self.client.force_login(other)
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.post(url, self.payload).status_code, 404)
+
+    def test_profile_photos_are_only_public_for_published_authors(self):
+        from accounts.models import ProfilePhoto
+        ProfilePhoto.objects.create(user=self.user, image=b'example-webp')
+        post = ExplorePost.objects.create(author=self.user, title='عنوان', poet_name='شاعر', rows=[['الف', 'ب']])
+        self.client.logout()
+        photo_url = f'/explore/authors/{self.user.pk}/photo/'
+        self.assertEqual(self.client.get(photo_url).status_code, 404)
+        post.status = 'published'
+        post.save()
+        self.assertEqual(self.client.get(photo_url).status_code, 200)
+        response = self.client.get('/explore/')
+        self.assertContains(response, photo_url)
+        self.assertContains(self.client.get(post.get_absolute_url()), photo_url)

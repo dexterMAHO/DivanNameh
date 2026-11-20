@@ -14,14 +14,14 @@
   font-display: swap;
 }
 @font-face {
-  font-family: Mirza;
-  src: url('../fonts/Mirza.woff2') format('woff2');
+  font-family: Parastoo;
+  src: url('../fonts/Parastoo.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
-  font-family: Mirza;
-  src: url('../fonts/Mirza-Bold.woff2') format('woff2');
+  font-family: Parastoo;
+  src: url('../fonts/Parastoo-Bold.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
 }
@@ -519,7 +519,7 @@ a.chip:hover { border-color: var(--color-primary); color: var(--color-primary); 
   padding: var(--space-10);
   box-shadow: var(--shadow-card);
 }
-.feature-copy h2 { font-size: clamp(1.75rem, 2.6vw, 2.25rem); color: var(--color-on-feature); }
+.feature-copy :is(h1, h2) { font-size: clamp(1.75rem, 2.6vw, 2.25rem); color: var(--color-on-feature); }
 .feature-copy p { color: var(--color-feature-muted); max-width: 48ch; margin-bottom: var(--space-6); }
 .feature-label {
   display: inline-flex;
@@ -1472,6 +1472,8 @@ input[type=file]::file-selector-button {
 
 .resume-reading { margin-block-end: var(--space-2); }
 .reading-sheet .verse { scroll-margin-block-start: var(--space-4); }
+.verse-row[id] { scroll-margin-block-start: 5rem; }
+.verse-row:target { background: var(--color-primary-soft); }
 
 .mobile-shortcuts { display: none; }
 @media (max-width: 768px) {
@@ -1622,8 +1624,9 @@ input[type=file]::file-selector-button {
 .palace-card .tags { margin-block-end: var(--space-4); }
 .palace-card-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); border-block-start: 1px solid var(--color-border); padding-block-start: var(--space-4); margin-block-start: auto; }
 .palace-card-actions form { margin: 0; }
-.palace-share, .palace-remove { display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: 2.75rem; font-size: var(--text-sm); }
-.palace-share { text-decoration: none; }
+.palace-open, .palace-share, .palace-remove { display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: 2.75rem; font-size: var(--text-sm); }
+.palace-open, .palace-share { text-decoration: none; }
+.palace-open { color: var(--color-primary); }
 .palace-remove { background: var(--color-surface); color: var(--color-muted-foreground); }
 .palace-remove .icon { fill: var(--color-primary); color: var(--color-primary); }
 @media (max-width: 768px) { .palace-grid { grid-template-columns: minmax(0, 1fr); } .palace-card { padding: var(--space-4); } }

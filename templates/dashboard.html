@@ -4,7 +4,7 @@
 {% block content %}
 <section class="review-feature">
   <div class="feature-copy">
-    <h2>{% if due_count %}{{ due_count|persian }} کارت آمادهٔ مرور{% elif reviewed_today %}مرورهای امروز ثبت شد{% elif has_cards %}کارتی آمادهٔ مرور نیست{% else %}حفظ شعر را شروع کنید{% endif %}</h2>
+    <h1>{% if due_count %}{{ due_count|persian }} کارت آمادهٔ مرور{% elif reviewed_today %}مرورهای امروز ثبت شد{% elif has_cards %}کارتی آمادهٔ مرور نیست{% else %}حفظ شعر را شروع کنید{% endif %}</h1>
     {% if not due_count and next_study %}<p>موعد بعدی <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
     {% if due_count %}<a class="button feature-button" href="{% url 'review' %}">شروع مرور امروز</a>
     {% elif has_cards %}<a class="button feature-button" href="{% url 'memorize' %}">دیدن فهرست حفظ</a>

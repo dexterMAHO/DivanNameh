@@ -96,7 +96,7 @@ try {
   const open = async path => {
     await send('Page.navigate', {url: base + path});
     await until(() => evaluate('location.pathname + location.search === ' + JSON.stringify(path) +
-      ' && document.readyState === "complete" && Boolean(document.querySelector("h1, h2"))'), 'page ' + path);
+      ' && document.readyState === "complete" && Boolean(document.querySelector("h1"))'), 'page ' + path);
   };
   const viewport = (width, height = 780) => send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false});
   await send('Page.enable');
@@ -168,28 +168,33 @@ try {
   assert.equal(await evaluate("document.querySelector('.discovery-strip a').pathname"), '/discover/');
   assert.equal(await evaluate("document.querySelector('.header-tool[title]').pathname"), '/treasury/works/');
   assert.equal(await evaluate("document.querySelector('.header-help').pathname"), '/guide/');
+  // The masthead carries one theme button: it shows the icon of the theme it switches to.
+  const logoInk = new Set();
   for (const theme of ['light', 'dark']) {
     await evaluate('document.documentElement.dataset.theme = ' + JSON.stringify(theme));
     const header = await evaluate(`(() => {
-      const summary = document.querySelector('#header-theme summary').getBoundingClientRect();
-      const visible = [...document.querySelectorAll('#header-theme summary svg')].filter(icon => icon.getClientRects().length);
+      const toggle = document.querySelector('#header-theme button');
+      const box = toggle.getBoundingClientRect();
+      const visible = [...toggle.querySelectorAll('svg')].filter(icon => icon.getClientRects().length);
       const icon = visible[0].getBoundingClientRect();
       return {
         count: visible.length,
-        centered: Math.abs(summary.x + summary.width / 2 - icon.x - icon.width / 2) < 1 &&
-                  Math.abs(summary.y + summary.height / 2 - icon.y - icon.height / 2) < 1,
-        logoFilter: getComputedStyle(document.querySelector('.brand-logo')).filter,
+        shown: visible[0].classList.contains('theme-sun') ? 'sun' : 'moon',
+        inside: box.left >= 0 && box.right <= document.documentElement.clientWidth,
+        centered: Math.abs(box.x + box.width / 2 - icon.x - icon.width / 2) < 1 &&
+                  Math.abs(box.y + box.height / 2 - icon.y - icon.height / 2) < 1,
+        logoColor: getComputedStyle(document.querySelector('.brand-logo')).backgroundColor,
       };
     })()`);
     assert.equal(header.count, 1);
+    assert.equal(header.shown, theme === 'dark' ? 'sun' : 'moon');
+    assert.equal(header.inside, true);
     assert.equal(header.centered, true);
-    assert.equal(header.logoFilter, theme === 'dark' ? 'brightness(0) invert(1)' : 'none');
+    // The masked wordmark is tinted with the palette, so each theme gives it its own ink.
+    assert.match(header.logoColor, /^rgba?\(/);
+    logoInk.add(header.logoColor);
   }
-  await evaluate("document.querySelector('#header-theme summary').click()");
-  assert.equal(await evaluate(`(() => {
-    const popup = document.querySelector('.theme-options').getBoundingClientRect();
-    return popup.left >= 0 && popup.right <= document.documentElement.clientWidth;
-  })()`), true);
+  assert.equal(logoInk.size, 2, [...logoInk].join(' '));
   await open('/guide/dashboard/');
   await evaluate("document.querySelector('.guide-navigation button').click()");
   await until(() => evaluate("location.pathname === '/guide/library/'"), 'next guide lesson');
@@ -249,9 +254,13 @@ try {
     assert.ok(pair.text >= 4.5 && pair.secondary >= 4.5 && pair.action >= 4.5, JSON.stringify(pair));
     assert.ok(pair.focus >= 3 && pair.control >= 3, JSON.stringify(pair));
   }
-  await evaluate('document.querySelector("#header-theme summary").click()');
-  await evaluate('document.querySelector("#header-theme button[value=light]").click()');
-  await until(() => evaluate('document.documentElement.dataset.theme === "light"'), 'light theme applied');
+  // Each click posts the opposite theme, so light is at most two clicks away.
+  for (let attempt = 0; attempt < 2 && await evaluate('document.documentElement.dataset.theme !== "light"'); attempt++) {
+    const before = await evaluate('document.documentElement.dataset.theme');
+    await evaluate('document.querySelector("#header-theme button").click()');
+    await until(() => evaluate('document.readyState === "complete" && document.documentElement.dataset.theme !== ' + JSON.stringify(before)), 'theme switched');
+  }
+  assert.equal(await evaluate('document.documentElement.dataset.theme'), 'light');
   await screenshot('settings-light-390');
   await viewport(1440, 1000);
   await open('/treasury/');
@@ -336,20 +345,38 @@ try {
   await send('Input.dispatchKeyEvent', {type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r', unmodifiedText: '\r'});
   await send('Input.dispatchKeyEvent', {type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13});
   await until(() => evaluate('document.querySelector("[data-favorite] button").getAttribute("aria-pressed") === "false"'), 'keyboard removes saved star');
-  await evaluate('document.querySelector("[data-poem-size]").value = "largest"; document.querySelector("[data-poem-size]").dispatchEvent(new Event("change"))');
+  // The largest reading size still has to keep the poem inside a 320 px screen.
+  await open('/settings/');
+  await evaluate(`(() => {
+    const form = document.getElementById('reading-preferences').querySelector('form');
+    form.elements.reading_size.value = 'largest';
+    form.querySelector('button').click();
+  })()`);
+  await until(() => evaluate('document.documentElement.dataset.readingSize === "largest" && document.readyState === "complete"'), 'reading size saved');
   await open(fixture.poem + '?size-check=1');
   assert.equal(await evaluate('document.documentElement.dataset.readingSize'), 'largest');
   assert.equal(await evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), true);
+  await wrapped('largest type at 320');
+  // Appearance saves itself the moment a choice changes; no submit button to press.
   await open('/settings/');
-  await evaluate(`document.querySelector('[name=palette][value=ocean]').click(); document.querySelector('#appearance-form .primary').click()`);
-  await until(() => evaluate('document.documentElement.dataset.palette === "ocean" && document.readyState === "complete"'), 'palette saved');
+  const appearanceSaved = () => until(() => evaluate(
+    'document.getElementById("appearance-status").textContent.includes("ذخیره شد")'), 'appearance saved');
+  await evaluate(`document.querySelector('[name=palette][value=ocean]').click()`);
+  await appearanceSaved();
   await open('/settings/?palette-check=1');
   assert.equal(await evaluate('document.documentElement.dataset.palette'), 'ocean');
-  await evaluate('document.getElementById("accent-color").value = "#ffffee"; document.getElementById("accent-color").dispatchEvent(new Event("input"))');
-  assert.equal(await evaluate('!document.getElementById("accent-suggestion").hidden'), true);
-  await evaluate('document.getElementById("accent-save").click()');
+  await evaluate(`(() => {
+    const form = document.getElementById('appearance-form');
+    form.elements.palette.value = 'custom';
+    form.elements.custom_primary.value = '#3c6f4b';
+    form.elements.custom_accent.value = '#2f3a52';
+    form.dispatchEvent(new Event('change', {bubbles: true}));
+  })()`);
+  await appearanceSaved();
+  assert.equal(await evaluate('!document.getElementById("custom-palette-editor").hidden'), true);
   const accent = await evaluate('getComputedStyle(document.documentElement).getPropertyValue("--color-primary").trim()');
   await open('/settings/?accent-check=1');
+  assert.equal(await evaluate('document.documentElement.dataset.customPrimary'), '#3c6f4b');
   assert.equal(await evaluate('getComputedStyle(document.documentElement).getPropertyValue("--color-primary").trim()'), accent);
   await screenshot('custom-accent-320');
   const customContrast = await evaluate(`(async () => {
@@ -368,7 +395,9 @@ try {
     return checks;
   })()`);
   for (const check of customContrast) assert.ok(Math.min(check.text, check.selected, check.button, check.hover) >= 4.5, JSON.stringify(check));
-  await evaluate('document.getElementById("accent-reset").click()');
+  // Leaving the personal palette drops every inline colour it had set.
+  await evaluate(`document.querySelector('[name=palette][value=museum]').click()`);
+  await appearanceSaved();
   await open('/settings/?reset-check=1');
   assert.equal(await evaluate('document.documentElement.style.getPropertyValue("--color-primary")'), '');
 

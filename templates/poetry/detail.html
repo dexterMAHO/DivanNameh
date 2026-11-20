@@ -14,7 +14,7 @@
   <button type="button" class="text-button resume-reading" hidden>ادامه از آخرین جای خواندن</button>
   <div class="poetry-panel">
     {% for verse in poem.verses.all %}
-      <div class="verse-row">
+      <div class="verse-row" id="verse-{{ verse.position }}">
         {% include 'components/verse.html' %}
         <div class="verse-actions">
           <label class="icon-button treasury-bookmark copy-choice" hidden>

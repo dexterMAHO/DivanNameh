@@ -24,6 +24,7 @@
       </div>
       {% if favorite.verse.poem.tags.all %}<div class="tags">{% for tag in favorite.verse.poem.tags.all %}<a class="chip" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>{% endfor %}</div>{% endif %}
       <div class="palace-card-actions">
+        <a class="palace-open" href="{{ favorite.verse.poem.get_absolute_url }}#verse-{{ favorite.verse.position }}">{% include 'components/icon.html' with name='arrow' %}رفتن به بیت در شعر</a>
         <a class="palace-share" href="{% url 'share-library' favorite.verse.poem_id %}?verse={{ favorite.verse.position }}">{% include 'components/icon.html' with name='share' %}اشتراک این بیت</a>
         <form method="post" action="{% url 'unfavorite' favorite.verse.pk %}">
           {% csrf_token %}

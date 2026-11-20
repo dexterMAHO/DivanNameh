@@ -6,6 +6,7 @@ from accounts import access, views as a
 from . import guide
 from .health import health
 from poetry import share_views, editorial_views, collection_views, library_views, treasury_views, views as p
+from poetry import explore_views
 from memorization import views as m
 
 urlpatterns = [
@@ -75,7 +76,10 @@ urlpatterns = [
     path('memorize/items/<int:pk>/delete/', m.item_action, {'action': 'delete'}, name='item-delete'),
     path('review/', m.review, name='review'),
     path('review/<int:pk>/rate/', m.rate, name='rate'),
-    path('explore/', p.explore, name='explore'),
+    path('explore/', explore_views.index, name='explore'),
+    path('explore/publish/', explore_views.publish, name='explore-publish'),
+    path('explore/posts/<int:pk>/', explore_views.detail, name='explore-post'),
+    path('explore/posts/<int:pk>/action/', explore_views.action, name='explore-action'),
     path('discover/', p.discover, name='discover'),
     path('api/discover/random/', p.discover_api, name='random-poem'),
     path('design-system/', login_required(TemplateView.as_view(template_name='design_system.html')), name='design-system'),

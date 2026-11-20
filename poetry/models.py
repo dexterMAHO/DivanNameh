@@ -386,3 +386,44 @@ class PoemShare(models.Model):
 
     class Meta:
         ordering = ('-created_at', '-pk')
+
+
+class ExplorePost(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='explore_posts')
+    title = models.CharField(max_length=200)
+    poet_name = models.CharField(max_length=160)
+    rows = models.JSONField()
+    line_layout = models.BooleanField(default=False)
+    status = models.CharField(max_length=10, choices=[('pending', 'در انتظار تأیید'), ('published', 'منتشرشده'), ('rejected', 'ردشده')], default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+
+    def get_absolute_url(self):
+        return reverse('explore-post', args=[self.pk])
+
+
+class ExploreLike(models.Model):
+    post = models.ForeignKey(ExplorePost, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['post', 'user'], name='unique_explore_like')]
+
+
+class ExploreSave(models.Model):
+    post = models.ForeignKey(ExplorePost, on_delete=models.CASCADE, related_name='saves')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    poem = models.ForeignKey(Poem, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['post', 'user'], name='unique_explore_save')]
+
+
+class ExploreView(models.Model):
+    post = models.ForeignKey(ExplorePost, on_delete=models.CASCADE, related_name='views')
+    visitor = models.CharField(max_length=64)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['post', 'visitor'], name='unique_explore_view')]

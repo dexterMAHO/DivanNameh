@@ -124,3 +124,40 @@ class TreasuryVerseLinkAdmin(admin.ModelAdmin):
 
 
 admin.site.register(TreasuryTopic)
+
+
+from .models import ExplorePost
+
+
+@admin.register(ExplorePost)
+class ExplorePostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'poet_name', 'author', 'status', 'created_at')
+    list_filter = ('status',)
+    search_fields = ('title', 'poet_name')
+    readonly_fields = ('author', 'title', 'poet_name', 'rows', 'line_layout', 'created_at')
+    actions = ('approve_posts', 'reject_posts')
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.action(description='تأیید و انتشار شعرهای انتخابی')
+    def approve_posts(self, request, queryset):
+        if request.user.is_superuser:
+            queryset.filter(status='pending').update(status='published')
+
+    @admin.action(description='رد شعرهای انتخابی')
+    def reject_posts(self, request, queryset):
+        if request.user.is_superuser:
+            queryset.update(status='rejected')

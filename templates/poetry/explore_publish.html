@@ -1,0 +1,3 @@
+{% extends 'base.html' %}
+{% block title %}انتشار شعر{% endblock %}
+{% block content %}<section class="panel explore-compose"><span class="eyebrow">صدای شما در شعرجویی</span><h1>پست کردن شعر</h1><p>با رمز عملیات معتبر، شعر مستقیم منتشر می‌شود. بدون آن، مدیر باید شعر را تأیید کند.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary">ارسال شعر</button><a class="button" href="{% url 'explore' %}">بازگشت</a></form></section>{% endblock %}

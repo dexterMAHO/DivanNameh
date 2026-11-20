@@ -1,9 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load persian %}
 {% block title %}شعرجویی{% endblock %}
 {% block content %}
-<header class="page-heading compact">
-  <div><h1>شعرجویی</h1><p>شعرهای منتخب را بخوانید و بر اساس شاعر، موضوع و مجموعه‌های مضمونی بگردید.</p></div>
-  <a href="{% url 'discover' %}">کشف شعر تصادفی</a>
-</header>
-{% include 'poetry/treasury_showcase.html' %}
+<div class="poets-place">
+<header class="page-heading"><div><span class="eyebrow">واژه‌هایتان را با دیگران شریک شوید</span><h1>شعرجویی</h1><p>جایی برای خواندن، پسندیدن و نگه‌داشتن شعر.</p></div><a class="button primary" href="{% url 'explore-publish' %}">{% include 'components/icon.html' with name='plus' %} پست کردن شعر</a></header>
+{% if pending_posts %}<p class="notice">{{ pending_posts|persian }} شعر شما در انتظار تأیید مدیر است.</p>{% endif %}
+<form class="panel inline-form explore-controls" method="get"><div><label for="feed-query">جست‌وجوی عنوان یا شاعر</label><input type="search" name="q" id="feed-query" value="{{ feed_query }}" maxlength="120"></div><div><label for="feed-sort">مرتب‌سازی</label><select name="sort" id="feed-sort"><option value="newest" {% if feed_sort == 'newest' %}selected{% endif %}>تازه‌ترین</option><option value="views" {% if feed_sort == 'views' %}selected{% endif %}>بیشترین بازدید</option><option value="likes" {% if feed_sort == 'likes' %}selected{% endif %}>بیشترین لایک</option><option value="saves" {% if feed_sort == 'saves' %}selected{% endif %}>بیشترین ذخیره</option></select></div><button>نمایش شعرها</button></form>
+<div class="explore-masonry">
+{% for post in post_page %}<article class="explore-social-card"><span class="explore-card-emblem" aria-hidden="true">{% include 'components/icon.html' with name='pen' %}</span><h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2><p class="explore-poet">{{ post.poet_name }}</p><div class="explore-poem-preview">{% for first, second in post.rows|slice:':12' %}<p>{{ first }}{% if second %}<br>{{ second }}{% endif %}</p>{% endfor %}</div><a class="explore-read-more" href="{{ post.get_absolute_url }}">برای خواندن کامل باز کنید…</a><footer><a href="{{ post.get_absolute_url }}" aria-label="بازدیدها">{% include 'components/icon.html' with name='eye' %} {{ post.view_count|persian }}</a><form action="{% url 'explore-action' post.pk %}" method="post">{% csrf_token %}<button name="intent" value="like" aria-label="پسندیدن {{ post.title }}">{% include 'components/icon.html' with name='heart' %} {{ post.like_count|persian }}</button></form><form action="{% url 'explore-action' post.pk %}" method="post">{% csrf_token %}<button name="intent" value="save" aria-label="ذخیرهٔ {{ post.title }} در خانه اشعار">{% include 'components/icon.html' with name='bookmark' %} {{ post.save_count|persian }}</button></form><span>{{ post.created_at|date:'Y/m/d'|persian }}</span></footer><p class="explore-byline">منتشرشده توسط {{ post.author.display_name }}</p></article>
+{% empty %}<section class="empty"><h2>اولین صدای این جمع باشید.</h2><p>یک شعر منتشر کنید یا از منتخب‌های گنجینه بخوانید.</p><a href="{% url 'explore-publish' %}">ارسال نخستین شعر</a></section>{% endfor %}
+</div>
+{% include 'components/pagination.html' with page=post_page %}
+<section class="explore-curated"><h2>منتخب‌های گنجینه</h2>{% include 'poetry/treasury_showcase.html' %}</section>
+</div>
 {% endblock %}

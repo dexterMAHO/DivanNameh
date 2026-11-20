@@ -21,7 +21,7 @@ def add_review(owner, poem, verses):
 
 
 @transaction.atomic
-def save_public_work(owner, entry, rows, positions, action):
+def save_public_work(owner, entry, rows, positions, action, *, line_layout=False):
     User.objects.select_for_update().get(pk=owner.pk)
     candidates = Poem.objects.select_for_update().filter(
         owner=owner, treasury_book_slug=entry.book.slug, treasury_entry_key=entry.key,
@@ -42,6 +42,7 @@ def save_public_work(owner, entry, rows, positions, action):
     if poem is None:
         poem = Poem.objects.create(
             owner=owner, title=entry.title[:200], poet_name=entry.book.author[:160], source_url=entry.source_url,
+            line_layout=line_layout,
             treasury_book_slug=entry.book.slug, treasury_entry_key=entry.key,
             treasury_edition=entry.book.dataset_digest,
         )

@@ -16,13 +16,14 @@ from accounts.permissions import action_password_error
 from memorization.models import MemorizationItem
 from memorization.services.reviews import get_due_items
 
-from .treasury_forms import is_line_poem
+from .treasury_forms import CLASSICAL_TITLE, LINE_COLLECTIONS, LINE_SECTION, NIMA_LINE_WORKS, is_line_poem
 from .http import failure, private, success
 from .models import FavoriteVerse, Poem, TreasuryBook, TreasuryEntry, TreasuryVerseLink, Verse
 from .editorial_views import showcase
 from .services.editorial import public_picks, quote_row, verse_url
 from .services.public_library import save_public_work
 from .services.discovery import numeric_id
+from .services.discovery_filters import matches_length
 from .services.search import search_field, search_text
 from .services.treasury_metadata import ALPHABET
 SORTS = {
@@ -203,8 +204,32 @@ def reading_rows(entry, book, parents):
     return False, entry.couplets or []
 
 
+def line_work_query():
+    """Identify modern collections before sampling; verify actual layout afterward."""
+    sections = TreasuryEntry.objects.filter(kind='section')
+    roots = Q(title__regex=LINE_SECTION.pattern)
+    for slug, keys in LINE_COLLECTIONS.items():
+        roots |= Q(book__slug=slug, key__in=keys)
+    section_ids = set(sections.filter(roots).values_list('pk', flat=True))
+    frontier = section_ids
+    while frontier:
+        frontier = set(sections.filter(parent_id__in=frontier).values_list('pk', flat=True)) - section_ids
+        section_ids.update(frontier)
+    line = Q(book__slug='shrab-sphri') | Q(book__slug='nima-ivshij', key__in=NIMA_LINE_WORKS)
+    if section_ids:
+        line |= Q(parent_id__in=section_ids)
+    # Nima's classical works are explicitly excluded by is_line_poem.
+    return line & ~Q(title__regex=CLASSICAL_TITLE.pattern)
+
+
 def discover_work(exclude_id, *, poet='', length='', recent=(), keep_id=None):
     works = TreasuryEntry.objects.filter(kind='work', reading_count__gt=0)
+    if length == 'modern':
+        works = works.filter(line_work_query())
+    elif length in ('single', 'double', 'under15', 'over15'):
+        bounds = {'single': {'reading_count': 1}, 'double': {'reading_count': 2},
+                  'under15': {'reading_count__lt': 15}, 'over15': {'reading_count__gt': 15}}
+        works = works.filter(**bounds[length]).exclude(line_work_query())
     if length == 'short':
         works = works.filter(reading_count__lte=8)
     elif length == 'long':
@@ -216,9 +241,9 @@ def discover_work(exclude_id, *, poet='', length='', recent=(), keep_id=None):
         if entry is None:  # A concurrent import may replace an entry.
             return None
         line_layout, rows = reading_rows(entry, entry.book, entry_sections(entry))
-        if not rows or (length == 'short' and len(rows) > 8) or (length == 'long' and len(rows) <= 8):
+        if not rows or not matches_length(length, len(rows), line_layout):
             return None
-        return {'entry': entry, 'line_layout': line_layout, 'rows': rows[:4]}
+        return {'entry': entry, 'line_layout': line_layout, 'rows': rows[:4], 'row_count': len(rows)}
 
     if keep := numeric_id(keep_id):
         if result := candidate(works.select_related('book').defer('search_body').filter(pk=keep).first()):
@@ -295,8 +320,8 @@ def save_selection(request, slug, key):
     if not positions or positions[0] < 1 or positions[-1] > len(rows):
         return failure(request, 'دست‌کم یک بیت معتبر انتخاب کنید.')
 
-    if public_picks().filter(entry=entry).exists() and action in ('library-all', 'favorite', 'unfavorite', 'memorize'):
-        poem = save_public_work(request.user, entry, rows, positions, action)
+    if (request.POST.get('from_discovery') == '1' or public_picks().filter(entry=entry).exists()) and action in ('library-all', 'favorite', 'unfavorite', 'memorize'):
+        poem = save_public_work(request.user, entry, rows, positions, action, line_layout=line_layout)
         if action in ('favorite', 'unfavorite'):
             return success(request, 'نشان شاه‌بیت به‌روز شد.', verse_url(entry, positions[0]),
                            favorite=action == 'favorite')

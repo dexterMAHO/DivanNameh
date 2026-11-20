@@ -149,5 +149,5 @@ class RoadmapTests(TestCase):
     def test_treasury_pick_preserves_selected_personal_poem(self):
         other = Poem.objects.create(owner=self.reader, title='دفتر دیگر', poet_name='شاعر')
         Verse.objects.create(poem=other, position=1, hemistich_1='متن دیگر')
-        response = self.client.get(reverse('discover'), {'keep_poem': self.poem.pk, 'treasury_exclude': self.work.pk})
+        response = self.client.get(reverse('discover'), {'source': 'both', 'keep_poem': self.poem.pk, 'treasury_exclude': self.work.pk})
         self.assertEqual(response.context['poem'], self.poem)

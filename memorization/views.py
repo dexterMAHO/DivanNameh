@@ -48,10 +48,17 @@ def items(request):
         'paused': Q(status='paused', poem__archived_at__isnull=True),
         'archived': Q(poem__archived_at__isnull=False),
     }
+    summary = rows.aggregate(
+        total=Count('pk'),
+        ready=Count('pk', filter=filters['due']),
+        upcoming=Count('pk', filter=filters['upcoming']),
+        paused=Count('pk', filter=filters['paused']),
+    )
     if state in filters:
         rows = rows.filter(filters[state])
     return render(request, 'memorization/list.html', {
         'page': Paginator(rows, 20).get_page(request.GET.get('page')), 'state': state,
+        'study_summary': summary, 'study_now': now,
     })
 
 
@@ -138,9 +145,14 @@ def review(request):
     cue = verses[0].hemistich_1 if verses else ''
     words = cue.split()
     blanks = [(word, index % 3 == 1 or len(words) == 1) for index, word in enumerate(words)] if mode == 'blanks' else []
+    today_reviews = ReviewLog.objects.filter(item__owner=request.user, reviewed_at__date=timezone.localdate()).count()
+    remaining = queue.count()
+    session_total = today_reviews + remaining
     return render(request, 'memorization/review.html', {
         **study_context(request.user), 'item': item, 'verses': verses, 'cue': cue, 'blanks': blanks,
-        'remaining': queue.count(), 'request_id': uuid.uuid4(), 'ratings': ReviewLog.RATINGS,
+        'remaining': remaining, 'today_reviews': today_reviews,
+        'review_progress': round(100 * today_reviews / session_total) if session_total else 0,
+        'request_id': uuid.uuid4(), 'ratings': ReviewLog.RATINGS,
         'mode': mode, 'modes': PRACTICE_MODES.items(),
     })
 

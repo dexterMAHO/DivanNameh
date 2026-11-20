@@ -1,5 +1,5 @@
 {% load persian %}
-<section class="panel" aria-labelledby="showcase">
+<section class="panel treasury-curation" aria-labelledby="showcase">
   <h2 id="showcase">{% if explore_showcase %}انتخاب شاعر و موضوع{% else %}شعرهای گنجینه{% endif %}</h2>
   <form method="get" class="inline-form">
     <div><label for="public-poet">شاعر</label><select id="public-poet" name="{{ poet_parameter }}">
@@ -13,12 +13,13 @@
     <button>نمایش شعرها</button>
   </form>
 </section>
-<div class="card-grid">
+<div class="card-grid treasury-picks">
   {% for pick, sample in picks %}
-  <article class="panel">
-    <p class="eyebrow">{{ pick.entry.book.author }}</p>
+  <article class="panel treasury-pick-card">
+    <div class="treasury-pick-author">{% include 'components/poet_portrait.html' with book=pick.entry.book size='tiny' decorative=True %}<p class="eyebrow">{{ pick.entry.book.author }}</p></div>
     <h2><a href="{{ pick.entry.get_absolute_url }}">{{ pick.entry.title }}</a></h2>
     {% if sample %}<blockquote class="literary-quote">{{ sample.0 }}<br>{{ sample.1 }}</blockquote>{% endif %}
+    <a class="inline-link treasury-pick-link" href="{{ pick.entry.get_absolute_url }}">خواندن اثر {% include 'components/icon.html' with name='arrow' %}</a>
   </article>
   {% empty %}
   <p>شعری با این پالایه‌ها در گنجینهٔ عمومی پیدا نشد.</p>
@@ -32,8 +33,8 @@
 </nav>
 {% endif %}
 {% if public_collections %}
-<section class="panel">
+<section class="panel treasury-themes">
   <h2>یک مضمون، چند صدا</h2>
-  <ul>{% for collection in public_collections %}<li><a href="{% url 'literary-collection' collection.slug %}">{{ collection.title }}</a>{% if collection.description %} · {{ collection.description }}{% endif %}</li>{% endfor %}</ul>
+  <ul class="treasury-theme-list">{% for collection in public_collections %}<li><a href="{% url 'literary-collection' collection.slug %}">{{ collection.title }}</a>{% if collection.description %} · {{ collection.description }}{% endif %}</li>{% endfor %}</ul>
 </section>
 {% endif %}

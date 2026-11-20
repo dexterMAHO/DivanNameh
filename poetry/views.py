@@ -21,6 +21,7 @@ from .services.edit_requests import edit_changes, submit_edit
 from .services.tags import merge_tags, save_tag
 from .services.search import search_field, search_text
 from .services.discovery import choose_random_poem
+from .services.discovery_filters import LENGTH_CHOICES
 from .treasury_views import discover_work, entry_sections, reading_rows
 
 
@@ -342,7 +343,7 @@ def discover_api(request):
 
 def discovery_length(params):
     length = params.get('length', '')
-    return length if length in ('short', 'long') else ''
+    return length if length in {value for value, _ in LENGTH_CHOICES} | {'short', 'long'} else ''
 
 
 @require_GET
@@ -356,11 +357,11 @@ def discover(request):
     poet = params.get('poet', '').strip()[:120]
     topic = params.get('topic', '')[:90]
     length = discovery_length(params)
-    source = params.get('source', '')
+    source = params.get('source', 'treasury')
     if not request.user.is_authenticated:
         source = 'treasury'
-    elif source not in ('library', 'treasury'):
-        source = 'both'
+    elif source not in ('library', 'treasury', 'both'):
+        source = 'treasury'
     personal_history = request.session.get('discover_library', [])
     treasury_history = request.session.get('discover_treasury', [])
     poem = choose_random_poem(request.user, params.get('exclude_id'), poet=poet, topic=topic, length=length,
@@ -372,7 +373,24 @@ def discover(request):
     if treasury:
         pick_id = treasury['entry'].pk
         request.session['discover_treasury'] = [pick_id, *[pk for pk in treasury_history if pk != pick_id]][:8]
+    treasury_favorites = set()
+    if treasury and request.user.is_authenticated:
+        treasury_favorites = set(FavoriteVerse.objects.filter(
+            owner=request.user, verse__poem__treasury_book_slug=treasury['entry'].book.slug,
+            verse__poem__treasury_entry_key=treasury['entry'].key,
+            verse__poem__treasury_edition=treasury['entry'].book.dataset_digest,
+        ).values_list('verse__treasury_position', flat=True))
+    authors = set(TreasuryBook.objects.values_list('author', flat=True)) if source != 'library' else set()
+    if request.user.is_authenticated and source != 'treasury':
+        authors.update(Poem.objects.filter(owner=request.user, archived_at__isnull=True).values_list('poet_name', flat=True))
+    favorite_ids = set()
+    in_memory = False
+    if poem:
+        favorite_ids = set(FavoriteVerse.objects.filter(owner=request.user, verse__poem=poem).values_list('verse_id', flat=True))
+        in_memory = MemorizationItem.objects.filter(owner=request.user, poem=poem, scope='full').exists()
     return render(request, 'poetry/discover.html', {
+        'poet_suggestions': sorted(authors), 'length_choices': LENGTH_CHOICES,
+        'favorite_ids': favorite_ids, 'in_memory': in_memory, 'treasury_favorites': treasury_favorites,
         'poem': poem, 'treasury_pick': treasury, 'source': source, 'poet': poet, 'topic': topic, 'length': length,
         'topics': Tag.objects.filter(owner=request.user) if request.user.is_authenticated else Tag.objects.none(),
         'filtered': bool(poet or topic or length),

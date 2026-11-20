@@ -2,19 +2,25 @@
 {% load persian %}
 {% block title %}گنجینهٔ فارسی{% endblock %}
 {% block content %}
-<header class="page-heading treasury-heading">
-  <div>
-    <span class="eyebrow">کتابخانهٔ مشترک</span>
-    <h1>گنجینهٔ فارسی</h1>
-    {% if user.is_authenticated %}<p>زندگی‌نامهٔ کوتاه، تصویر و فهرست آثار {{ totals.poets|tally }} شاعر و نویسنده، روی هم {{ totals.works|tally }} اثر.</p>{% endif %}
+<div class="treasury-gallery">
+<header class="treasury-hero">
+  <div class="treasury-hero-ornament" aria-hidden="true">{% include 'components/icon.html' with name='book' %}</div>
+  <span class="eyebrow">میراثی از واژه و خیال</span>
+  <h1>گنجینهٔ فارسی</h1>
+  <p>از صدای شاعران تا جهان شعر؛ هر برگ، دری به ادبیات فارسی.</p>
+  {% if user.is_authenticated %}
+  <div class="treasury-totals">
+    <div>{% include 'components/icon.html' with name='pen' %}<strong>{{ totals.poets|tally }}</strong><span>شاعر و نویسنده</span></div>
+    <div>{% include 'components/icon.html' with name='book' %}<strong>{{ totals.works|default:0|tally }}</strong><span>اثر در گنجینه</span></div>
   </div>
+  {% endif %}
 </header>
 
 {% include 'poetry/treasury_showcase.html' %}
-<p><a href="{% url 'explore' %}">رفتن به شعرجویی</a></p>
 {% if user.is_authenticated %}
+<div class="section-heading treasury-directory-heading"><div><span class="eyebrow">چهره‌های ادبیات فارسی</span><h2>در میان شاعران بگردید</h2></div><span aria-hidden="true">{% include 'components/icon.html' with name='search' %}</span></div>
 <section class="panel treasury-filters" aria-labelledby="treasury-filters-title">
-  <h2 class="visually-hidden" id="treasury-filters-title">پالایش گنجینه</h2>
+  <h3 class="visually-hidden" id="treasury-filters-title">پالایش گنجینه</h3>
   <form class="treasury-filter-form" method="get" action="{% url 'treasury' %}">
     <div class="treasury-filter-query">
       <label for="treasury-search">نام شاعر، زادگاه یا زندگی‌نامه</label>
@@ -42,7 +48,7 @@
         <option value="era" {% if sort == 'era' %}selected{% endif %}>کهن‌ترین</option>
       </select>
     </div>
-    <button type="submit">جست‌وجو و پالایش</button>
+    <button type="submit" class="primary">{% include 'components/icon.html' with name='search' %} جست‌وجو و پالایش</button>
   </form>
   <p class="fine">
     {{ matches|tally }} شاعر یافت شد{% if filtered or sort != 'name' %} · <a class="inline-link" href="{% url 'treasury' %}">برداشتن پالایه‌ها</a>{% endif %}
@@ -61,10 +67,11 @@
       </span>
     </a>
     {% if book.biography %}<p class="poet-bio">{{ book.biography }}</p>{% endif %}
-    <p class="poet-card-foot">
+    <div class="poet-card-foot">
       {% if book.work_count %}<span>{{ book.work_count|tally }} اثر</span>{% else %}<span>فهرست نیامده</span>{% endif %}
       {% if book.century %}<span>سدهٔ {{ book.century|persian }} ق</span>{% endif %}
-    </p>
+    </div>
+    <a class="treasury-profile-link" href="{{ book.get_absolute_url }}">زندگی و آثار {% include 'components/icon.html' with name='arrow' %}</a>
   </article>
   {% empty %}
   <section class="empty">
@@ -77,4 +84,5 @@
 </div>
 {% include 'components/pagination.html' %}
 {% endif %}
+</div>
 {% endblock %}

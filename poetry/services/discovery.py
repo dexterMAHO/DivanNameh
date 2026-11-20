@@ -17,9 +17,16 @@ def choose_random_poem(owner, exclude_id=None, *, poet='', topic='', length='', 
         poems = poems.alias(poet_search=search_field('poet_name')).filter(poet_search__icontains=search_text(poet))
     if topic:
         poems = poems.filter(tags__owner=owner, tags__slug=topic)
-    if length in ('short', 'long'):
+    if length == 'modern':
+        poems = poems.filter(line_layout=True)
+    if length in ('single', 'double', 'under15', 'over15'):
+        poems = poems.filter(line_layout=False)
+    if length in ('short', 'long', 'single', 'double', 'under15', 'over15'):
         poems = poems.annotate(line_count=Count('verses', distinct=True))
-        poems = poems.filter(line_count__lte=8) if length == 'short' else poems.filter(line_count__gt=8)
+        bounds = {'short': {'line_count__lte': 8}, 'long': {'line_count__gt': 8},
+                  'single': {'line_count': 1}, 'double': {'line_count': 2},
+                  'under15': {'line_count__lt': 15}, 'over15': {'line_count__gt': 15}}
+        poems = poems.filter(**bounds[length])
     if keep := numeric_id(keep_id):
         existing = poems.filter(pk=keep).first()
         if existing:

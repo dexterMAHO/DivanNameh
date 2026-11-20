@@ -1,13 +1,17 @@
 {% extends 'base.html' %}
 {% load persian static %}
-{% block scripts %}{% if mode == 'blanks' and item %}<script type="module" src="{% static 'js/practice.js' %}"></script>{% endif %}{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'js/review-studio.js' %}"></script>{% if mode == 'blanks' and item %}<script type="module" src="{% static 'js/practice.js' %}"></script>{% endif %}{% endblock %}
 {% block title %}مرور امروز{% endblock %}
 {% block content %}
-<header class="page-heading compact">
-  <h1>مرور امروز</h1>
+<div class="review-studio">
+<header class="page-heading compact review-heading">
+  <div><span class="eyebrow">یک نفس، یک بیت</span><h1>مرور امروز</h1></div>
   {% if remaining %}<span class="stamp">{{ remaining|persian }} کارت باقی‌مانده</span>{% endif %}
 </header>
+<div class="review-session-summary"><div><span>مرورهای ثبت‌شدهٔ امروز</span><strong>{{ today_reviews|persian }}</strong></div><progress value="{{ review_progress }}" max="100" aria-label="نسبت مرورهای امروز به مرورهای ثبت‌شده و کارت‌های آماده">{{ review_progress|persian }}٪</progress><p class="fine">{{ today_reviews|persian }} مرور ثبت‌شده و {{ remaining|persian }} کارت آمادهٔ مرور</p></div>
 {% if item %}
+  <nav class="review-journey" aria-label="مراحل تمرین"><span data-review-step="recall" aria-current="step"><b>۱</b> به خاطر بیاور</span><span data-review-step="reveal"><b>۲</b> پاسخ را ببین</span><span><b>۳</b> خودت را بسنج</span></nav>
+  <button type="button" class="review-focus-toggle" id="review-focus" aria-pressed="false" hidden>{% include 'components/icon.html' with name='eye' %} حالت تمرکز</button>
   <form method="get" class="inline-form practice-mode">
     <label for="practice-mode">روش تمرین
       <select id="practice-mode" name="mode">
@@ -25,6 +29,7 @@
     {% else %}
       <p class="muted">از این سطر شروع کنید و ادامه را از حفظ بخوانید.</p>
       <p class="cue">{{ cue }}</p>
+      <p class="fine review-encouragement">پیش از دیدن پاسخ، یک بار بیت را در ذهن کامل کنید.</p>
     {% endif %}
     {% if mode == 'blanks' %}
       <div id="typed-practice" hidden>
@@ -40,9 +45,9 @@
         {% csrf_token %}
         <input type="hidden" name="request_id" value="{{ request_id }}">
         <input type="hidden" name="mode" value="{{ mode }}">
-        <h3>چطور به یاد آوردید؟</h3>
+        <h3>چطور به یاد آوردید؟</h3><p class="fine">پاسخ صادقانه کمک می‌کند موعد بعدی مناسب‌تر باشد.</p>
         <div class="rating-actions">
-          {% for value,label in ratings %}<button name="rating" value="{{ value }}">{{ label }}</button>{% endfor %}
+          {% for value,label in ratings %}<button name="rating" value="{{ value }}" class="review-rating" data-rating="{{ value }}"><span>{{ label }}</span><small>{% if value == 'again' %}یک بار دیگر تمرین کنیم{% elif value == 'hard' %}با مکث به یاد آمد{% elif value == 'good' %}روان و آشنا بود{% else %}بی‌درنگ در خاطرم بود{% endif %}</small></button>{% endfor %}
         </div>
       </form>
       <div class="review-verses">
@@ -55,7 +60,7 @@
     </details>
   </section>
 {% else %}
-  <section class="empty">
+  <section class="empty review-complete"><span class="review-complete-icon" aria-hidden="true">{% include 'components/icon.html' with name='check' %}</span>
     <h2>{% if reviewed_today %}مرور امروز انجام شد{% elif has_cards %}مروری برای الان باقی نمانده{% else %}هنوز کارت حفظ ندارید{% endif %}</h2>
     {% if next_study %}<p>نزدیک‌ترین موعد <time datetime="{{ next_study|date:'c' }}">{{ next_study|date:'j F Y، H:i'|persian }}</time></p>{% endif %}
     {% if has_cards %}<a class="button" href="{% url 'memorize' %}">فهرست حفظ</a>
@@ -63,4 +68,5 @@
     {% if reviewed_today %}<a href="{% url 'study-stats' %}">آمار مرور</a>{% endif %}
   </section>
 {% endif %}
+</div>
 {% endblock %}

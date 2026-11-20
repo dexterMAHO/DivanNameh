@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
+from django.db import IntegrityError
 from django.urls import reverse
 
 
@@ -84,3 +85,28 @@ class DisabledHumanCheckTests(TestCase):
         verify.assert_not_called()
         stranger = Client()
         self.assertRedirects(stranger.post('/login/', {'username': 'reader'}), '/')
+
+
+@override_settings(READER_HUMAN_CHECK_ENABLED=False)
+class SignupErrorTests(TestCase):
+    def test_existing_name_has_actionable_error_and_does_not_login(self):
+        get_user_model().objects.create_user(username='existing-reader')
+        response = self.client.post('/signup/', {'username': 'existing-reader'})
+        self.assertContains(response, 'قبلاً ثبت شده است')
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(get_user_model().objects.filter(username='existing-reader').count(), 1)
+
+    @patch('accounts.access.User.objects.create', side_effect=IntegrityError('unrelated constraint'))
+    def test_other_integrity_failure_is_not_reported_as_username_collision(self, create):
+        with self.assertLogs('accounts.access', level='ERROR') as logs:
+            response = self.client.post('/signup/', {'username': 'new-reader'})
+        self.assertContains(response, 'مشکل ذخیره‌سازی')
+        self.assertNotContains(response, 'نام کاربری در دسترس نیست')
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertNotIn('new-reader', ''.join(logs.output))
+
+    def test_new_name_succeeds_when_other_accounts_already_exist(self):
+        get_user_model().objects.create_user(username='first-reader')
+        response = self.client.post('/signup/', {'username': 'second-reader'})
+        self.assertRedirects(response, '/')
+        self.assertEqual(get_user_model().objects.count(), 2)

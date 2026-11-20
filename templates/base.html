@@ -25,7 +25,7 @@
     <div class="masthead-actions">
       {% if not user.is_authenticated %}<a class="header-guest-link" href="{% url 'treasury' %}">گنجینه</a>{% endif %}
       <a class="icon-button header-tool" aria-label="جست‌وجوی آثار گنجینه" title="جست‌وجوی آثار گنجینه"
-        href="{% if user.is_authenticated %}{% url 'treasury-works' %}{% else %}{% url 'treasury-trace' %}{% endif %}">
+        href="{% url 'treasury-works' %}">
         {% include 'components/icon.html' with name='search' %}
       </a>
       <a class="header-tool header-help" aria-label="آموزش دیوان‌نامه" href="{% url 'guide' %}"{% if request.resolver_match.url_name == 'guide' or request.resolver_match.url_name == 'guide-lesson' %} aria-current="page"{% endif %}>

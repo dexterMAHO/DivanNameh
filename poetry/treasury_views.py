@@ -2,7 +2,6 @@ import hashlib
 import json
 from collections import defaultdict
 
-from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, F, Q, Sum
@@ -19,7 +18,6 @@ from memorization.services.reviews import get_due_items
 from .treasury_forms import CLASSICAL_TITLE, LINE_COLLECTIONS, LINE_SECTION, NIMA_LINE_WORKS, is_line_poem
 from .http import failure, private, success
 from .models import FavoriteVerse, Poem, TreasuryBook, TreasuryEntry, TreasuryVerseLink, Verse
-from .editorial_views import showcase
 from .services.editorial import public_picks, quote_row, verse_url
 from .services.public_library import save_public_work
 from .services.discovery import numeric_id
@@ -59,11 +57,6 @@ def filtered_books(params):
 
 @require_GET
 def index(request):
-    editorial = showcase(request)
-    if not isinstance(editorial, dict):
-        return editorial
-    if not request.user.is_authenticated:
-        return render(request, 'poetry/treasury.html', editorial)
     books, filters = filtered_books(request.GET)
     totals = TreasuryBook.objects.aggregate(poets=Count('pk'), works=Sum('work_count'))
     centuries = (TreasuryBook.objects.filter(century__isnull=False)
@@ -76,11 +69,10 @@ def index(request):
         'centuries': list(centuries),
         'alphabet': ALPHABET,
         'filtered': bool(filters['query'] or filters['letter'] or filters['century']),
-        **filters, **editorial,
+        **filters,
     })
 
 
-@private
 @require_GET
 def works_search(request):
     query = request.GET.get('q', '').strip()[:120]
@@ -124,8 +116,6 @@ def book_detail(request, slug, key=None):
     book = get_object_or_404(TreasuryBook, slug=slug)
     current = get_object_or_404(TreasuryEntry.objects.defer('search_body'), book=book, key=key) if key else None
     pick = public_picks().filter(entry=current).first() if current else None
-    if not request.user.is_authenticated and not pick:
-        return redirect_to_login(request.get_full_path())
     listing_root, skipped = skip_single_root(book)
     parents = entry_sections(current) if current else []
     ancestors = [parent for parent in parents if parent.pk not in skipped]

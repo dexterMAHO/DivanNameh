@@ -8,16 +8,12 @@
   <span class="eyebrow">میراثی از واژه و خیال</span>
   <h1>گنجینهٔ فارسی</h1>
   <p>از صدای شاعران تا جهان شعر؛ هر برگ، دری به ادبیات فارسی.</p>
-  {% if user.is_authenticated %}
   <div class="treasury-totals">
     <div>{% include 'components/icon.html' with name='pen' %}<strong>{{ totals.poets|tally }}</strong><span>شاعر و نویسنده</span></div>
     <div>{% include 'components/icon.html' with name='book' %}<strong>{{ totals.works|default:0|tally }}</strong><span>اثر در گنجینه</span></div>
   </div>
-  {% endif %}
 </header>
 
-{% include 'poetry/treasury_showcase.html' %}
-{% if user.is_authenticated %}
 <div class="section-heading treasury-directory-heading"><div><span class="eyebrow">چهره‌های ادبیات فارسی</span><h2>در میان شاعران بگردید</h2></div><span aria-hidden="true">{% include 'components/icon.html' with name='search' %}</span></div>
 <section class="panel treasury-filters" aria-labelledby="treasury-filters-title">
   <h3 class="visually-hidden" id="treasury-filters-title">پالایش گنجینه</h3>
@@ -83,6 +79,5 @@
   {% endfor %}
 </div>
 {% include 'components/pagination.html' %}
-{% endif %}
 </div>
 {% endblock %}

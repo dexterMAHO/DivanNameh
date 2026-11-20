@@ -21,6 +21,7 @@
 | no such table / relation does not exist | build migration را کامل نکرده یا URL به branch/database دیگری اشاره دارد؛ showmigrations روی همان مقصد |
 | Target is not empty | import_library جلوی overwrite را گرفته؛ مقصد تازه بسازید یا برنامهٔ merge جدا طراحی کنید؛ flush نکنید |
 | FK error در import | fixture را از دستور مستند و بکاپ ثابت صادر کنید؛ مدل‌های مرتبط/کاربران را حذف نکنید؛ transaction برمی‌گردد |
+| ثبت‌نام همهٔ نام‌های تازه را رد می‌کند؛ خطای NOT NULL در reduce_motion | برخی دیتابیس‌ها مایگریشن قدیمی 0011_user_reduce_motion را دارند. مایگریشن 0012_legacy_motion_default برای ستون باقی‌مانده مقدار پیش‌فرض False می‌گذارد؛ مقدار کاربران قبلی حفظ می‌شود. |
 | healthz=200 ولی ورود خطا | healthz فقط liveness است؛ اتصال Neon و schema را جدا بررسی کنید |
 | security.W004 | HSTS اولیه عمداً صفر است؛ پس از تأیید HTTPS مقدار ۳۶۰۰ بگذارید و سپس با تصمیم مالک افزایش دهید |
 

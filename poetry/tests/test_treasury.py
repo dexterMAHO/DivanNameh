@@ -201,10 +201,39 @@ class TreasuryPageTests(TestCase):
     def test_missing_book_is_not_found(self):
         self.assertEqual(self.client.get('/treasury/unknown/').status_code, 404)
 
-    def test_public_treasury_keeps_unselected_works_behind_login(self):
+    def test_guest_can_browse_all_treasury_profiles_sections_and_works(self):
         self.client.logout()
-        self.assertEqual(self.client.get('/treasury/').status_code, 200)
-        self.assertEqual(self.client.get('/treasury/hafez/poem-1/').status_code, 302)
+        index = self.client.get('/treasury/')
+        self.assertContains(index, 'حافظ')
+        self.assertContains(index, 'سعدی')
+        self.assertContains(index, 'id="treasury-search"')
+        self.assertNotContains(index, 'id="showcase"')
+        for path in ('/treasury/hafez/', '/treasury/hafez/cat1/', '/treasury/hafez/poem-1/'):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 200)
+        work = self.client.get('/treasury/hafez/poem-1/')
+        self.assertContains(work, 'مصرع نخست')
+        self.assertContains(work, 'ورود برای ذخیره')
+        self.assertNotContains(work, 'id="treasury-selection"')
+
+    def test_guest_can_search_and_filter_all_treasury(self):
+        self.client.logout()
+        filtered = self.client.get('/treasury/', {'q': 'سعدی'})
+        self.assertContains(filtered, 'سعدی')
+        self.assertNotContains(filtered, '<span class="poet-name">حافظ</span>')
+        search = self.client.get('/treasury/works/', {'q': 'مصرع نخست'})
+        self.assertContains(search, 'غزل ۱')
+        self.assertContains(search, self.ghazal.get_absolute_url())
+
+    def test_guest_cannot_save_favorite_or_memorize_treasury(self):
+        self.client.logout()
+        for action in ('library-all', 'favorite:1', 'memorize'):
+            with self.subTest(action=action):
+                response = self.client.post('/treasury/hafez/poem-1/save/', {'action': action}, HTTP_ACCEPT='application/json')
+                self.assertEqual(response.status_code, 401)
+        self.assertFalse(Poem.objects.exists())
+        self.assertFalse(FavoriteVerse.objects.exists())
+        self.assertFalse(MemorizationItem.objects.exists())
 
 
 class TreasuryModelTests(TestCase):

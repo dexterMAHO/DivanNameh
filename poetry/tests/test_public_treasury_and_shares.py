@@ -58,8 +58,10 @@ class PublicTreasuryShareTests(TestCase):
         self.assertEqual(Poem.objects.filter(owner=self.sender).count(), 0)
 
     def test_public_filters_and_whole_poem_reuse(self):
-        page = self.client.get(reverse('treasury'), {'poet': 'saadi', 'topic': 'separation'})
-        self.assertTrue(all(pick.entry.book.slug == 'saadi' for pick, _ in page.context['picks']))
+        page = self.client.get(reverse('treasury'), {'q': 'سعدی'})
+        self.assertTrue(page.context['page'])
+        self.assertTrue(all(book.slug == 'saadi' for book in page.context['page']))
+        self.assertNotContains(page, 'id="showcase"')
         self.assertNotContains(page, 'name="public_turn"')
         explore = self.client.get(reverse('explore'))
         self.assertContains(explore, 'name="public_poet"')

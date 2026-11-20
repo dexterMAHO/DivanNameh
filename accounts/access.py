@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import secrets
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -15,6 +16,8 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from .forms import UsernameAccessForm
 from .models import User
+
+logger = logging.getLogger(__name__)
 
 
 def digest(token):
@@ -75,10 +78,18 @@ def username_access(request, signup=False):
                 try:
                     with transaction.atomic():
                         user = User.objects.create(username=username, password=make_password(None))
+                except IntegrityError as error:
+                    if User.objects.filter(username=username).exists():
+                        form.add_error('username', 'این نام کاربری قبلاً ثبت شده است؛ از گزینهٔ ورود به حساب استفاده کنید یا نام دیگری انتخاب کنید.')
+                    else:
+                        diagnostic = getattr(error.__cause__, 'diag', None)
+                        logger.error('Account creation integrity failure: constraint=%s column=%s',
+                                     getattr(diagnostic, 'constraint_name', None),
+                                     getattr(diagnostic, 'column_name', None))
+                        form.add_error(None, 'ساخت حساب به دلیل مشکل ذخیره‌سازی انجام نشد. لطفاً کمی بعد دوباره تلاش کنید.')
+                else:
                     login(request, user)
                     return redirect(target or 'dashboard')
-                except IntegrityError:
-                    form.add_error('username', 'این نام کاربری در دسترس نیست.')
             else:
                 user = readers().filter(username=username).first()
                 if user is not None:

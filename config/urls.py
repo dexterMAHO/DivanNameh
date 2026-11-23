@@ -3,13 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.urls import path
 from django.views.generic import TemplateView
 from accounts import access, views as a
-from . import guide
+from . import guide, seo
 from .health import health
 from poetry import share_views, editorial_views, collection_views, library_views, treasury_views, views as p
 from poetry import explore_views
 from memorization import views as m
 
 urlpatterns = [
+    path('robots.txt', seo.robots),
+    path('sitemap.xml', seo.sitemap),
+    path('sitemap/<slug:section>.xml', seo.sitemap),
     path("healthz/", health, name="health"),
     path('guide/', guide.index, name='guide'),
     path('guide/<slug:slug>/', guide.lesson_detail, name='guide-lesson'),

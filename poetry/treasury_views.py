@@ -162,7 +162,21 @@ def book_detail(request, slug, key=None):
                 links.append((link, here, other, row, verse_url(other.entry, position)))
     origin = request.GET.get('from', '')
     treasury_back = origin if origin.startswith(reverse('treasury-works')) and url_has_allowed_host_and_scheme(origin, allowed_hosts=set()) else ''
+    import json
+    from config.seo import ORIGIN
+    title = f'{current.title} — {book.author}' if current else f'اشعار {book.author}'
+    opening = ' '.join(rows[0]) if rows else ''
+    if current and opening:
+        title = f'{opening[:85]} — {title}'
+    description = (f'{title}؛ {opening}. متن کامل و مطالعهٔ اشعار در گنجینهٔ فارسی دیوان نامه.')[:170]
+    structured = {'@context': 'https://schema.org', '@type': 'CreativeWork' if current else 'CollectionPage',
+                  'name': title, 'inLanguage': 'fa', 'url': ORIGIN + (current.get_absolute_url() if current else book.get_absolute_url()),
+                  'author': {'@type': 'Person', 'name': book.author}, 'description': description}
+    structured_json = json.dumps(structured, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
     return render(request, 'poetry/treasury_book.html', {
+        'seo_indexable': book.publishes_text and not request.GET.get('q'),
+        'related_works': TreasuryEntry.objects.filter(book=book, kind='work').exclude(pk=current.pk).select_related('book').defer('paragraphs', 'search_body').order_by('position', 'pk')[:6] if current and current.kind == 'work' else [],
+        'seo_title': title, 'seo_description': description, 'seo_structured': structured_json,
         'treasury_back': treasury_back, 'entry_has_text': bool(current and book.publishes_text and current.paragraphs),
         'book': book, 'entry': current, 'ancestors': reversed(ancestors),
         'sections': sections, 'groups': groups, 'work_count': count, 'page': page,

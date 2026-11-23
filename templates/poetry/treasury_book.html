@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% load persian static %}
 {% block scripts %}{% if book.publishes_text and entry.paragraphs %}<script type="module" src="{% static 'js/poem-copy.js' %}"></script>{% endif %}{% endblock %}
-{% block title %}{% if entry %}{{ entry.title }}{% else %}{{ book.author }}{% endif %} · گنجینهٔ فارسی{% endblock %}
+{% block title %}{{ seo_title }}{% endblock %}
+{% block social_title %}{{ seo_title }} : دیوان نامه{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{{ seo_structured|safe }}</script>{% endblock %}
 {% block content %}
 {% if entry.kind == "work" %}<div class="treasury-work">{% endif %}
 <nav class="breadcrumb treasury-breadcrumb" aria-label="مسیر گنجینه">
@@ -215,4 +217,5 @@
   {% endif %}
 </div>
 {% if entry.kind == "work" %}</div>{% endif %}
+{% if related_works %}<nav class="panel" aria-label="اشعار دیگر این شاعر"><h2>اشعار دیگر {{ book.author }}</h2><ul>{% for work in related_works %}<li><a href="{{ work.get_absolute_url }}">{{ work.title }}</a></li>{% endfor %}</ul><a href="{{ book.get_absolute_url }}">همهٔ اشعار {{ book.author }}</a></nav>{% endif %}
 {% endblock %}

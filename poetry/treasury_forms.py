@@ -18,18 +18,18 @@ CLASSICAL_TITLE = re.compile(r'^(?:غزل|رباعی|مثنوی|قصیده|قط�
 
 
 def normalize_label(title):
-    return unicodedata.normalize('NFKC', title).translate(
+    return ' '.join(unicodedata.normalize('NFKC', title).translate(
         str.maketrans('كي‌', 'کی ')
-    )
+    ).split())
 
 
 def is_line_poem(slug, key, title, sections):
     if CLASSICAL_TITLE.match(normalize_label(title)):
         return False
-    if slug == 'nima-ivshij':
-        return key in NIMA_LINE_WORKS
     return (
         slug == 'shrab-sphri'
+        or (slug == 'nima-ivshij' and key in NIMA_LINE_WORKS)
+        or bool(LINE_SECTION.search(normalize_label(title)))
         or any(section_key in LINE_COLLECTIONS.get(slug, ())
                or LINE_SECTION.search(normalize_label(section_title))
                for section_key, section_title in sections)

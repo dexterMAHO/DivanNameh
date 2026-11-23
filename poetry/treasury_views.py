@@ -16,7 +16,7 @@ from accounts.permissions import action_password_error
 from memorization.models import MemorizationItem
 from memorization.services.reviews import get_due_items
 
-from .treasury_forms import CLASSICAL_TITLE, LINE_COLLECTIONS, LINE_SECTION, NIMA_LINE_WORKS, is_line_poem
+from .treasury_forms import CLASSICAL_TITLE, LINE_COLLECTIONS, LINE_SECTION, NIMA_LINE_WORKS, is_line_poem, normalize_label
 from .http import failure, private, success
 from .models import FavoriteVerse, Poem, TreasuryBook, TreasuryEntry, TreasuryVerseLink, Verse
 from .services.editorial import public_picks, quote_row, verse_url
@@ -212,7 +212,8 @@ def reading_rows(entry, book, parents):
 def line_work_query():
     """Identify modern collections before sampling; verify actual layout afterward."""
     sections = TreasuryEntry.objects.filter(kind='section')
-    roots = Q(title__regex=LINE_SECTION.pattern)
+    pattern = LINE_SECTION.pattern.replace(' ', r'[\s‌]+').replace('ی', '[یي]').replace('ک', '[کك]')
+    roots = Q(title__regex=pattern)
     for slug, keys in LINE_COLLECTIONS.items():
         roots |= Q(book__slug=slug, key__in=keys)
     section_ids = set(sections.filter(roots).values_list('pk', flat=True))
@@ -220,7 +221,7 @@ def line_work_query():
     while frontier:
         frontier = set(sections.filter(parent_id__in=frontier).values_list('pk', flat=True)) - section_ids
         section_ids.update(frontier)
-    line = Q(book__slug='shrab-sphri') | Q(book__slug='nima-ivshij', key__in=NIMA_LINE_WORKS)
+    line = Q(title__regex=pattern) | Q(book__slug='shrab-sphri') | Q(book__slug='nima-ivshij', key__in=NIMA_LINE_WORKS)
     if section_ids:
         line |= Q(parent_id__in=section_ids)
     # Nima's classical works are explicitly excluded by is_line_poem.

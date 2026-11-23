@@ -25,10 +25,10 @@
     <h2>{{ item.poem.display_title }}</h2>
     {% if mode == 'blanks' %}
       <p class="muted">واژه‌های جاافتاده را به یاد بیاورید و پاسخ را باز کنید.</p>
-      <p class="cue">{% for word, hidden in blanks %}{% if hidden %}<span aria-label="واژهٔ جاافتاده">ـــــ</span>{% else %}{{ word }}{% endif %} {% endfor %}</p>
+      <p class="cue{% if item.poem.line_layout %} modern-text{% endif %}">{% for word, hidden in blanks %}{% if hidden %}<span aria-label="واژهٔ جاافتاده">ـــــ</span>{% else %}{{ word }}{% endif %} {% endfor %}</p>
     {% else %}
       <p class="muted">از این سطر شروع کنید و ادامه را از حفظ بخوانید.</p>
-      <p class="cue">{{ cue }}</p>
+      <p class="cue{% if item.poem.line_layout %} modern-text{% endif %}">{{ cue }}</p>
       <p class="fine review-encouragement">پیش از دیدن پاسخ، یک بار بیت را در ذهن کامل کنید.</p>
     {% endif %}
     {% if mode == 'blanks' %}

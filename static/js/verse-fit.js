@@ -1,6 +1,6 @@
 // A hemistich is never shown on two lines: measure every poetry line and shrink
 // its verse until the longest one fits the column it sits in.
-const BLOCKS = '.verse:not(.verse-line), .cue, .poem-line';
+const BLOCKS = '.verse:not(.verse-line), .cue:not(.modern-text), .poem-line:not(.modern-text)';
 const MINIMUM = 9;
 const main = document.getElementById('main');
 let scheduled = false;

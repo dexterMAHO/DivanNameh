@@ -60,18 +60,18 @@
     {% csrf_token %}
   {% endif %}
   {% if rows %}<button type="button" class="text-button resume-reading" hidden>ادامه از آخرین جای خواندن</button>{% endif %}
-  <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem{% endif %}" aria-label="متن اثر" data-reading-key="{{ user.pk }}-treasury-{{ book.slug }}-{{ entry.key }}-{{ book.dataset_digest }}" data-copy-credit="{{ entry.title }} · {{ book.author }}{% if entry.source_url %} · {{ entry.source_url }}{% endif %}">
+  <article class="reading-sheet treasury-text{% if line_layout %} treasury-line-poem prose-reading{% endif %}" aria-label="متن اثر" data-reading-key="{{ user.pk }}-treasury-{{ book.slug }}-{{ entry.key }}-{{ book.dataset_digest }}" data-copy-credit="{{ entry.title }} · {{ book.author }}{% if entry.source_url %} · {{ entry.source_url }}{% endif %}">
+    {% if line_layout %}<header class="prose-reading-heading"><span class="eyebrow">خوانش آزاد</span><h2>{{ entry.title }}</h2><p>از {{ book.author }}</p><p class="fine">بخش‌های دلخواه متن را با نشانک انتخاب کنید؛ سپس کپی، ذخیره یا به فهرست حفظ اضافه کنید.</p></header>{% endif %}
     {% if rows %}
       {% for first, second in rows %}
       <div class="treasury-stanza" id="verse-{{ forloop.counter }}">
-        {% include 'components/verse_text.html' with position=forloop.counter %}
-        {% if user.is_authenticated %}
+        {% include 'components/verse_text.html' with position=forloop.counter line_layout=line_layout %}
         <div class="treasury-verse-actions">
           <label class="treasury-bookmark icon-button" title="انتخاب برای گزیده">
             <input class="visually-hidden" type="checkbox" name="verse" value="{{ forloop.counter }}" aria-label="انتخاب {% if line_layout %}سطر{% else %}بیت{% endif %} {{ forloop.counter|persian }} برای گزیده">
             {% include 'components/icon.html' with name='bookmark' %}
           </label>
-          <button type="submit" formnovalidate class="icon-button treasury-favorite" name="action"
+          {% if user.is_authenticated %}<button type="submit" formnovalidate class="icon-button treasury-favorite" name="action"
             value="{% if forloop.counter in saved_positions %}unfavorite{% else %}favorite{% endif %}:{{ forloop.counter }}"
             aria-pressed="{% if forloop.counter in saved_positions %}true{% else %}false{% endif %}"
             aria-label="شاه‌بیت {{ forloop.counter|persian }}" title="شاه‌بیت">
@@ -79,8 +79,8 @@
           </button>
           <span role="status" class="inline-status treasury-favorite-status"></span>
           {% if pick %}<a class="text-button" href="{% url 'share-treasury' book.slug entry.key %}?verse={{ forloop.counter }}">اشتراک این بیت</a>{% endif %}
+          {% endif %}
         </div>
-        {% endif %}
       </div>
       {% endfor %}
     {% else %}
@@ -95,7 +95,7 @@
       <div class="actions">
         <button type="button" id="clear-selection" hidden>پاک‌کردن انتخاب</button>
         <button name="action" value="library-all">ذخیرهٔ کل اثر</button>
-        {% if pick %}<a class="button" href="{% url 'share-treasury' book.slug entry.key %}">اشتراک شعر یا گزیده</a>{% else %}<button name="action" value="library">ذخیرهٔ گزیده</button>{% endif %}
+        {% if pick %}<a class="button" href="{% url 'share-treasury' book.slug entry.key %}">اشتراک شعر یا گزیده</a>{% endif %}<button name="action" value="library">ذخیرهٔ گزیده</button>
       </div>
       {% include 'components/action_password.html' with operation_optional=True %}
       <button name="action" value="memorize">حفظ گزیده یا کل اثر</button>
@@ -120,11 +120,7 @@
       {% if pick %}<a class="button" href="{% url 'share-treasury' book.slug entry.key %}">پیوند شعر کامل</a>{% endif %}
     </div>
   {% endif %}
-  {% if user.is_authenticated %}
-    {% include 'poetry/copy_tools.html' with has_selection=rows %}
-  {% else %}
-    {% include 'poetry/copy_tools.html' %}
-  {% endif %}
+  {% include 'poetry/copy_tools.html' with has_selection=rows %}
   {% if pick and entry.source_url %}<p class="source-note"><a href="{{ entry.source_url }}" rel="nofollow noopener">منبع متن کامل · گنجور</a></p>{% endif %}
   {% if literary_collections %}
   <section class="panel"><h2>یک مضمون، چند صدا</h2>

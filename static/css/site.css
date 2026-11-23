@@ -2099,3 +2099,16 @@ input[type=file]::file-selector-button {
   .discovery-result-footer { margin-block: var(--space-3); padding-block-start: var(--space-3); }
   .discovery-result-footer .primary { order: -1; }
 }
+
+/* Free verse follows a continuous reading column rather than paired hemistichs. */
+.prose-reading { max-inline-size: 48rem; margin-inline: auto; padding: clamp(1rem, 4vw, 3rem); border-block-start: 4px solid var(--color-primary); background: radial-gradient(ellipse at top right, var(--color-primary-soft), transparent 60%), var(--color-surface); }
+.prose-reading-heading { border-block-end: 1px solid var(--color-border); padding-block-end: var(--space-5); margin-block-end: var(--space-5); }
+.prose-reading-heading h2 { margin-block: var(--space-2); }
+.prose-reading .treasury-stanza { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: start; border-radius: var(--radius-card); padding-block: var(--space-2); }
+.prose-reading .verse-line { display: block; padding: .25rem 1.75rem .25rem .25rem; font-size: var(--text-poem); }
+.verse-line .hemistich { white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; overflow: visible; text-align: start; }
+.prose-reading .verse-line .hemistich { border: 0; padding: 0; line-height: 2.1; }
+.prose-reading .treasury-verse-actions { gap: .25rem; max-inline-size: 5.75rem; opacity: .75; }
+.prose-reading .treasury-stanza:is(:hover, :focus-within) { background: var(--color-primary-soft); }
+.prose-reading .treasury-stanza:has(input:checked) { box-shadow: inset -3px 0 var(--color-primary); }
+@media (max-width: 640px) { .prose-reading .verse-line { font-size: 1.15rem; } .prose-reading .treasury-verse-actions { max-inline-size: 2.75rem; } }

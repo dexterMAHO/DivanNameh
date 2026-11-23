@@ -32,3 +32,6 @@ class ModernReadingTests(TestCase):
         self.assertTrue(response.context['line_layout'])
         self.assertEqual(response.context['rows'], [('سطر اول', ''), ('سطر دوم', ''), ('سطر سوم', '')])
         self.assertContains(response, 'verse-line', count=3)
+        self.assertContains(response, 'prose-reading')
+        self.assertContains(response, 'name="verse"', count=3)
+        self.assertContains(response, 'id="copy-selected"')
